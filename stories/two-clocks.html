@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>The Two Clocks — Heights-Ravenna | Nvirogear</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#0a0e17;color:#e0e6ed}
+#map-container{position:fixed;top:0;left:0;width:100%;height:50vh;z-index:1}
+#map{width:100%;height:100%}
+#story-scroll{position:relative;z-index:2;margin-top:50vh;padding:0;background:#0a0e17}
+.story-header{background:linear-gradient(180deg,rgba(10,14,23,0) 0%,#0a0e17 30%,#0d1220 100%);padding:50px 20px 36px;text-align:center}
+.story-header .brand{font-size:10px;letter-spacing:3px;color:#5a9fd4;text-transform:uppercase;margin-bottom:10px}
+.story-header h1{font-size:26px;color:#fff;margin-bottom:6px;font-weight:700}
+.story-header .subtitle{font-size:14px;color:#e85d5d;margin-bottom:4px;font-weight:600}
+.story-header .addr{font-size:13px;color:#8ec5e8;margin-bottom:4px}
+.story-header .divider{width:50px;height:3px;background:#e85d5d;margin:16px auto;border-radius:2px}
+#map-legend{position:absolute;bottom:10px;left:10px;z-index:1000;background:#0a0e17e0;backdrop-filter:blur(8px);border-radius:10px;padding:10px 12px;font-size:11px;border:1px solid #1e2a42;max-width:200px}
+#map-legend .legend-title{font-size:9px;text-transform:uppercase;letter-spacing:1px;color:#5a7090;margin-bottom:6px;font-weight:600}
+.legend-row{display:flex;align-items:center;gap:6px;padding:2px 0;color:#c8d0da}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.legend-dot.ring{border:2px dashed #666;background:transparent}
+.legend-dot.square{border-radius:2px}
+.story-section{padding:40px 20px;border-bottom:1px solid #1a2030;opacity:0.4;transition:opacity 0.6s}
+.story-section.active{opacity:1}
+.story-section h2{font-size:20px;color:#1a8fe3;margin-bottom:16px;font-weight:600}
+.story-section h2.exp{color:#e85d5d}
+.story-section h2.know{color:#5a9fd4}
+.story-section p{font-size:15px;line-height:1.65;color:#c8d0da;margin-bottom:14px}
+.story-section .lead{font-size:17px;line-height:1.5;color:#e8edf3;margin-bottom:20px;font-weight:500}
+.callout{background:#11152280;border-left:3px solid #1a8fe3;padding:14px 16px;margin:16px 0;border-radius:0 8px 8px 0;font-size:13px;color:#a8b8c8}
+.callout.warning{border-left-color:#e8c85d}
+.callout.danger{border-left-color:#e85d5d}
+.callout.exp{border-left-color:#e85d5d}
+.callout.know{border-left-color:#5a9fd4}
+.callout strong{color:#e0e6ed}
+.evidence-tag{display:inline-block;font-size:9px;padding:2px 6px;border-radius:3px;font-weight:600}
+.ev-verified{background:#0d4a3a;color:#5de87d}
+.ev-doc{background:#1a3050;color:#5a9fd4}
+.dual-track{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0}
+.track-col{padding:0}
+.track-header{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;padding:8px 12px;border-radius:6px;margin-bottom:8px;text-align:center}
+.track-header.exp{background:#e85d5d20;color:#e85d5d}
+.track-header.know{background:#5a9fd420;color:#5a9fd4}
+.track-event{padding:10px 12px;margin-bottom:8px;border-radius:8px;font-size:13px}
+.track-event.exp{background:#e85d5d08;border-left:3px solid #e85d5d}
+.track-event.know{background:#5a9fd408;border-left:3px solid #5a9fd4}
+.track-event .year{font-size:15px;font-weight:700;margin-bottom:2px}
+.track-event.exp .year{color:#e85d5d}
+.track-event.know .year{color:#5a9fd4}
+.track-event .text{font-size:12px;color:#a8b8c8;line-height:1.5}
+@media(max-width:600px){.dual-track{grid-template-columns:1fr}}
+.gap-box{background:#e8c85d08;border:1px solid #e8c85d30;border-radius:12px;padding:20px;margin:20px 0}
+.gap-box .gap-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #e8c85d15}
+.gap-box .gap-row:last-child{border-bottom:none}
+.gap-box .gap-label{font-size:13px;color:#a8b8c8}
+.gap-box .gap-delta{font-size:22px;font-weight:800;color:#e85d5d}
+#podcast-bar{position:fixed;bottom:0;left:0;width:100%;z-index:5000;background:#0d1220f0;backdrop-filter:blur(12px);border-top:1px solid #e85d5d;padding:10px 14px;display:flex;align-items:center;gap:10px}
+.play-btn{width:46px;height:46px;border-radius:50%;border:none;background:#e85d5d;color:#fff;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 12px rgba(232,93,93,0.5)}
+.play-btn:active{transform:scale(0.92)}
+.podcast-info{flex:1;min-width:0}
+.podcast-title{font-size:13px;color:#fff;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.podcast-segment{font-size:10px;color:#7a8a9a;margin-top:1px}
+.podcast-controls{display:flex;gap:4px;flex-shrink:0}
+.ctrl-btn{width:34px;height:34px;border-radius:8px;border:1px solid #1e2a42;background:#111522;color:#8ec5e8;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.ctrl-btn:active{background:#1a2538}
+.speed-btn{font-size:10px;font-weight:600;padding:0 8px;width:auto}
+.progress-track{position:fixed;bottom:66px;left:0;width:100%;height:3px;background:#1a2030;z-index:4999}
+.progress-fill{height:100%;background:linear-gradient(90deg,#e85d5d,#e8c85d);width:0%;transition:width 0.3s}
+#share-btn{position:fixed;top:10px;left:10px;z-index:5001;background:#e85d5d;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 2px 10px rgba(0,0,0,0.4)}
+#share-btn:active{transform:scale(0.95)}
+#copy-toast{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#e85d5d;color:#fff;padding:16px 24px;border-radius:10px;font-size:14px;z-index:6000;display:none;box-shadow:0 4px 20px rgba(0,0,0,0.6)}
+.brand-footer{padding:28px 20px;text-align:center;background:#080b12;border-top:1px solid #1a2030}
+.brand-footer .logo{font-size:13px;color:#5a9fd4;font-weight:600;margin-bottom:6px}
+.brand-footer .tagline{font-size:11px;color:#e8c85d;font-style:italic;margin-bottom:6px}
+.brand-footer .disclaimer{font-size:10px;color:#4a5a6a;line-height:1.5;max-width:400px;margin:8px auto}
+.brand-footer .hash{font-size:9px;color:#3a4a5a;font-family:monospace;word-break:break-all}
+@media(max-width:400px){#map-container{height:42vh}#story-scroll{margin-top:42vh}.story-section{padding:32px 16px}#map-legend{font-size:10px;max-width:170px;padding:8px}}
+</style>
+</head>
+<body>
+
+<div id="map-container">
+<div id="map"></div>
+<div id="map-legend">
+<div class="legend-title">Map Legend</div>
+<div class="legend-row"><span class="legend-dot square" style="background:#e85d5d"></span> 3523 source (contaminated)</div>
+<div class="legend-row"><span class="legend-dot square" style="background:#e8c85d"></span> Nearby resident parcel</div>
+<div class="legend-row"><span class="legend-dot" style="background:#1a8fe3"></span> Corridor parcels</div>
+<div class="legend-row"><span class="legend-dot" style="background:#e85d5d"></span> Part 201 site</div>
+<div class="legend-row"><span class="legend-dot ring"></span> Distance rings (mi)</div>
+</div>
+</div>
+
+<div id="progress-track"><div id="progress-fill" class="progress-fill"></div></div>
+
+<button id="share-btn" onclick="sharePage()">&#128279; Share</button>
+<div id="copy-toast">Link copied!</div>
+
+<div id="story-scroll">
+<div class="story-header">
+<div class="brand">Companion to The Corridor</div>
+<h1>The Two Clocks</h1>
+<div class="subtitle">Exposure Clock vs. Knowledge Clock</div>
+<div class="addr">Heights-Ravenna Road — Muskegon County, MI</div>
+<div class="divider"></div>
+<p style="font-size:12px;color:#7a8a9a;max-width:400px;margin:0 auto">Every entry sourced to public record. No causal claims. Tap play to listen.</p>
+</div>
+
+<div class="story-section" id="sec-0">
+<h2>Two Clocks Running</h2>
+<p class="lead">One clock tracks when the chemicals arrived. The other tracks when anyone was allowed to know what they do.</p>
+<p>The gap between these two clocks is measured in decades. The people who live on Heights-Ravenna Road were never told what was in the ground beneath their homes. This is the timeline — documented, sourced, and preserved.</p>
+<div class="callout danger"><strong>Doctrine:</strong> No causal claims. No before/after disease comparison. The absence of a baseline IS the finding.</div>
+</div>
+
+<div class="story-section" id="sec-1">
+<h2 class="exp">1947 — The Chemical Arrives</h2>
+<p class="lead">3M begins commercial PFOA production. The Exposure Clock starts.</p>
+<div class="dual-track">
+<div class="track-col">
+<div class="track-header exp">Exposure Clock</div>
+<div class="track-event exp"><div class="year">1947</div><div class="text">3M begins PFOA production via electrochemical fluorination</div></div>
+<div class="track-event exp"><div class="year">1951</div><div class="text">3M sells PFOA to DuPont for Teflon</div></div>
+<div class="track-event exp"><div class="year">1953</div><div class="text">Scotchgard marketed. PFAS enters fabric treatment, dry cleaning, laundry</div></div>
+<div class="track-event exp"><div class="year">1966</div><div class="text">AFFF firefighting foam adopted by military/airports</div></div>
+</div>
+<div class="track-col">
+<div class="track-header know">Knowledge Clock</div>
+<div class="track-event know"><div class="year">—</div><div class="text">No public knowledge. No monitoring. No regulation.</div></div>
+</div>
+</div>
+<p><span class="evidence-tag ev-doc">DOCUMENTED</span> Source: EPA, 3M court records, ATSDR</p>
+</div>
+
+<div class="story-section" id="sec-2">
+<h2 class="exp">1981 — The Laundromat</h2>
+<p class="lead">A commercial laundromat opens at 3523 Heights-Ravenna Road. It will run for 24 years.</p>
+<div class="callout exp">
+<strong>Site:</strong> 3523 Heights-Ravenna Rd<br>
+<strong>Operated:</strong> ~1981 to ~2005<br>
+<strong>Discharge:</strong> Wastewater to groundwater infiltration lagoon<br>
+<strong>PFOS found:</strong> 221 ppt (14x the 16 ppt drinking water standard)<br>
+<strong>EGLE Site ID:</strong> 61000823<br>
+<strong>Risk:</strong> Risks Present and Immediate
+</div>
+<p>For 24 years, this laundromat operates. Families live across the street. The Exposure Clock ticks.</p>
+<p><span class="evidence-tag ev-verified">VERIFIED</span> Source: EGLE Part 201 + BEA Records</p>
+</div>
+
+<div class="story-section" id="sec-3">
+<h2 class="know">1984 — The Cancer Registry</h2>
+<p class="lead">Michigan establishes its first systematic cancer tracking. 37 years after PFAS entered commerce.</p>
+<div class="callout know"><strong>Act 82 of 1984</strong> — effective July 1, 1984 (MCL 333.2619). Michigan's cancer registry begins. But it records where cancer happens, not what caused it. And it does not cover the decades before 1984.</div>
+<p>For residents of Heights-Ravenna Road, there is no baseline. No one was counting before 1984.</p>
+<div class="callout warning"><strong>The absence of a baseline IS the finding.</strong> We are not claiming causation. We are documenting that no baseline existed against which to measure.</div>
+<p><span class="evidence-tag ev-verified">VERIFIED</span> Source: Michigan Legislature, MCL 333.2619</p>
+</div>
+
+<div class="story-section" id="sec-4">
+<h2 class="know">1961 — What They Knew</h2>
+<p class="lead">Internal industry animal studies showing PFAS toxicity begin. Not disclosed publicly for decades.</p>
+<div class="callout danger"><strong>Documented through court records:</strong> Internal industry studies showing PFAS health concerns date to the early 1960s. This information was established in litigation discovery — not voluntary disclosure. The manufacturers' Knowledge Clock started decades before the public's Knowledge Clock.</div>
+<p>The people on Heights-Ravenna Road did not have access to this information when they bought their homes, raised their children, or drank their water.</p>
+<p><span class="evidence-tag ev-doc">DOCUMENTED</span> Source: Court records, litigation discovery</p>
+</div>
+
+<div class="story-section" id="sec-5">
+<h2 class="know">2005-2013 — The C8 Science Panel</h2>
+<p class="lead">69,000 people studied. April 2012: probable link to kidney cancer, testicular cancer, thyroid disease confirmed.</p>
+<div class="callout know"><strong>C8 Science Panel (2005-2013):</strong> Epidemiological study of ~69,000 people exposed to PFOA through contaminated drinking water. April 2012: probable link published between PFOA exposure and six health conditions including kidney cancer, testicular cancer, and thyroid disease.</div>
+<p>65 years after PFAS entered commerce, the scientific proof arrives. For Heights-Ravenna residents, it arrives as news.</p>
+<p><span class="evidence-tag ev-verified">VERIFIED</span> Source: C8 Science Panel publications, EPA</p>
+</div>
+
+<div class="story-section" id="sec-6">
+<h2>The Gaps</h2>
+<p class="lead">The distance between the two clocks — measured in human lifetimes.</p>
+<div class="gap-box">
+<div class="gap-row"><span class="gap-label">PFAS enters commerce to Michigan cancer registry</span><span class="gap-delta">37 years</span></div>
+<div class="gap-row"><span class="gap-label">PFAS enters commerce to C8 health link proven</span><span class="gap-delta">65 years</span></div>
+<div class="gap-row"><span class="gap-label">PFAS enters commerce to MI drinking water standard</span><span class="gap-delta">73 years</span></div>
+</div>
+<div class="callout warning"><strong>During those gaps:</strong> People lived on Heights-Ravenna Road. They drank the water. They raised families. Nobody told them what was in the ground. Not the state. Not the county. Not the assessor. Not the realtor.</div>
+</div>
+
+<div class="story-section" id="sec-7">
+<h2 class="exp">2021 — The Building Goes Up</h2>
+<p class="lead">New construction at 3523. BEA filed same year. Contamination stays in the ground.</p>
+<div class="callout exp"><strong>2021:</strong> New building completed at 3523 Heights-Ravenna Rd. Same year: Baseline Environmental Assessment filed by H&A Property Investment Group LLC. The BEA shields the new owner from cleanup liability. The contamination stays. The building goes up above it.</div>
+<div class="callout danger"><strong>The neighbors were not notified.</strong> There is no legal requirement to notify them. That is not an oversight. That is the system working as designed.</div>
+<p><span class="evidence-tag ev-verified">VERIFIED</span> Source: EGLE BEA Records + Muskegon County GIS</p>
+</div>
+
+<div class="story-section" id="sec-8">
+<h2>The Doctrine</h2>
+<p class="lead">What we do not say. What we do say. Why the distinction matters.</p>
+<div class="callout danger"><strong>What we do NOT say:</strong> PFAS caused any specific person's illness. The laundromat is responsible for every health issue. Before/after disease comparison (no baseline exists).</div>
+<div class="callout"><strong>What we DO say:</strong> The timeline is documented. The contamination is confirmed. The residents were not notified. The tax code has an unused environmental adjustment mechanism. The evidence is hashed and anchored.</div>
+<div class="callout warning"><strong>The path forward:</strong> The Community Exposure Registry creates the dataset. The dataset justifies the study. The study forces accountability. Not accusation — documentation.</div>
+</div>
+
+<div class="brand-footer">
+<div class="logo">Nvirogear LLC</div>
+<div class="tagline">"Truth is more valuable than optimism."</div>
+<div class="disclaimer">This timeline aggregates public records and court findings. It does not constitute a health assessment, legal opinion, or causal claim. No determination of contamination is made for any specific parcel beyond the confirmed EGLE Part 201 site. All findings require independent verification.</div>
+<div class="hash" id="hash-ph">SHA-256: 516b639194d0a8ac636b9bf0f435fa26d5cf86b7401608aecef11314bc642c72</div>
+</div>
+</div>
+
+<div id="podcast-bar">
+<button class="play-btn" id="play-btn" onclick="togglePlay()">&#9658;</button>
+<div class="podcast-info">
+<div class="podcast-title" id="pod-title">Tap play to listen</div>
+<div class="podcast-segment" id="pod-segment">9 segments</div>
+</div>
+<div class="podcast-controls">
+<button class="ctrl-btn" onclick="skipSegment(-1)">&#9664;&#9664;</button>
+<button class="ctrl-btn" onclick="skipSegment(1)">&#9654;&#9654;</button>
+<button class="ctrl-btn speed-btn" id="speed-btn" onclick="cycleSpeed()">1x</button>
+</div>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+var SEGMENTS = [{"title": "Two Clocks", "text": "There are two clocks running on the Heights-Ravenna corridor. The first clock is the Exposure Clock \u2014 when the chemicals arrived. The second clock is the Knowledge Clock \u2014 when anyone was allowed to know what those chemicals do. The gap between these two clocks is measured in decades. And the people who live on this road were never told. This is the story of both clocks, told in parallel. Every entry is sourced to public record. No causal claims. Just the timeline.", "zoom": [43.190275, -86.17113], "zoom_level": 12}, {"title": "1947 \u2014 The Chemical Arrives", "text": "In 1947, 3M begins commercial production of PFOA using a process called electrochemical fluorination. This is the starting point of the Exposure Clock. Within four years, 3M is selling PFOA to DuPont for Teflon manufacturing. By 1953, Scotchgard hits the market \u2014 PFAS enters consumer fabric treatment, including dry cleaning and laundry applications. By 1966, PFOS-based firefighting foam is adopted by the U.S. military and airports. That foam is the source category behind the Muskegon County Airport contamination. PFAS is now everywhere \u2014 in tanneries, plating shops, paper mills, textile treatment, and laundromats across Michigan. The Exposure Clock is running. Nobody is measuring.", "zoom": [43.189978, -86.157124], "zoom_level": 15}, {"title": "1981 \u2014 The Laundromat", "text": "Around 1981, a commercial laundromat begins operating at 3523 Heights-Ravenna Road. It will run for approximately 24 years, closing around 2005. According to EGLE records, wastewater was discharged to a groundwater infiltration lagoon. PFAS chemicals \u2014 specifically PFOS at 221 parts per trillion \u2014 will eventually be found at this site. The Michigan drinking water standard for PFOS is 16 parts per trillion. That is 14 times the legal limit. For 24 years, this laundromat operates. Families live across the street. Children grow up nearby. The Exposure Clock ticks. Nobody tells them.", "zoom": [43.189978, -86.157124], "zoom_level": 16}, {"title": "1984 \u2014 The Cancer Registry", "text": "In 1984, Michigan establishes its cancer registry. Act 82 of 1984, effective July 1st. This is the state's first systematic attempt to track cancer cases by location. The Knowledge Clock has started \u2014 37 years after PFAS entered commercial production. But the cancer registry does not track environmental exposure. It records where cancer happens, not what caused it. And it does not cover the decades before 1984. For the residents of Heights-Ravenna Road, there is no baseline. No one was counting before 1984. The absence of a baseline is not evidence of safety. The absence of a baseline IS the finding.", "zoom": [43.190275, -86.17113], "zoom_level": 13}, {"title": "1961 \u2014 What They Knew", "text": "Here is what makes this harder. Internal industry animal studies showing PFAS toxicity begin as early as 1961. This is documented through later court records and litigation discovery. The manufacturers had internal data showing health concerns \u2014 but this information was not disclosed publicly for decades. The Knowledge Clock for the public starts much later than the Knowledge Clock for the manufacturers. This is not an accusation. This is a documented fact established in court proceedings. The people on Heights-Ravenna Road did not have access to this information when they bought their homes, raised their children, or drank their water.", "zoom": [43.189978, -86.157124], "zoom_level": 14}, {"title": "2005-2013 \u2014 The C8 Science Panel", "text": "In 2005, the C8 Science Panel begins its work \u2014 a massive epidemiological study of approximately 69,000 people exposed to PFOA through contaminated drinking water in West Virginia and Ohio. The study runs for eight years. In April 2012, the panel publishes its findings: a probable link between PFOA exposure and six specific health conditions, including kidney cancer, testicular cancer, and thyroid disease. This is the first major scientific confirmation of what industry animal studies had suggested decades earlier. The Knowledge Clock has caught up \u2014 65 years after PFAS entered commerce. But for the residents of Heights-Ravenna Road, this information arrives as news. Nobody connected it to their corridor.", "zoom": [43.190275, -86.17113], "zoom_level": 12}, {"title": "The Gaps", "text": "Let me state the gaps clearly. 37 years between PFAS entering commerce and Michigan having a cancer registry. 65 years between PFAS entering commerce and the C8 Science Panel proving the health link. 73 years between PFAS entering commerce and Michigan setting a drinking water standard for PFOS. During those gaps, people lived on Heights-Ravenna Road. They drank the water. They raised families. And nobody \u2014 not the state, not the county, not the assessor, not the realtor \u2014 told them what was in the ground. We are not claiming PFAS caused any specific illness. We are documenting the timeline. The timeline is the evidence.", "zoom": [43.190275, -86.17113], "zoom_level": 11}, {"title": "2021 \u2014 The Building Goes Up", "text": "In 2021, a new building is completed at 3523 Heights-Ravenna Road. The same year, H&A Property Investment Group files a Baseline Environmental Assessment. The BEA is a legal mechanism that allows a new owner to purchase contaminated property without inheriting cleanup liability \u2014 as long as they don't make the contamination worse. The contamination stays in the ground. The building goes up above it. The Exposure Clock and the Knowledge Clock meet here: the state knows the site is contaminated, the new owner knows, the BEA is on file. But the neighbors? They are not notified. There is no requirement to notify them. That is not an oversight. That is the system working as designed.", "zoom": [43.189978, -86.157124], "zoom_level": 16}, {"title": "The Doctrine", "text": "Here is what we do not say. We do not say PFAS caused any specific person's illness. We do not say the laundromat is responsible for every health issue on the corridor. We do not compare before and after disease rates \u2014 because there is no before. No baseline was ever established. Here is what we do say. The timeline is documented. The contamination is confirmed. The residents were not notified. The tax code has a mechanism for environmental adjustment that has never been used. The evidence has been preserved, hashed, and anchored so it cannot be silently deleted. The Community Exposure Registry is live \u2014 a voluntary, timestamped record of who lived where and when. The registry creates the dataset. The dataset justifies the study. The study forces accountability. This has been The Two Clocks. A documented timeline from Nvirogear. Truth is more valuable than optimism.", "zoom": [43.190275, -86.17113], "zoom_level": 12}];
+var GEO_DATA = {"type": "FeatureCollection", "features": [{"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.19224297917695, 43.19092017771599]}, "properties": {"addr": "2130 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.19019122011687, 43.190839700552225]}, "properties": {"addr": "2206 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.1898411657434, 43.19019569122781]}, "properties": {"addr": "2215 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.18961793285688, 43.19079021819088]}, "properties": {"addr": "2220 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.18948888930326, 43.19019149343462]}, "properties": {"addr": "2227 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.18913670906643, 43.19018689159309]}, "properties": {"addr": "2237 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.1888035748827, 43.19021828646005]}, "properties": {"addr": "2249 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.18846319548479, 43.190783142875745]}, "properties": {"addr": "2254 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.18809060809795, 43.19079442509243]}, "properties": {"addr": "2272 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.18797956275719, 43.19190832640913]}, "properties": {"addr": "2280 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.18751395500495, 43.190192588996005]}, "properties": {"addr": "2311 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.18696948932484, 43.19012458852433]}, "properties": {"addr": "2327 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.18698866605658, 43.192543861112036]}, "properties": {"addr": "2332 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.1862497287675, 43.192275081174124]}, "properties": {"addr": "2366 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.18534732646205, 43.191753226525144]}, "properties": {"addr": "2390 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.18504336496724, 43.19100660608978]}, "properties": {"addr": "2410 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.18463511841492, 43.19099142749533]}, "properties": {"addr": "2416 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.18476517502563, 43.1901357313133]}, "properties": {"addr": "2419 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.18430569577893, 43.19108850955361]}, "properties": {"addr": "2434 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.18426270762063, 43.19023742877833]}, "properties": {"addr": "2437 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.18395810552343, 43.19026090234274]}, "properties": {"addr": "2451 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.18394124771926, 43.19108692660926]}, "properties": {"addr": "2454 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.18362569805535, 43.191085693036754]}, "properties": {"addr": "2462 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.18356389973604, 43.18989051753115]}, "properties": {"addr": "2475 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.18335571214836, 43.1911001938906]}, "properties": {"addr": "2476 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.18294517211301, 43.19073768264198]}, "properties": {"addr": "2482 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.18314336740632, 43.190207397766265]}, "properties": {"addr": "2485 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.18244063167042, 43.189990541147914]}, "properties": {"addr": "2503 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.182021565567, 43.190853063832186]}, "properties": {"addr": "2514 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.18209369497012, 43.19011204841615]}, "properties": {"addr": "2523 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.18188226436777, 43.19058439080228]}, "properties": {"addr": "2528 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.18172461481312, 43.19000781082333]}, "properties": {"addr": "2535 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.18110373214535, 43.19011743510067]}, "properties": {"addr": "2545 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.18062261560006, 43.19080819599974]}, "properties": {"addr": "2550 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.1807386096074, 43.190116194518865]}, "properties": {"addr": "2555 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.18035300923081, 43.19007510251401]}, "properties": {"addr": "2589 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.18013631610046, 43.19015256088087]}, "properties": {"addr": "2607 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.17984038177039, 43.19014035873488]}, "properties": {"addr": "2609 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.17960501870397, 43.19074068220236]}, "properties": {"addr": "2624 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.17939720119698, 43.191688756162954]}, "properties": {"addr": "2636 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.1791636112911, 43.19099288860872]}, "properties": {"addr": "2646 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.17886459288519, 43.190026190526055]}, "properties": {"addr": "2651 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.17856522551664, 43.19102857666195]}, "properties": {"addr": "2658 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.17811295466358, 43.190782331135814]}, "properties": {"addr": "2682 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.1779978433065, 43.190123056566236]}, "properties": {"addr": "2689 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.17749820215515, 43.190250308089645]}, "properties": {"addr": "2709 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.17725123837043, 43.19084760691302]}, "properties": {"addr": "2716 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.17686577305157, 43.19106112996761]}, "properties": {"addr": "2736 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.17712881171747, 43.186716886690384]}, "properties": {"addr": "2741 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.17625408239371, 43.19098292335131]}, "properties": {"addr": "2756 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.17574366883682, 43.19080425616015]}, "properties": {"addr": "2768 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.17488097613725, 43.19070604104098]}, "properties": {"addr": "2804 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.17430424964174, 43.19070338914665]}, "properties": {"addr": "2834 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.17395547308234, 43.1833110060098]}, "properties": {"addr": "2875 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.17324318679987, 43.19065995126196]}, "properties": {"addr": "2882 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.17274752086973, 43.19011464909765]}, "properties": {"addr": "2901 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.17284558652985, 43.19071223386645]}, "properties": {"addr": "2902 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.17246576720267, 43.19065587183385]}, "properties": {"addr": "2904 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.17196656631707, 43.19079081966067]}, "properties": {"addr": "2912 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.17155244650667, 43.19080496595508]}, "properties": {"addr": "2930 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.17118306605552, 43.190786428459255]}, "properties": {"addr": "2960 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.17105959072731, 43.18977602636539]}, "properties": {"addr": "2963 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.17065789560208, 43.19023184802181]}, "properties": {"addr": "2973 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.17065041773802, 43.190799871770494]}, "properties": {"addr": "2974 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.16983555984251, 43.190641471776225]}, "properties": {"addr": "2998 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.16834194903453, 43.18840243670567]}, "properties": {"addr": "3031 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.16930341098748, 43.19066630748627]}, "properties": {"addr": "3032 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.16943566242398, 43.18990037563159]}, "properties": {"addr": "3035 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.1678910860887, 43.18987299041017]}, "properties": {"addr": "3041 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.16859763225479, 43.19070058534556]}, "properties": {"addr": "3052 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.16817810251341, 43.190672268641876]}, "properties": {"addr": "3074 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.16808652318407, 43.19021102282676]}, "properties": {"addr": "3091 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.16751080430092, 43.19067112966184]}, "properties": {"addr": "3110 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.1669472898016, 43.1899520220497]}, "properties": {"addr": "3117 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.16690540054114, 43.1906788055791]}, "properties": {"addr": "3120 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.16623859446709, 43.191143387357194]}, "properties": {"addr": "3130 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.16597595302257, 43.18992461838824]}, "properties": {"addr": "3143 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.16596491859988, 43.190937078216955]}, "properties": {"addr": "3162 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.16457276520329, 43.1899050658953]}, "properties": {"addr": "3239 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.1640727703543, 43.19113737697282]}, "properties": {"addr": "3258 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.16351012377282, 43.19086822009362]}, "properties": {"addr": "3278 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.1635246622817, 43.19013360311113]}, "properties": {"addr": "3279 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.1630887890275, 43.189979588317385]}, "properties": {"addr": "3291 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.16300684212952, 43.19090261783357]}, "properties": {"addr": "3296 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.16264031878897, 43.19012241919956]}, "properties": {"addr": "3315 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.16266281400259, 43.19087820817441]}, "properties": {"addr": "3316 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.16253159026554, 43.189833224569014]}, "properties": {"addr": "3325 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.16226889546765, 43.19090008003272]}, "properties": {"addr": "3326 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.16186890493123, 43.189956621145335]}, "properties": {"addr": "3333 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-86.1619193550523, 43.19122388331848], [-86.16193283091545, 43.190411488293016], [-86.16217842062382, 43.19041218741847], [-86.16216530246916, 43.19122479573645], [-86.1619193550523, 43.19122388331848]]]}, "properties": {"addr": "3336 HTS RAVENNA RD", "type": "dave", "color": "#e8c85d"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.1618027738697, 43.190952671668214]}, "properties": {"addr": "3352 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.16153533739592, 43.190897615799145]}, "properties": {"addr": "3360 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.1612899993258, 43.19089680780072]}, "properties": {"addr": "3366 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.16104493979114, 43.19089601366339]}, "properties": {"addr": "3376 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.16080022185538, 43.19089522700308]}, "properties": {"addr": "3386 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.1609882327758, 43.188845107776366]}, "properties": {"addr": "3387 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.1605491877188, 43.190894366145315]}, "properties": {"addr": "3396 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.16013285096066, 43.18841312254989]}, "properties": {"addr": "3419 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.15943538993903, 43.18848701867533]}, "properties": {"addr": "3431 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.15933432827866, 43.19007344936938]}, "properties": {"addr": "3441 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.15895431623773, 43.18981284558252]}, "properties": {"addr": "3461 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.1585874494909, 43.19015171454386]}, "properties": {"addr": "3477 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.15804084913073, 43.19008508149989]}, "properties": {"addr": "3491 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Polygon", "coordinates": [[[-86.15656962503373, 43.19030364576601], [-86.15661016256925, 43.18920510567925], [-86.15775384244135, 43.189209473738714], [-86.15771677434962, 43.19021448255115], [-86.15771337729817, 43.19030658629337], [-86.15693290623506, 43.190303606362576], [-86.15656962503373, 43.19030364576601]]]}, "properties": {"addr": "3523 HTS RAVENNA RD", "type": "source", "color": "#e85d5d"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.15573394079705, 43.1912487492957]}, "properties": {"addr": "3576 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.15492616650819, 43.1892106974523]}, "properties": {"addr": "3615 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.1535878617618, 43.187598776861066]}, "properties": {"addr": "3671 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.15393194131568, 43.19049759195046]}, "properties": {"addr": "3690 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.15255884358872, 43.19066252437933]}, "properties": {"addr": "3710 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.15252596489528, 43.18795869762849]}, "properties": {"addr": "3711 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.15218042905948, 43.19067370332898]}, "properties": {"addr": "3730 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.15178346615455, 43.19055837719167]}, "properties": {"addr": "3742 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.1514578326566, 43.187663234992364]}, "properties": {"addr": "3743 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.15149249590345, 43.18737654154518]}, "properties": {"addr": "3745 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.15144558372907, 43.19042146467006]}, "properties": {"addr": "3754 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.15078639058147, 43.19040906250323]}, "properties": {"addr": "3770 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.15057070480763, 43.189157909750996]}, "properties": {"addr": "3793 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.15043743766151, 43.19058091029754]}, "properties": {"addr": "3796 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.1499336095585, 43.18918621922258]}, "properties": {"addr": "3815 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.1491418881266, 43.18918037677588]}, "properties": {"addr": "3845 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}, {"type": "Feature", "geometry": {"type": "Point", "coordinates": [-86.14821472071448, 43.18917458030915]}, "properties": {"addr": "3881 HTS RAVENNA RD", "type": "parcel", "color": "#1a8fe3"}}]};
+var P201_DATA = [{"id": "61000823", "name": "3523 Heights-Ravenna Road, Muskegon", "type": "Waste Treatment and Disposal", "contam": "Per- and Polyfluoroalkyl Substances", "risk": "Risks Present and Immediate", "lat": 43.18906197, "lng": -86.15685291, "dist": 0.18, "bea": "YES"}, {"id": "61000065", "name": "Cloverville Pumphouse", "type": "", "contam": "Petroleum Volatile and Semi Volatile Org", "risk": "Risks Present and Require Action in Shor", "lat": 43.190014, "lng": -86.1657445, "dist": 0.3, "bea": "NO"}, {"id": "61000099", "name": "Marathon Pipeline - Mill Iron Rd", "type": "", "contam": "Petroleum Volatile and Semi Volatile Org", "risk": "Risks Present and Require Action in Shor", "lat": 43.198642, "lng": -86.155313, "dist": 0.65, "bea": "YES"}, {"id": "61000827", "name": "Devowe Street", "type": "", "contam": "Per- and Polyfluoroalkyl Substances", "risk": "Risks Controlled-Interim", "lat": 43.19922124, "lng": -86.169996, "dist": 0.83, "bea": "NO"}, {"id": "61000369", "name": "4343 South Brooks Road", "type": "", "contam": "", "risk": "Residential Closure (under Section 20101", "lat": 43.17265316, "lng": -86.14613278, "dist": 1.4, "bea": "NO"}, {"id": "61000047", "name": "SCA Independent Landfill", "type": "Landfill", "contam": "Elements/Metals/Other Inorganics, Petrol", "risk": "Risks Present and Require Action in Long", "lat": 43.20384965, "lng": -86.13830606, "dist": 1.5, "bea": "NO"}, {"id": "61000535", "name": "Egelcraft Investigation Area/Brooks Road & La", "type": "State or Local Government", "contam": "Per- and Polyfluoroalkyl Substances", "risk": "Risks Present and Immediate", "lat": 43.2154691, "lng": -86.14436567, "dist": 1.94, "bea": "YES"}, {"id": "61000056", "name": "Thermo-Chem, Inc", "type": "", "contam": "Chlorinated Volatile and Semi Volatile O", "risk": "Risks Present and Require Action in Shor", "lat": 43.21211909, "lng": -86.13704468, "dist": 1.95, "bea": "NO"}, {"id": "61000842", "name": "East Sherman Boulevard Vacant Land Across fro", "type": "Vacant", "contam": "Elements/Metals/Other Inorganics, Lead", "risk": "Risks Present and Require Action in Long", "lat": 43.20534813, "lng": -86.19092489, "dist": 1.95, "bea": "YES"}, {"id": "61000676", "name": "4438 East Evanston Avenue ", "type": "Commercial and Retail", "contam": "Elements/Metals/Other Inorganics, Lead", "risk": "Risks Present and Require Action in Long", "lat": 43.21308501, "lng": -86.13618757, "dist": 2.03, "bea": "YES"}, {"id": "61000807", "name": "3129 East Laketon Avenue", "type": "Oil and Gas Production and Tra", "contam": "Elements/Metals/Other Inorganics, Lead", "risk": "Risks Controlled-Interim", "lat": 43.21903715, "lng": -86.16677026, "dist": 2.04, "bea": "YES"}, {"id": "61000436", "name": "1931 East Broadway Avenue, Muskegon", "type": "Residential (Other)", "contam": "Elements/Metals/Other Inorganics", "risk": "Risks Controlled-Interim", "lat": 43.201146, "lng": -86.196711, "dist": 2.09, "bea": "NO"}, {"id": "61000775", "name": "East Evanston Avenue - vacant land ", "type": "Vacant", "contam": "Elements/Metals/Other Inorganics, Lead, ", "risk": "Risks Present and Require Action in Long", "lat": 43.21215876, "lng": -86.13273896, "dist": 2.1, "bea": "YES"}, {"id": "61000336", "name": "2909 East Laketon Avenue, Muskegon", "type": "Transportation", "contam": "Petroleum Volatile and Semi Volatile Org", "risk": "Inadequate Data to Assign Risk", "lat": 43.21927801, "lng": -86.17129613, "dist": 2.11, "bea": "NO"}, {"id": "61000591", "name": "1934 East Sherman Boulevard ", "type": "Manufacturing", "contam": "Elements/Metals/Other Inorganics, Lead, ", "risk": "Risks Present and Require Action in Long", "lat": 43.20645072, "lng": -86.19669835, "dist": 2.25, "bea": "YES"}, {"id": "61000025", "name": "Marathon Oil Company Laketon Avenue, Muskegon", "type": "", "contam": "Elements/Metals/Other Inorganics, Lead, ", "risk": "Risks Present and Require Action in Shor", "lat": 43.22174223, "lng": -86.17036483, "dist": 2.26, "bea": "YES"}, {"id": "61000605", "name": "2121 Latimer Drive, Muskegon", "type": "Manufacturing", "contam": "Elements/Metals/Other Inorganics", "risk": "Risks Present and Require Action in Long", "lat": 43.21366556, "lng": -86.19106132, "dist": 2.32, "bea": "YES"}, {"id": "61000798", "name": "2140 Latimer Drive, Muskegon", "type": "Foundry, Manufacturing", "contam": "Elements/Metals/Other Inorganics, Per- a", "risk": "Risks Present and Require Action in Long", "lat": 43.21463575, "lng": -86.19148245, "dist": 2.38, "bea": "YES"}, {"id": "61000538", "name": "2389 2303 East Laketon Avenue and 2288 Evanst", "type": "Residential Fuel", "contam": "Lead", "risk": "Risks Controlled-Interim", "lat": 43.2188296, "lng": -86.18573184, "dist": 2.41, "bea": "YES"}, {"id": "61000615", "name": "2281 Port City Boulevard, Muskegon", "type": "Manufacturing", "contam": "Chlorinated Volatile and Semi Volatile O", "risk": "Risks Controlled-Interim", "lat": 43.21364619, "lng": -86.19687282, "dist": 2.55, "bea": "YES"}, {"id": "61000683", "name": "4600 blk Airline Road ", "type": "Foundry", "contam": "Lead", "risk": "Risks Present and Require Action in Long", "lat": 43.1674546, "lng": -86.19859199, "dist": 2.57, "bea": "YES"}, {"id": "61000005", "name": "Bofors Nobel, Inc.", "type": "Chemical Production", "contam": "Carcinogenic PAHs, Chlorinated Volatile ", "risk": "Risks Present and Require Action in Shor", "lat": 43.20950727, "lng": -86.11841242, "dist": 2.58, "bea": "NO"}, {"id": "61000593", "name": "1981 Port City Boulevard, Muskegon", "type": "Metal Plating", "contam": "Elements/Metals/Other Inorganics", "risk": "Risks Controlled-Interim", "lat": 43.21643592, "lng": -86.19637127, "dist": 2.65, "bea": "YES"}, {"id": "61000156", "name": "Lomac, Inc.", "type": "", "contam": "Chlorinated Volatile and Semi Volatile O", "risk": "Contact Lead Division", "lat": 43.211733, "lng": -86.118577, "dist": 2.66, "bea": "YES"}, {"id": "61000590", "name": "Mills Manufacturing Site (Former)", "type": "Manufacturing", "contam": "", "risk": "Inadequate Data to Assign Risk", "lat": 43.21740275, "lng": -86.19518622, "dist": 2.66, "bea": "YES"}, {"id": "61000594", "name": "1985 East Laketon Avenue, Muskegon", "type": "Manufacturing", "contam": "Elements/Metals/Other Inorganics", "risk": "Risks Controlled-Interim", "lat": 43.2190087, "lng": -86.19515767, "dist": 2.73, "bea": "YES"}, {"id": "61000776", "name": "East Keating, Port City, East Laketon ", "type": "Foundry, Manufacturing", "contam": "Elements/Metals/Other Inorganics", "risk": "Risks Controlled-Interim", "lat": 43.21700091, "lng": -86.19761127, "dist": 2.73, "bea": "YES"}, {"id": "61000700", "name": "5621 Airline Road, Fruitport", "type": "Manufacturing", "contam": "Elements/Metals/Other Inorganics, Lead", "risk": "Inadequate Data to Assign Risk", "lat": 43.1497287, "lng": -86.1655187, "dist": 2.79, "bea": "YES"}, {"id": "61000698", "name": "5605 Airline Road, Fruitport", "type": "Manufacturing", "contam": "Elements/Metals/Other Inorganics", "risk": "Inadequate Data to Assign Risk", "lat": 43.14964689, "lng": -86.16557819, "dist": 2.8, "bea": "YES"}, {"id": "61000587", "name": "1885 East Laketon Avenue, Muskegon", "type": "Manufacturing", "contam": "Chlorinated Volatile and Semi Volatile O", "risk": "Risks Present and Require Action in Long", "lat": 43.21893639, "lng": -86.19741582, "dist": 2.81, "bea": "YES"}, {"id": "61000801", "name": "1940 East Laketon Avenue, Muskegon", "type": "Gas Station", "contam": "Petroleum Volatile and Semi Volatile Org", "risk": "Risks Present and Require Action in Long", "lat": 43.21995297, "lng": -86.19615984, "dist": 2.82, "bea": "YES"}, {"id": "61000368", "name": "1672 Carr Road (Compeau Residence)", "type": "Residential Fuel", "contam": "Carcinogenic PAHs, Petroleum Volatile an", "risk": "Risks Present and Require Action in Long", "lat": 43.222362, "lng": -86.126636, "dist": 2.85, "bea": "NO"}, {"id": "61000777", "name": "Former Railroad Corridor ", "type": "Transportation", "contam": "Elements/Metals/Other Inorganics, Mercur", "risk": "Risks Present and Require Action in Long", "lat": 43.22002251, "lng": -86.19727589, "dist": 2.86, "bea": "YES"}, {"id": "61000868", "name": "3827 Werner Street, Norton Shores", "type": "Agriculture", "contam": "Elements/Metals/Other Inorganics, Petrol", "risk": "Risks Present and Require Action in Long", "lat": 43.18440955, "lng": -86.21383085, "dist": 2.88, "bea": "YES"}, {"id": "61000608", "name": "2151 South Harvey Street, Muskegon", "type": "Manufacturing, Transportation", "contam": "Elements/Metals/Other Inorganics", "risk": "Risks Controlled-Interim", "lat": 43.21309552, "lng": -86.20654146, "dist": 2.94, "bea": "YES"}, {"id": "61000501", "name": "1239 East Broadway Avenue, Muskegon", "type": "Commercial and Retail", "contam": "Elements/Metals/Other Inorganics, Lead", "risk": "Inadequate Data to Assign Risk", "lat": 43.201244, "lng": -86.2143863, "dist": 2.99, "bea": "NO"}, {"id": "61000561", "name": "1214 East Broadway Avenue ", "type": "Auto Repair and Salvage, Gas S", "contam": "Elements/Metals/Other Inorganics, Lead, ", "risk": "Risks Present and Require Action in Long", "lat": 43.20160834, "lng": -86.21444174, "dist": 2.99, "bea": "YES"}];
+
+var map = L.map('map', {zoomControl:false, scrollWheelZoom:false}).setView([43.190275, -86.171130], 12);
+L.control.zoom({position:'topright'}).addTo(map);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  attribution: 'Esri', maxZoom:19
+}).addTo(map);
+
+var layers = {};
+
+layers.parcels = L.layerGroup();
+GEO_DATA.features.forEach(function(f) {
+  var p = f.properties;
+  if (f.geometry.type === 'Polygon') {
+    L.geoJSON(f, {style: {color:p.color, weight:p.type==='source'?4:3, fillColor:p.color, fillOpacity:p.type==='source'?0.3:0.2}})
+      .bindPopup(p.addr)
+      .addTo(layers.parcels);
+  } else {
+    L.circleMarker([f.geometry.coordinates[1], f.geometry.coordinates[0]], {radius:3, color:p.color, fillColor:p.color, fillOpacity:0.5, weight:1})
+      .addTo(layers.parcels);
+  }
+});
+layers.parcels.addTo(map);
+
+layers.part201 = L.layerGroup();
+P201_DATA.forEach(function(s) {
+  var isPfas = s.contam.indexOf('Polyfluoroalkyl') >= 0;
+  L.circleMarker([s.lat, s.lng], {radius: isPfas?8:6, color:'#e85d5d', fillColor:'#e85d5d', fillOpacity:0.6, weight:2})
+    .bindPopup('<b>' + s.name + '</b><br>EGLE ID: ' + s.id + '<br>Dist: ' + s.dist + ' mi<br>Contam: ' + s.contam + '<br>Risk: ' + s.risk)
+    .addTo(layers.part201);
+});
+layers.part201.addTo(map);
+
+layers.rings = L.layerGroup();
+[0.5,1,2,3].forEach(function(r) {
+  L.circle([43.189978, -86.157124], {radius:r*1609.34, color:'#666', weight:1, dashArray:'4,4', fillOpacity:0, opacity:0.4}).addTo(layers.rings);
+});
+layers.rings.addTo(map);
+
+var synth = window.speechSynthesis;
+var currentSegment = 0;
+var isPlaying = false;
+var utterance = null;
+var speed = 1.0;
+var speedOptions = [0.8, 1.0, 1.5, 2.0];
+var speedIdx = 1;
+var voicesLoaded = false;
+
+function loadVoices() { var v = synth.getVoices(); if (v.length > 0) voicesLoaded = true; }
+loadVoices();
+if (synth.onvoiceschanged !== undefined) synth.onvoiceschanged = loadVoices;
+
+function setSegment(idx) {
+  currentSegment = idx;
+  var seg = SEGMENTS[idx];
+  document.getElementById('pod-title').textContent = seg.title;
+  document.getElementById('pod-segment').textContent = 'Segment ' + (idx+1) + ' of ' + SEGMENTS.length;
+  document.getElementById('progress-fill').style.width = ((idx / SEGMENTS.length) * 100) + '%';
+  var sections = document.querySelectorAll('.story-section');
+  for (var i = 0; i < sections.length; i++) sections[i].classList.remove('active');
+  var el = document.getElementById('sec-' + idx);
+  if (el) { el.classList.add('active'); el.scrollIntoView({behavior:'smooth', block:'center'}); }
+  if (seg.zoom && seg.zoom_level) map.flyTo(seg.zoom, seg.zoom_level, {duration:1.5});
+}
+
+function speakSegment() {
+  if (utterance) synth.cancel();
+  var seg = SEGMENTS[currentSegment];
+  utterance = new SpeechSynthesisUtterance(seg.text);
+  utterance.rate = speed;
+  utterance.pitch = 0.95;
+  utterance.volume = 1.0;
+  var voices = synth.getVoices();
+  var preferred = null;
+  for (var i = 0; i < voices.length; i++) {
+    if (voices[i].lang === 'en-US' && (voices[i].name.indexOf('Google') >= 0 || voices[i].name.indexOf('Samantha') >= 0 || voices[i].name.indexOf('Daniel') >= 0 || voices[i].name.indexOf('Alex') >= 0)) { preferred = voices[i]; break; }
+  }
+  if (!preferred) { for (var i = 0; i < voices.length; i++) { if (voices[i].lang === 'en-US') { preferred = voices[i]; break; } } }
+  if (!preferred) { for (var i = 0; i < voices.length; i++) { if (voices[i].lang && voices[i].lang.indexOf('en') === 0) { preferred = voices[i]; break; } } }
+  if (preferred) utterance.voice = preferred;
+  utterance.onend = function() {
+    if (isPlaying && currentSegment < SEGMENTS.length - 1) { currentSegment++; setSegment(currentSegment); setTimeout(speakSegment, 500); }
+    else if (isPlaying) { isPlaying = false; document.getElementById('play-btn').innerHTML = '&#9658;'; document.getElementById('pod-title').textContent = 'Complete'; document.getElementById('progress-fill').style.width = '100%'; }
+  };
+  utterance.onerror = function() { isPlaying = false; document.getElementById('play-btn').innerHTML = '&#9658;'; document.getElementById('pod-title').textContent = 'Tap to retry'; };
+  synth.speak(utterance);
+}
+
+function togglePlay() {
+  if (isPlaying) { isPlaying = false; synth.cancel(); document.getElementById('play-btn').innerHTML = '&#9658;'; }
+  else { if (!voicesLoaded) loadVoices(); isPlaying = true; document.getElementById('play-btn').innerHTML = '&#10074;&#10074;'; speakSegment(); }
+}
+
+function skipSegment(dir) {
+  var newIdx = Math.max(0, Math.min(SEGMENTS.length - 1, currentSegment + dir));
+  var wasPlaying = isPlaying;
+  if (isPlaying) synth.cancel();
+  setSegment(newIdx);
+  if (wasPlaying) setTimeout(speakSegment, 300);
+}
+
+function cycleSpeed() {
+  speedIdx = (speedIdx + 1) % speedOptions.length;
+  speed = speedOptions[speedIdx];
+  document.getElementById('speed-btn').textContent = speed + 'x';
+  if (isPlaying) { synth.cancel(); setTimeout(speakSegment, 200); }
+}
+
+function sharePage() {
+  var url = 'https://base44.app/api/apps/69ca9ac1baa8ecdb8ae25c59/files/mp/public/69ca9ac1baa8ecdb8ae25c59/9dfc65e62_the_two_clocks_story.html';
+  var title = 'The Two Clocks — Heights-Ravenna';
+  if (navigator.share) { navigator.share({title: title, text: 'Nvirogear Timeline', url: url}).catch(function() { copyLink(url); }); }
+  else { copyLink(url); }
+}
+function copyLink(url) {
+  if (navigator.clipboard) { navigator.clipboard.writeText(url).then(function() { showToast(); }); }
+  else { var ta = document.createElement('textarea'); ta.value = url; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); showToast(); } catch(e) {} document.body.removeChild(ta); }
+}
+function showToast() { var t = document.getElementById('copy-toast'); t.style.display = 'block'; setTimeout(function() { t.style.display = 'none'; }, 2000); }
+
+setSegment(0);
+</script>
+</body>
+</html>

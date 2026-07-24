@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>Detroit Environmental Intelligence — Nvirogear</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0a;color:#e0e0e0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;overflow-x:hidden}
+a{color:#00cc66;text-decoration:none}
+a:hover{text-decoration:underline}
+.hero{position:relative;min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px 20px;background:linear-gradient(180deg,#0a0a0a 0%,#0a1a0a 30%,#1a0a0a 60%,#0a0a0a 100%)}
+.hero h1{font-size:clamp(2rem,8vw,4.5rem);font-weight:900;color:#00ff88;line-height:1.1;margin-bottom:16px;letter-spacing:-1px}
+.hero h2{font-size:clamp(1rem,4vw,1.8rem);font-weight:300;color:#999;margin-bottom:30px}
+.hero .tagline{font-size:0.85rem;color:#666;max-width:600px;line-height:1.5;margin-top:20px}
+.hero .badge{display:inline-block;padding:4px 12px;border:1px solid #00ff88;border-radius:20px;color:#00ff88;font-size:0.75rem;margin:4px;letter-spacing:1px}
+.audio-bar{position:fixed;bottom:0;left:0;right:0;background:#111;z-index:9999;padding:12px 16px;border-top:1px solid #333;display:flex;align-items:center;gap:12px}
+.audio-bar button{background:#00ff88;color:#000;border:none;border-radius:50%;width:44px;height:44px;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.audio-bar .wave{flex:1;height:32px;display:flex;align-items:center;gap:2px;overflow:hidden}
+.audio-bar .wave .bar{flex:1;background:#333;min-height:3px;border-radius:2px;transition:background 0.2s}
+.audio-bar .wave .bar.active{background:#00ff88}
+.audio-bar .caption{font-size:0.75rem;color:#999;max-width:40%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scroll-section{padding:60px 20px;max-width:700px;margin:0 auto;opacity:0.3;transition:opacity 0.5s}
+.scroll-section.active{opacity:1}
+.scroll-section .label{font-size:0.7rem;color:#00ff88;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px}
+.scroll-section h3{font-size:clamp(1.3rem,5vw,2rem);font-weight:700;margin-bottom:16px;color:#fff;line-height:1.2}
+.scroll-section p{font-size:1rem;line-height:1.7;color:#bbb;margin-bottom:16px}
+.scroll-section .stat{font-size:clamp(2rem,10vw,4rem);font-weight:900;color:#00ff88;margin:20px 0;line-height:1}
+.scroll-section .stat-label{font-size:0.8rem;color:#999;margin-top:4px}
+.evidence-box{background:#1a1a1a;border-left:3px solid #00ff88;padding:16px;margin:20px 0;border-radius:0 8px 8px 0}
+.evidence-box .tag{font-size:0.7rem;color:#00cc66;font-weight:700;text-transform:uppercase;letter-spacing:1px}
+.evidence-box .text{font-size:0.9rem;color:#ccc;margin-top:8px;line-height:1.5}
+.evidence-box .src{font-size:0.7rem;color:#666;margin-top:8px}
+.evidence-box .src a{color:#00cc66}
+.map-container{padding:0 0 60px 0}
+#map{height:500px;width:100%;border-radius:0}
+.map-overlay{background:#0a0a0a;padding:20px;text-align:center}
+.map-overlay h3{color:#fff;font-size:1.2rem;margin-bottom:8px}
+.map-overlay p{color:#999;font-size:0.85rem}
+.map-legend{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;padding:12px;background:#0a0a0a}
+.map-legend .item{display:flex;align-items:center;gap:4px;font-size:0.7rem;color:#999}
+.map-legend .dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+.source-section{padding:40px 20px;max-width:700px;margin:0 auto;border-top:1px solid #222}
+.source-section h4{color:#666;font-size:0.8rem;margin-bottom:12px;text-transform:uppercase}
+.source-section .src-item{font-size:0.75rem;color:#555;line-height:1.8;margin-bottom:2px;padding-left:12px}
+.source-section .src-item a{color:#00cc66}
+.footer{text-align:center;padding:40px 20px;color:#444;font-size:0.75rem;border-top:1px solid #222}
+.footer strong{color:#666}
+@media(max-width:600px){.audio-bar .caption{max-width:30%}#map{height:400px}}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="badge">EPA SUPERFUND</div>
+  <div class="badge">DETROIT RIVER AOC</div>
+  <div class="badge">PFAS DETECTED</div>
+  <div class="badge">AIR QUALITY: F</div>
+  <div class="badge">12,575 PARCELS NEAR SITES</div>
+  <h1>3,648 Sites</h1>
+  <h2>That's how many contaminated sites are in Detroit. Plus a chemical plant pouring toxic waste into the river. And 12,575 parcels sit within contamination zones.</h2>
+  <p class="tagline">Nvirogear does not find cheap land. Nvirogear finds the reason cheap land is cheap — then tells you if there is still a play.</p>
+</div>
+
+<div class="audio-bar" id="audioBar">
+  <button id="playBtn" onclick="toggleAudio()">&#9654;</button>
+  <div class="wave" id="waveform"></div>
+  <div class="caption" id="caption">Tap play for audio briefing</div>
+</div>
+
+<div id="sections">
+
+  <div class="scroll-section" data-idx="0">
+    <div class="label">BASF Wyandotte — 40 Years</div>
+    <h3>A chemical plant has been pouring toxic waste into the Detroit River for 40 years.</h3>
+    <p>BASF's 230-acre North Works facility in Wyandotte has been manufacturing chemicals since the 1800s. Groundwater contaminated with PFAS, mercury, arsenic, benzene, and naphthalene has been flowing into the Detroit River at up to 60 gallons per minute.</p>
+    <p>The contamination enters the river roughly 1,700 feet from Wyandotte's municipal drinking water intake.</p>
+    <div class="stat">60 gal/min</div>
+    <div class="stat-label">Contaminated groundwater into Detroit River</div>
+    <div class="evidence-box">
+      <div class="tag">Documented Fact — EPA + Planet Detroit</div>
+      <div class="text">First consent agreement: 1980. EPA consent: 1994. EGLE ordered BASF to stop in March 2025. EPA approved cleanup plan June 30, 2026. Construction begins early 2027.</div>
+      <div class="src"><a href="https://planetdetroit.org/2026/06/detroit-river-basf-contamination-cleanup-2027/" target="_blank">planetdetroit.org</a> | <a href="https://www.epa.gov/hwcorrectiveactioncleanups/epa-rcra-id-mid064197742" target="_blank">epa.gov</a></div>
+    </div>
+  </div>
+
+  <div class="scroll-section" data-idx="1">
+    <div class="label">The Drinking Water Intake</div>
+    <h3>1,700 feet from someone's drinking water.</h3>
+    <p>The contaminated groundwater seeps into the Detroit River roughly 1,700 feet from Wyandotte's municipal drinking water intake. The state reviewed this in 2022 and determined it was "unlikely to cause a public health impact that requires immediate attention."</p>
+    <p>Some of the groundwater has had a pH as high as 13.22. EPA classifies anything above 12.5 as hazardous waste.</p>
+    <div class="evidence-box">
+      <div class="tag">Documented Fact — EGLE 2022 Review</div>
+      <div class="text">"The location of the drinking water intake and quantity of river water mixing with BASF's pollution meant it was unlikely to cause a public health impact that requires immediate attention."</div>
+      <div class="src"><a href="https://planetdetroit.org/2026/06/detroit-river-basf-contamination-cleanup-2027/" target="_blank">Planet Detroit, June 30, 2026</a></div>
+    </div>
+  </div>
+
+  <div class="scroll-section" data-idx="2">
+    <div class="label">EPA Policy Change — January 2026</div>
+    <h3>The EPA decided it will no longer count how many deaths air pollution rules prevent.</h3>
+    <p>On January 9, 2026, the EPA announced it will stop calculating monetary benefits of deaths prevented and health care costs saved when considering air pollution rules for PM 2.5 and ozone. The agency will still consider costs to industry.</p>
+    <p>Wayne County already fails to meet federal PM 2.5 standards. A federal appeals court returned Detroit to ozone nonattainment in December 2025. The American Lung Association gave Detroit an "F" rating.</p>
+    <div class="evidence-box">
+      <div class="tag">Documented Fact — EPA Decision + EGLE + ALA</div>
+      <div class="text">Nick Leonard, Great Lakes Environmental Law Center: "Regulating fine particulate matter and ozone is massively important for Detroit."</div>
+      <div class="src"><a href="https://planetdetroit.org/2026/01/epa-stops-health-cost-calculations/" target="_blank">Planet Detroit, Jan 15, 2026</a> | <a href="https://www3.epa.gov/airquality/greenbook/anayo_mi.html" target="_blank">EPA Green Book</a></div>
+    </div>
+  </div>
+
+  <div class="scroll-section" data-idx="3">
+    <div class="label">Detroit River Cleanup — $10 Million</div>
+    <h3>The Detroit River is a designated Area of Concern. It's loaded with toxic compounds.</h3>
+    <p>PCBs. Dioxins. Cyanide. Heavy metals. PFAS. The Detroit River has been a federal Area of Concern since 1987.</p>
+    <p>The EPA and EGLE have already addressed 400,000 cubic yards of contaminated sediment and restored 320+ acres of habitat. In June 2026, they announced $10 million in new funding — EPA $6.5M + EGLE $3.5M.</p>
+    <p>A new Superfund site was added for the Trenton Channel — contaminated with PCBs, cyanide, and metals.</p>
+    <div class="evidence-box">
+      <div class="tag">Documented Fact — EPA + EGLE Press Releases</div>
+      <div class="text">Five additional remedial investigations scheduled for 2026.</div>
+      <div class="src"><a href="https://www.epa.gov/great-lakes-aocs/detroit-river-aoc" target="_blank">EPA Detroit River AOC</a> | <a href="https://www.michigan.gov/egle/newsroom/press-releases/2026/06/08/detroit-river-restoration" target="_blank">EGLE Press Release</a> | <a href="https://www.epa.gov/newsreleases/epa-and-partners-announce-projects-clean-detroit-area-waterways" target="_blank">EPA Press Release</a></div>
+    </div>
+  </div>
+
+  <div class="scroll-section" data-idx="4">
+    <div class="label">Lead in the Water</div>
+    <h3>33 communities had a lead reading above 12 ppb.</h3>
+    <p>From 2018 to 2025, 33 Great Lakes Water Authority communities in southeast Michigan reported a lead 90th-percentile above 12 ppb. 25 had an official action level exceedance. The state action level was lowered to 12 ppb in January 2025.</p>
+    <p>Detroit has replaced more than 16,000 lead service lines. Flint completed its lead pipe replacement in 2026 after a decade-long legal battle — nearly 11,000 pipes replaced.</p>
+    <div class="evidence-box">
+      <div class="tag">Documented Fact — Planet Detroit + City of Detroit</div>
+      <div class="text">Detroit water sampling stayed under the Lead and Copper Rule action level in Summer 2025. Wayne has removed all known lead service lines as of 2025.</div>
+      <div class="src"><a href="https://planetdetroit.org/2026/06/drinking-water-lead-glwa/" target="_blank">Planet Detroit, June 2026</a> | <a href="https://www.waynecountymi.gov/Government/Departments/Health-Human-Veterans-Services/Public-Health/Environmental-Health/Lead-Safety/Wayne-County-Lead-Water-Response" target="_blank">Wayne County</a></div>
+    </div>
+  </div>
+
+  <div class="scroll-section" data-idx="5">
+    <div class="label">PFAS Everywhere</div>
+    <h3>98% of surface water sites nationally tested positive for PFAS.</h3>
+    <p>The Waterkeeper Alliance tested surface water across 19 states (Phase II, 2025). 98% of sampling sites had one or more types of PFAS. Phase 1 in 2022 found 83%. In metro Detroit specifically, 15 public water systems may be at risk of exceeding federal guidelines.</p>
+    <p>The Detroit wastewater treatment plant has discharged PFAS into the river for decades — within state and federal permit limits.</p>
+    <div class="evidence-box">
+      <div class="tag">Documented Fact — Waterkeeper Alliance + WDET</div>
+      <div class="text">PFAS detected in multiple metro Detroit water systems. The chemicals are in the river, in the drinking water, and the rules are being weakened, not strengthened.</div>
+      <div class="src"><a href="https://waterkeeper.org/news/new-analysis-finds-pfas-in-98-of-tested-u-s-waterways-across-19-states/" target="_blank">Waterkeeper Alliance</a> | <a href="https://planetdetroit.org/2024/06/pfas-drinking-water-metro-detroit/" target="_blank">Planet Detroit, June 2024</a></div>
+    </div>
+  </div>
+
+  <div class="scroll-section" data-idx="6">
+    <div class="label">The Scale — Wayne County Parcels</div>
+    <h3>12,575 parcels sit within contamination site zones.</h3>
+    <div class="stat">12,575</div>
+    <div class="stat-label">Wayne County parcels within 1.5km of contamination sites</div>
+    <p>Nvirogear cross-referenced all 768,119 Wayne County parcel records against the key contamination sites. Here's what we found:</p>
+    <p>BASF North Works: 1,438 parcels within 1.5km<br>
+    Zug Island: 4,895 parcels within 1.5km<br>
+    SW Detroit / River Rouge: 47 parcels within 2km<br>
+    Trenton Channel: 2,724 parcels within 1.5km<br>
+    Detroit Downtown: 3,468 parcels within 2km<br>
+    Detroit WWTP: 3 parcels within 1.5km</p>
+    <div class="evidence-box">
+      <div class="tag">Nvirogear Analysis — Wayne County Parcel Dataset v1.2</div>
+      <div class="text">768,119 parcel records. Source: Wayne County All Community Parcels ArcGIS FeatureServer. SHA-256 verified. Cross-referenced using haversine distance calculation against contamination site coordinates.</div>
+    </div>
+  </div>
+
+  <div class="scroll-section" data-idx="7">
+    <div class="label">The Scale — Contaminated Sites</div>
+    <h3>3,648 contaminated sites in Detroit alone.</h3>
+    <div class="stat">3,648</div>
+    <div class="stat-label">Contaminated sites in Detroit — highest in Wayne County</div>
+    <p>That's not a typo. Three thousand six hundred forty-eight environmental contamination sites in one city. EGLE worked on 940 contaminated sites across Michigan in 2025, up from 870 in 2024.</p>
+    <p>Detroit also has 651 demolition sites being environmentally tested as of January 2026. The city's environmental justice burden is the highest in Michigan.</p>
+    <div class="evidence-box">
+      <div class="tag">Documented Fact — Drawing Detroit + EGLE + City of Detroit</div>
+      <div class="text">Detroit contains the greatest number of contaminated sites in Wayne County.</div>
+      <div class="src"><a href="http://www.drawingdetroit.com/contamination/" target="_blank">drawingdetroit.com</a> | <a href="https://detroitmi.gov/departments/construction-and-demolition-department/2025-fill-material-test-results-demolition-sites" target="_blank">City of Detroit</a></div>
+    </div>
+  </div>
+
+  <div class="scroll-section" data-idx="8">
+    <div class="label">What This Means</div>
+    <h3>If you live in Detroit, you are living on top of industrial history.</h3>
+    <p>You're breathing air that fails federal standards. You're drinking water that comes from a river where a chemical plant has been pouring toxic waste for 40 years. Your city has 3,648 contaminated sites. And the federal agency responsible for protecting you just decided it will no longer count the health benefits of pollution rules.</p>
+    <p>Nvirogear documents what is. We don't claim what caused what. But we can tell you: this is the environmental landscape of Detroit in July 2026. And it deserves to be known.</p>
+    <div class="evidence-box">
+      <div class="tag">Nvirogear Doctrine</div>
+      <div class="text">Nvirogear does not claim that contamination caused any specific person's illness. We document what federal and state agencies have published. The rest is for doctors, journalists, and the community to determine.</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="map-container">
+  <div class="map-overlay">
+    <h3>Detroit Environmental Intelligence Map</h3>
+    <p>10 contamination sites + 60 nearby parcels from Wayne County dataset (768,119 records)</p>
+  </div>
+  <div class="map-legend">
+    <div class="item"><span class="dot" style="background:#ff0000"></span> Chemical Plant</div>
+    <div class="item"><span class="dot" style="background:#ff6600"></span> Superfund</div>
+    <div class="item"><span class="dot" style="background:#0066ff"></span> Water Infrastructure</div>
+    <div class="item"><span class="dot" style="background:#ff8800"></span> Industrial</div>
+    <div class="item"><span class="dot" style="background:#ffff00"></span> Air Monitor</div>
+    <div class="item"><span class="dot" style="background:#ff00ff"></span> Env Justice</div>
+    <div class="item"><span class="dot" style="background:#00ff88"></span> City Center</div>
+    <div class="item"><span class="dot" style="background:#666;opacity:0.5"></span> Nearby Parcels</div>
+  </div>
+  <div id="map"></div>
+</div>
+
+<div class="source-section">
+  <h4>Verified Sources (20 — all links confirmed live July 20, 2026)</h4>
+  <div class="src-item"><a href="https://planetdetroit.org/2026/06/detroit-river-basf-contamination-cleanup-2027/" target="_blank">1. Planet Detroit — BASF cleanup (June 30, 2026)</a></div>
+<div class="src-item"><a href="https://www.epa.gov/hwcorrectiveactioncleanups/epa-rcra-id-mid064197742" target="_blank">2. EPA RCRA — BASF North Works</a></div>
+<div class="src-item"><a href="https://www.epa.gov/great-lakes-aocs/detroit-river-aoc" target="_blank">3. EPA — Detroit River Area of Concern</a></div>
+<div class="src-item"><a href="https://www.epa.gov/newsreleases/epa-and-partners-announce-projects-clean-detroit-area-waterways" target="_blank">4. EPA — Detroit River cleanup projects (June 8, 2026)</a></div>
+<div class="src-item"><a href="https://www.michigan.gov/egle/newsroom/press-releases/2026/06/08/detroit-river-restoration" target="_blank">5. EGLE — $10M Detroit River restoration (June 2026)</a></div>
+<div class="src-item"><a href="https://planetdetroit.org/2026/06/detroit-river-10-million-boost/" target="_blank">6. Planet Detroit — $10M boost (June 2026)</a></div>
+<div class="src-item"><a href="https://www.freep.com/story/news/environment/2026/06/09/egle-epa-detroit-river-cleanup-restoration/90455953007/" target="_blank">7. Free Press — Detroit River cleanup (June 2026)</a></div>
+<div class="src-item"><a href="https://planetdetroit.org/2026/01/epa-stops-health-cost-calculations/" target="_blank">8. Planet Detroit — EPA drops health costs (Jan 15, 2026)</a></div>
+<div class="src-item"><a href="https://planetdetroit.org/2025/02/detroit-faces-air-quality-challenge-under-new-pm-2-5-standard/" target="_blank">9. Planet Detroit — PM 2.5 nonattainment (Feb 2025)</a></div>
+<div class="src-item"><a href="https://planetdetroit.org/2026/06/drinking-water-lead-glwa/" target="_blank">10. Planet Detroit — Lead in GLWA water (June 2026)</a></div>
+<div class="src-item"><a href="https://planetdetroit.org/2024/06/pfas-drinking-water-metro-detroit/" target="_blank">11. Planet Detroit — PFAS metro Detroit (June 2024)</a></div>
+<div class="src-item"><a href="https://waterkeeper.org/news/new-analysis-finds-pfas-in-98-of-tested-u-s-waterways-across-19-states/" target="_blank">12. Waterkeeper Alliance — PFAS 98% report (2025)</a></div>
+<div class="src-item"><a href="https://www.michiganpublic.org/environment-climate-change/2026-06-10/environmental-agencies-launch-efforts-to-mitigate-industrial-pollution-on-the-detroit-and-rouge-rivers" target="_blank">13. Michigan Public — Detroit/Rouge River (June 10, 2026)</a></div>
+<div class="src-item"><a href="https://www.greatlakesnow.org/2019/06/11/superfund-sites-new-detroit-river-site-added-for-threats-of-pcb-metal-cyanide-contamination/" target="_blank">14. Great Lakes Now — Detroit River Superfund</a></div>
+<div class="src-item"><a href="https://www.detroitnews.com/story/news/local/wayne-county/2025/04/29/state-demands-basf-stop-flow-of-pollution-into-detroit-river/83328580007/" target="_blank">15. Detroit News — BASF pollution (April 2025)</a></div>
+<div class="src-item"><a href="http://www.drawingdetroit.com/contamination/" target="_blank">16. Drawing Detroit — 3,648 contaminated sites</a></div>
+<div class="src-item"><a href="https://detroitmi.gov/departments/detroit-water-and-sewerage-department/dwsd-resources/water-quality-reports" target="_blank">17. City of Detroit — Water Quality Reports</a></div>
+<div class="src-item"><a href="https://detroitmi.gov/departments/construction-and-demolition-department/2025-fill-material-test-results-demolition-sites" target="_blank">18. City of Detroit — Demolition site testing</a></div>
+<div class="src-item"><a href="https://www.waynecountymi.gov/Government/Departments/Health-Human-Veterans-Services/Public-Health/Environmental-Health/Lead-Safety/Wayne-County-Lead-Water-Response" target="_blank">19. Wayne County — Lead Water Response</a></div>
+<div class="src-item"><a href="https://www3.epa.gov/airquality/greenbook/anayo_mi.html" target="_blank">20. EPA Green Book — Michigan Nonattainment</a></div>
+</div>
+
+<div class="footer">
+  <strong>Nvirogear LLC</strong> | Mr. Results (Overseer) | 2026-07-20<br>
+  Wayne County Parcel Dataset v1.2 — 768,119 records, SHA-256 verified<br>
+  Truth is more valuable than optimism
+</div>
+
+<script>
+const SCRIPT = [
+  "A chemical plant in Wyandotte, Michigan, has been pouring toxic waste into the Detroit River for forty years. BASF's two-hundred-and-thirty-acre chemical plant sits on the riverbank. Groundwater contaminated with PFAS, mercury, arsenic, and benzene flows into the river at up to sixty gallons per minute. The contamination enters the river seventeen hundred feet from Wyandotte's drinking water intake.",
+  "In twenty twenty-two, the state of Michigan reviewed the situation. They said it was unlikely to cause a public health impact that requires immediate attention. The first consent agreement ordering BASF to stop was signed in nineteen eighty. That's forty-six years ago.",
+  "In January twenty twenty-six, the EPA made a decision. It will no longer calculate how many deaths air pollution rules prevent. It will still count the costs to industry. Detroit already has an F rating for air quality from the American Lung Association. Wayne County fails federal standards for both fine particulate matter and ozone.",
+  "The Detroit River is a federal Area of Concern. It's loaded with PCBs, dioxins, cyanide, and heavy metals. The EPA and state have already removed four hundred thousand cubic yards of contaminated sediment. In June twenty twenty-six, they announced ten million dollars in new funding. EPA providing six point five million, EGLE three point five million.",
+  "From twenty eighteen to twenty twenty-five, thirty-three communities in southeast Michigan had a lead reading above twelve parts per billion. Twenty-five had an official action level exceedance. Detroit has replaced more than sixteen thousand lead service lines. Flint finally completed its lead pipe replacement in twenty twenty-six.",
+  "Ninety-eight percent of surface water sampling sites tested nationally by the Waterkeeper Alliance had PFAS. Phase one in twenty twenty-two found eighty-three percent. Phase two in twenty twenty-five found ninety-eight percent. In metro Detroit, fifteen public water systems may be at risk of exceeding federal guidelines.",
+  "Twelve thousand five hundred seventy-five. That's the number of Wayne County parcels that sit within one point five kilometers of contamination sites. Nvirogear cross-referenced all seven hundred sixty-eight thousand one hundred nineteen Wayne County parcel records against the key contamination sites. BASF alone has one thousand four hundred thirty-eight parcels within its zone.",
+  "Three thousand six hundred forty-eight. That's the number of contaminated sites in Detroit. Not Wayne County. Detroit alone. The highest number in the county. Detroit also has six hundred fifty-one demolition sites being tested for contamination. And the city's environmental justice burden is the highest in Michigan.",
+  "Nvirogear documents what is. We don't claim what caused what. But this is the environmental landscape of Detroit in July twenty twenty-six. And it deserves to be known."
+];
+
+const MAP_SITES = [
+  {name:'BASF North Works (Wyandotte)',lat:42.214,lng:-83.140,type:'chem',desc:'230-acre chemical plant. 60 gal/min toxic groundwater into Detroit River. PFAS, mercury, arsenic, benzene. EPA cleanup approved June 2026. <a href="https://planetdetroit.org/2026/06/detroit-river-basf-contamination-cleanup-2027/" target="_blank">Source</a>'},
+  {name:'Wyandotte Drinking Water Intake',lat:42.207,lng:-83.135,type:'water',desc:'Municipal drinking water intake. 1,700 feet from BASF contamination entry point.'},
+  {name:'Detroit River AOC',lat:42.300,lng:-83.100,type:'river',desc:'Federal Area of Concern. PCBs, dioxins, cyanide, metals. 400K cu yards addressed. $10M new funding June 2026. <a href="https://www.epa.gov/great-lakes-aocs/detroit-river-aoc" target="_blank">EPA</a>'},
+  {name:'Trenton Channel Superfund',lat:42.220,lng:-83.170,type:'superfund',desc:'New Superfund site. PCBs, cyanide, metals contamination. <a href="https://www.greatlakesnow.org/2019/06/11/superfund-sites-new-detroit-river-site-added-for-threats-of-pcb-metal-cyanide-contamination/" target="_blank">Source</a>'},
+  {name:'Zug Island',lat:42.280,lng:-83.140,type:'industrial',desc:'Heavily industrialized island. Major air pollution source. 4,895 parcels within 1.5km.'},
+  {name:'Detroit Downtown',lat:42.331,lng:-83.046,type:'city',desc:'3,648 contaminated sites in Detroit. Highest in Wayne County. F air quality rating. <a href="http://www.drawingdetroit.com/contamination/" target="_blank">Source</a>'},
+  {name:'Detroit Wastewater Treatment Plant',lat:42.290,lng:-83.120,type:'water',desc:'Discharged PFAS for decades within permit limits. Under state investigation after flooding.'},
+  {name:'SW Detroit / River Rouge',lat:42.270,lng:-83.130,type:'ej',desc:'Concentrated industrial contamination. Highest environmental justice percentiles in Michigan.'},
+  {name:'Air Monitor - Dorias Park',lat:42.380,lng:-83.010,type:'air',desc:'New EGLE air monitoring site (2026 plan). PM 2.5 and PM10 monitoring.'},
+  {name:'Air Monitor - Conner',lat:42.390,lng:-83.030,type:'air',desc:'New EGLE air monitoring site (2026 plan). PM 2.5 and PM10 monitoring.'}
+];
+
+const NEARBY_PARCELS = [
+    {lat:42.210844,lng:-83.14504,addr:"1 JAMES DESANA DR.",city:"WYANDOTTE",pid:"349000",dist:544},
+    {lat:42.211255,lng:-83.145677,addr:"2333 BIDDLE",city:"WYANDOTTE",pid:"348788",dist:558},
+    {lat:42.209633,lng:-83.144317,addr:"3 WALNUT",city:"WYANDOTTE",pid:"207561",dist:602},
+    {lat:42.209624,lng:-83.144468,addr:"5 WALNUT",city:"WYANDOTTE",pid:"207560",dist:610},
+    {lat:42.216176,lng:-83.146811,addr:"1609 BIDDLE",city:"WYANDOTTE",pid:"363483",dist:611},
+    {lat:42.209621,lng:-83.144558,addr:"5.5 WALNUT",city:"WYANDOTTE",pid:"207559",dist:615},
+    {lat:42.20962,lng:-83.144636,addr:"7 WALNUT",city:"WYANDOTTE",pid:"208735",dist:619},
+    {lat:42.209618,lng:-83.144711,addr:"7.5 WALNUT",city:"WYANDOTTE",pid:"208734",dist:623},
+    {lat:42.209617,lng:-83.144771,addr:"9 WALNUT",city:"WYANDOTTE",pid:"208733",dist:626},
+    {lat:42.209615,lng:-83.144863,addr:"9.5 WALNUT",city:"WYANDOTTE",pid:"208732",dist:631},
+    {lat:42.209614,lng:-83.144922,addr:"11 WALNUT",city:"WYANDOTTE",pid:"208731",dist:634},
+    {lat:42.209612,lng:-83.144992,addr:"11.5 WALNUT",city:"WYANDOTTE",pid:"208730",dist:638},
+    {lat:42.209611,lng:-83.145064,addr:"13 WALNUT",city:"WYANDOTTE",pid:"208729",dist:642},
+    {lat:42.209609,lng:-83.145138,addr:"13.5 WALNUT",city:"WYANDOTTE",pid:"208728",dist:646},
+    {lat:42.209608,lng:-83.145209,addr:"15 WALNUT",city:"WYANDOTTE",pid:"208727",dist:650},
+    {lat:42.209606,lng:-83.145285,addr:"15.5 WALNUT",city:"WYANDOTTE",pid:"208726",dist:654},
+    {lat:42.209604,lng:-83.145362,addr:"17 WALNUT",city:"WYANDOTTE",pid:"208725",dist:659},
+    {lat:42.209602,lng:-83.145451,addr:"17.5 WALNUT",city:"WYANDOTTE",pid:"208724",dist:664},
+    {lat:42.209793,lng:-83.145734,addr:"2333 BIDDLE",city:"WYANDOTTE",pid:"348789",dist:665},
+    {lat:42.209601,lng:-83.145527,addr:"19 WALNUT",city:"WYANDOTTE",pid:"208723",dist:668},
+    {lat:42.279408,lng:-83.140633,addr:"11731 PLEASANT",city:"DETROIT",pid:"612030",dist:84},
+    {lat:42.280964,lng:-83.140459,addr:"11750 PLEASANT",city:"DETROIT",pid:"613016",dist:114},
+    {lat:42.280552,lng:-83.141258,addr:"11780 PLEASANT",city:"DETROIT",pid:"613013",dist:120},
+    {lat:42.279128,lng:-83.141021,addr:"1033 BASSETT",city:"DETROIT",pid:"613018",dist:128},
+    {lat:42.279528,lng:-83.138456,addr:"1900 W PLEASANT",city:"RIVER ROUGE",pid:"155353",dist:137},
+    {lat:42.279745,lng:-83.141629,addr:"11811 PLEASANT",city:"DETROIT",pid:"609088",dist:137},
+    {lat:42.279,lng:-83.141074,addr:"1049 BASSETT",city:"DETROIT",pid:"613017",dist:142},
+    {lat:42.279449,lng:-83.14159,addr:"1034 BASSETT",city:"DETROIT",pid:"609078",dist:144},
+    {lat:42.279355,lng:-83.141619,addr:"1042 BASSETT",city:"DETROIT",pid:"609076",dist:151},
+    {lat:42.278929,lng:-83.141219,addr:"1055 BASSETT",city:"DETROIT",pid:"613015",dist:156},
+    {lat:42.280731,lng:-83.141652,addr:"11800 PLEASANT",city:"DETROIT",pid:"609086",dist:158},
+    {lat:42.279274,lng:-83.141687,addr:"1050 BASSETT",city:"DETROIT",pid:"609074",dist:161},
+    {lat:42.278861,lng:-83.141276,addr:"1063 BASSETT",city:"DETROIT",pid:"613014",dist:164},
+    {lat:42.279182,lng:-83.141763,addr:"1056 BASSETT",city:"DETROIT",pid:"609071",dist:171},
+    {lat:42.279614,lng:-83.142037,addr:"1029 ETHEL",city:"DETROIT",pid:"613021",dist:173},
+    {lat:42.278766,lng:-83.141356,addr:"1071 BASSETT",city:"DETROIT",pid:"613012",dist:177},
+    {lat:42.279518,lng:-83.14208,addr:"1037 ETHEL",city:"DETROIT",pid:"613042",dist:179},
+    {lat:42.279084,lng:-83.141844,addr:"1064 BASSETT",city:"DETROIT",pid:"609069",dist:183},
+    {lat:42.280037,lng:-83.14226,addr:"11903 PLEASANT",city:"DETROIT",pid:"613039",dist:186},
+    {lat:42.2787,lng:-83.141434,addr:"1079 BASSETT",city:"DETROIT",pid:"609080",dist:187},
+    {lat:42.254159,lng:-83.132281,addr:"1 QUALITY DRIVE",city:"ECORSE",pid:"65731",dist:1771},
+    {lat:42.254292,lng:-83.125515,addr:"1 QUALITY DRIVE",city:"ECORSE",pid:"65729",dist:1785},
+    {lat:42.254682,lng:-83.137235,addr:"3815 W JEFFERSON",city:"ECORSE",pid:"366074",dist:1804},
+    {lat:42.254973,lng:-83.139014,addr:"3865 W JEFFERSON",city:"ECORSE",pid:"64611",dist:1828},
+    {lat:42.254959,lng:-83.139887,addr:"3894 W JEFFERSON",city:"ECORSE",pid:"64592",dist:1860},
+    {lat:42.25486,lng:-83.139933,addr:"3900 W JEFFERSON",city:"ECORSE",pid:"64591",dist:1871},
+    {lat:42.254523,lng:-83.13897,addr:"3869 W JEFFERSON",city:"ECORSE",pid:"64610",dist:1873},
+    {lat:42.253174,lng:-83.128458,addr:"1 QUALITY DRIVE",city:"ECORSE",pid:"65726",dist:1875},
+    {lat:42.254739,lng:-83.139963,addr:"3904 W JEFFERSON",city:"ECORSE",pid:"64590",dist:1885},
+    {lat:42.254629,lng:-83.139993,addr:"3908 W JEFFERSON",city:"ECORSE",pid:"343527",dist:1897},
+    {lat:42.254757,lng:-83.140512,addr:"14 ELTON",city:"ECORSE",pid:"343526",dist:1903},
+    {lat:42.253582,lng:-83.136554,addr:"51 JOSEPH",city:" ",pid:"64615",dist:1904},
+    {lat:42.254568,lng:-83.140024,addr:"3912 W WEST JEFFERSON",city:"ECORSE",pid:"343528",dist:1904},
+    {lat:42.254683,lng:-83.140395,addr:"10 ELTON",city:"ECORSE",pid:"343525",dist:1906},
+    {lat:42.254778,lng:-83.140689,addr:"18 ELTON",city:"ECORSE",pid:"64835",dist:1908},
+    {lat:42.254813,lng:-83.140854,addr:"20 ELTON",city:"ECORSE",pid:"64834",dist:1910},
+    {lat:42.254831,lng:-83.140962,addr:"22 ELTON",city:"ECORSE",pid:"64833",dist:1913},
+    {lat:42.254849,lng:-83.141071,addr:"24 ELTON",city:"ECORSE",pid:"64832",dist:1915},
+    {lat:42.254867,lng:-83.141179,addr:"26 ELTON",city:"ECORSE",pid:"64831",dist:1918},
+    {lat:42.254884,lng:-83.141287,addr:"28 ELTON",city:"ECORSE",pid:"64830",dist:1920}
+];
+
+let audioPlaying=false,currentUtterance=0,synth=window.speechSynthesis,voices=[],currentVoice=null;
+function loadVoices(){voices=synth.getVoices();currentVoice=voices.find(v=>v.lang==='en-US'&&v.name.includes('Google'))||voices.find(v=>v.lang==='en-US')||voices[0]}
+loadVoices();if(speechSynthesis.onvoiceschanged!==undefined)synth.onvoiceschanged=loadVoices;
+function buildWaveform(){const w=document.getElementById('waveform');for(let i=0;i<40;i++){const b=document.createElement('div');b.className='bar';b.style.height=(5+Math.random()*25)+'px';w.appendChild(b)}}
+buildWaveform();
+let waveAnimInterval=null;
+function toggleAudio(){if(audioPlaying){stopAudio()}else{startAudio()}}
+function startAudio(){audioPlaying=true;currentUtterance=0;document.getElementById('playBtn').innerHTML='&#10074;&#10074;';speakNext();animateWave()}
+function speakNext(){if(currentUtterance>=SCRIPT.length){stopAudio();return}if(!audioPlaying)return;const u=new SpeechSynthesisUtterance(SCRIPT[currentUtterance]);if(currentVoice)u.voice=currentVoice;u.rate=1.0;u.onstart=()=>{updateCaption(currentUtterance);highlightSection(currentUtterance)};u.onend=()=>{currentUtterance++;if(audioPlaying&&currentUtterance<SCRIPT.length){setTimeout(speakNext,300)}else if(currentUtterance>=SCRIPT.length){stopAudio()}};u.onerror=()=>{currentUtterance++;if(audioPlaying&&currentUtterance<SCRIPT.length)setTimeout(speakNext,100)};synth.speak(u)}
+function stopAudio(){audioPlaying=false;synth.cancel();document.getElementById('playBtn').innerHTML='&#9654;';document.querySelectorAll('.wave .bar').forEach(b=>b.classList.remove('active'))}
+function updateCaption(idx){const t=SCRIPT[idx];document.getElementById('caption').textContent=t.length>60?t.substring(0,57)+'...':t}
+function highlightSection(idx){document.querySelectorAll('.scroll-section').forEach(s=>s.classList.remove('active'));const s=document.querySelector('[data-idx="'+idx+'"]');if(s){s.classList.add('active');s.scrollIntoView({behavior:'smooth',block:'center'})}}
+function animateWave(){const bars=document.querySelectorAll('.wave .bar');let f=0;waveAnimInterval=setInterval(()=>{if(!audioPlaying){clearInterval(waveAnimInterval);bars.forEach(b=>b.classList.remove('active'));return}bars.forEach((b,i)=>{const p=Math.sin(f*0.15+i*0.5)*0.5+0.5;b.style.height=(5+p*25+Math.random()*5)+'px';if(p>0.6)b.classList.add('active');else b.classList.remove('active')});f++},80)}
+const observer=new IntersectionObserver((e)=>{e.forEach(en=>{if(en.isIntersecting)en.target.classList.add('active')})},{threshold:0.3});
+document.querySelectorAll('.scroll-section').forEach(s=>observer.observe(s));
+
+const map=L.map('map',{zoomControl:true,scrollWheelZoom:true}).setView([42.290,-83.120],11);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'OpenStreetMap',maxZoom:19}).addTo(map);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{attribution:'Esri',maxZoom:19}).addTo(map);
+
+const typeConfig={'chem':{color:'#ff0000',label:'Chemical Plant'},'superfund':{color:'#ff6600',label:'Superfund'},'water':{color:'#0066ff',label:'Water'},'river':{color:'#00aaff',label:'River AOC'},'industrial':{color:'#ff8800',label:'Industrial'},'city':{color:'#00ff88',label:'City'},'air':{color:'#ffff00',label:'Air Monitor'},'ej':{color:'#ff00ff',label:'Env Justice'}};
+
+MAP_SITES.forEach(s=>{const c=typeConfig[s.type]||typeConfig['city'];const m=L.circleMarker([s.lat,s.lng],{radius:12,fillColor:c.color,color:'#fff',weight:2,fillOpacity:0.85});m.bindPopup('<b>'+s.name+'</b><br><i>'+c.label+'</i><br><br>'+s.desc);m.addTo(map)});
+
+NEARBY_PARCELS.forEach(p=>{const m=L.circleMarker([p.lat,p.lng],{radius:4,fillColor:'#666',color:'#666',weight:1,fillOpacity:0.5});m.bindPopup('Parcel '+p.pid+'<br>'+p.addr+', '+p.city+'<br>Distance: '+(p.dist/1609.34).toFixed(2)+'mi from contamination site');m.addTo(map)});
+
+</script>
+</body>
+</html>

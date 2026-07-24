@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>MITOXICMAP — Guided Tour</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{--bg:#0a0e14;--surface:rgba(15,20,28,0.97);--border:#2a3a4d;--text:#e8eef5;--muted:#7d8b9e;--accent:#00d4a8;--danger:#ff4757;--warn:#ffa502}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;overflow:hidden;height:100vh;height:100dvh}
+#map{position:fixed;top:0;left:0;width:100vw;height:100vh;height:100dvh;z-index:1}
+
+/* Play overlay */
+#play-overlay{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,rgba(10,14,20,0.92),rgba(10,14,20,0.7));transition:opacity .6s;overflow-y:auto;padding:20px}
+#play-overlay.hidden{opacity:0;pointer-events:none}
+#play-card{text-align:center;max-width:480px;padding:30px 20px}
+#play-card h1{font-family:Georgia,serif;font-size:1.8rem;color:#fff;margin-bottom:10px}
+#play-card .sub{color:var(--accent);font-size:.9rem;margin-bottom:8px}
+#play-card .desc{color:var(--muted);font-size:.82rem;line-height:1.6;margin-bottom:24px}
+.play-btn{background:var(--accent);color:#000;border:none;width:90px;height:90px;border-radius:50%;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font-size:30px;transition:all .3s;box-shadow:0 8px 32px rgba(0,212,168,.3);touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.play-btn:hover{transform:scale(1.1);box-shadow:0 12px 48px rgba(0,212,168,.5)}
+.play-label{display:block;margin-top:12px;font-size:.78rem;color:var(--muted)}.ios-note{font-size:.72rem;color:#ffa502;margin-top:8px;margin-bottom:0}
+.story-picker{margin-top:18px;display:flex;flex-wrap:wrap;gap:7px;justify-content:center}
+.story-pick{background:rgba(26,35,50,.8);border:1px solid var(--border);color:var(--muted);padding:9px 16px;border-radius:20px;font-size:.8rem;cursor:pointer;transition:all .2s;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.story-pick:hover{border-color:var(--accent);color:var(--accent)}
+
+/* DESKTOP: Side panel on right */
+@media(min-width:769px){
+  #side-panel{position:fixed;top:0;right:0;height:100vh;width:340px;z-index:20;background:var(--surface);backdrop-filter:blur(16px);border-left:1px solid var(--border);transition:transform .4s ease;display:flex;flex-direction:column}
+  #side-panel.minimized{transform:translateX(100%)}
+  #panel-toggle{position:fixed;top:50%;right:340px;transform:translateY(-50%);z-index:21;background:var(--surface);border:1px solid var(--border);border-right:none;border-radius:8px 0 0 8px;width:28px;height:48px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:all .3s;font-size:12px}
+  #side-panel.minimized~#panel-toggle{right:0}
+}
+
+/* MOBILE: Bottom sheet */
+@media(max-width:768px){
+  #side-panel{position:fixed;bottom:0;left:0;right:0;max-height:55vh;z-index:20;background:var(--surface);backdrop-filter:blur(16px);border-top:1px solid var(--border);border-radius:16px 16px 0 0;transition:transform .4s ease;display:flex;flex-direction:column}
+  #side-panel.minimized{transform:translateY(calc(100% - 48px))}
+  #panel-toggle{display:none}
+  #panel-grab{width:40px;height:4px;background:var(--border);border-radius:2px;margin:8px auto 4px;cursor:pointer;flex-shrink:0}
+}
+
+#side-panel.minimized{display:flex}
+.panel-header{padding:12px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0}
+.panel-header .story-name{font-family:Georgia,serif;font-size:.95rem;color:#fff}
+.panel-body{flex:1;overflow-y:auto;padding:16px 18px;scrollbar-width:thin;scrollbar-color:var(--border) transparent;-webkit-overflow-scrolling:touch}
+.panel-body::-webkit-scrollbar{width:4px}.panel-body::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.panel-tag{display:inline-block;font-size:.62rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;padding:3px 9px;border-radius:12px;margin-bottom:8px}
+.tag-red{background:rgba(255,71,87,.15);color:var(--danger)}
+.tag-green{background:rgba(0,212,168,.15);color:var(--accent)}
+.tag-yellow{background:rgba(255,165,2,.15);color:var(--warn)}
+.tag-blue{background:rgba(55,66,250,.15);color:#60a5fa}
+.tag-purple{background:rgba(168,85,247,.15);color:#a855f7}
+.panel-title{font-family:Georgia,serif;font-size:1.1rem;color:#fff;margin-bottom:8px;line-height:1.3}
+.panel-text{font-size:.82rem;line-height:1.6;color:var(--text)}
+.panel-text b{color:var(--accent)}
+.panel-text .danger{color:var(--danger)}
+.panel-text .warn{color:var(--warn)}
+.panel-source{margin-top:12px;padding-top:8px;border-top:1px solid var(--border);font-size:.68rem;color:var(--muted)}
+
+/* Voice bar */
+#voice-bar{position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:30;display:none;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:24px;padding:5px 12px;max-width:90vw}
+#voice-bar.visible{display:flex}
+#voice-bar select{background:transparent;border:none;color:var(--muted);font-size:.72rem;cursor:pointer;outline:none;max-width:140px}
+#voice-bar select option{background:#1a2332;color:var(--text)}
+#narrate-pulse{width:7px;height:7px;border-radius:50%;background:var(--muted);flex-shrink:0}
+#narrate-pulse.active{background:var(--accent);animation:pulse 1.2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.3;transform:scale(.7)}}
+
+/* Controls */
+#controls{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);z-index:30;display:none;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:28px;padding:5px 8px;box-shadow:0 4px 24px rgba(0,0,0,.4)}
+#controls.visible{display:flex}
+.ctrl{background:transparent;color:var(--text);border:none;width:44px;height:44px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:16px;transition:all .2s;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.ctrl:hover{background:var(--border)}
+.ctrl.main{background:var(--accent);color:#000}
+.ctrl.main:hover{transform:scale(1.1)}
+.ctrl.exit:hover{color:var(--danger)}
+
+/* Progress */
+#progress{position:fixed;bottom:0;left:0;width:100%;height:3px;background:var(--border);z-index:40;display:none}
+#progress.visible{display:block}
+#progress-fill{height:100%;background:var(--accent);width:0;transition:width .5s}
+
+/* Scene dots — hidden on mobile */
+#dots{position:fixed;right:8px;top:50%;transform:translateY(-50%);z-index:20;display:none;flex-direction:column;gap:5px}
+@media(min-width:769px){#dots.visible{display:flex}}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--border);cursor:pointer;transition:all .3s}
+.dot.active{background:var(--accent);transform:scale(1.5)}
+.dot:hover{background:var(--muted)}
+
+/* Mobile: controls move above bottom sheet */
+@media(max-width:768px){
+  #controls{bottom:auto;top:50px;z-index:25}
+  #progress{bottom:auto;top:47px}
+}
+
+/* Leaflet popup */
+.leaflet-popup-content-wrapper{background:var(--surface)!important;border:1px solid var(--border)!important;border-radius:10px!important;box-shadow:0 4px 24px rgba(0,0,0,.5)!important}
+.leaflet-popup-content{color:var(--text)!important;font-family:system-ui,sans-serif!important;font-size:.8rem!important;margin:8px 10px!important}
+.leaflet-popup-content h3{font-family:Georgia,serif;font-size:.88rem;margin-bottom:4px}
+.leaflet-popup-tip{background:var(--surface)!important}
+.leaflet-popup-close-button{color:var(--muted)!important}
+.leaflet-control-zoom{margin-bottom:60px!important}
+@media(max-width:768px){.leaflet-control-zoom{display:none!important}}
+</style>
+</head>
+<body>
+<div id="map"></div>
+
+<div id="play-overlay">
+  <div id="play-card">
+    <div class="sub">Nvirogear presents</div>
+    <h1>MITOXICMAP Guided Tour</h1>
+    <p class="desc">Three Michigan communities. $92.8M in grants. 0% for stopping industrial pollution. Press play and I'll walk you through every story on the map.</p><p class="ios-note">🔊 Make sure your volume is on. On iPhone, tap play then tap again if audio doesn't start.</p>
+    <button class="play-btn" onclick="startTour('all')">▶</button>
+    <span class="play-label">Press play for all stories — or pick one</span>
+    <div class="story-picker">
+      <button class="story-pick" onclick="startTour('overview')">Overview</button>
+      <button class="story-pick" onclick="startTour('basf')">BASF Wyandotte</button>
+      <button class="story-pick" onclick="startTour('heights')">Heights-Ravenna</button>
+      <button class="story-pick" onclick="startTour('cadillac')">Cadillac</button>
+      <button class="story-pick" onclick="startTour('clocks')">Two Clocks</button>
+    </div>
+    <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(42,58,77,0.5);display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <a href="health-study.html" style="color:#a855f7;font-size:.75rem;text-decoration:none">📋 Submit health report</a>
+      <a href="sampling-signup.html" style="color:#3b82f6;font-size:.75rem;text-decoration:none">💧 Sign up for water testing</a>
+    </div>
+  </div>
+</div>
+
+<a href="index.html" id="home-btn" style="position:fixed;top:12px;left:12px;z-index:99;background:rgba(15,20,28,0.9);border:1px solid #2a3a4d;color:#7d8b9e;padding:8px 14px;border-radius:20px;text-decoration:none;font-size:.75rem;backdrop-filter:blur(8px);touch-action:manipulation">← Home</a>
+
+<div id="voice-bar">
+  <div id="narrate-pulse"></div>
+  <select id="voice-select" onchange="changeVoice()"></select>
+</div>
+
+<div id="side-panel">
+  <div id="panel-grab" onclick="togglePanel()"></div>
+  <div class="panel-header">
+    <span class="story-name" id="story-name">—</span>
+  </div>
+  <div class="panel-body">
+    <span class="panel-tag tag-green" id="panel-tag">—</span>
+    <h2 class="panel-title" id="panel-title">Title</h2>
+    <div class="panel-text" id="panel-text">Content</div>
+    <div class="panel-source" id="panel-source">Source</div>
+  </div>
+</div>
+<div id="panel-toggle" onclick="togglePanel()">◀</div>
+
+<div id="controls">
+  <button class="ctrl" onclick="prevScene()" title="Previous">⏮</button>
+  <button class="ctrl main" id="play-pause" onclick="togglePlay()" title="Pause">⏸</button>
+  <button class="ctrl" onclick="nextScene()" title="Next">⏭</button>
+  <button class="ctrl exit" onclick="exitTour()" title="Exit">✕</button>
+</div>
+<div id="progress"><div id="progress-fill"></div></div>
+<div id="dots"></div>
+
+<script>
+const ALL_SCENES=[
+{story:"Overview",title:"Three Places, One Funding Pattern",lat:43.5,lng:-84.5,zoom:6,tag:"Intro",tagColor:"green",
+body:"Three places in Michigan. One funding pattern. <b>$92.8 million</b> in identified public grants.<br><br>87% went to <span class='warn'>pipes, filters, monitoring</span>.<br><span class='danger'>0% went to stopping industrial pollution.</span>",
+source:"EPA, EGLE, public records. July 2026.",
+narration:"Three places in Michigan. One funding pattern. Ninety two point eight million dollars in identified public grants across three case study areas. Mostly for pipes, filters, monitoring, and planning. Rather than contaminant source control."},
+{story:"Overview",title:"Three Case-Study Areas",lat:43.5,lng:-84.5,zoom:6,tag:"Overview",tagColor:"blue",
+body:"Three places where industrial contamination has been documented for <b>decades</b>.<br><br><b>Detroit / Wyandotte</b> — BASF chemical plant<br><b>Heights-Ravenna</b> — Muskegon County PFAS<br><b>Cadillac</b> — Cyanide, PBBs, PFAS",
+source:"EPA Superfund records, EGLE Part 201 database.",
+narration:"Three places where industrial contamination has been documented in public records for decades. Detroit Wyandotte. Heights Ravenna in Muskegon County. And Cadillac Michigan."},
+{story:"Overview",title:"The Pattern",lat:43.5,lng:-84.5,zoom:6,tag:"Analysis",tagColor:"blue",
+body:"$92.8M in public grants.<br><br><b>87%</b> infrastructure<br><b>11.6%</b> monitoring/filters<br><b>0.5%</b> assessment<br><br><span class='danger' style='font-size:1.1em'>Source stoppage: 0%</span>",
+source:"EGLE Grants Dashboard. 438 grants, $887M.",
+narration:"The pattern. Across three case study areas, ninety two point eight million dollars in public grants. Eighty seven percent went to infrastructure. Source stoppage received zero percent."},
+{story:"BASF Wyandotte",title:"BASF Wyandotte",lat:42.2069,lng:-83.1403,zoom:13,tag:"Detroit",tagColor:"red",
+body:"A <b>230-acre chemical plant</b> on the Detroit River.<br><br>Consent decree: <b>1986</b><br><span class='danger'>60 gpm</span> contaminated groundwater<br>PFOS: <span class='danger'>359 ppt</span> (standard: 4 ppt)<br>pH: <span class='danger'>13.22</span>",
+source:"EPA Superfund 0502480. EGLE. Planet Detroit.",
+narration:"Place one. BASF Wyandotte. A two hundred and thirty acre chemical plant on the Detroit River. Up to 60 gallons per minute of contaminated groundwater flows into the Detroit River. PFOS was detected at 359 parts per trillion. The federal standard is 4.",
+popups:[{lat:42.2069,lng:-83.1403,html:"<h3>BASF North Works</h3>230-acre plant<br><b>60 gpm</b> into Detroit River<br><span style='color:#ff4757'>PFOS: 359 ppt</span>"}]},
+{story:"BASF Wyandotte",title:"The Whistleblower",lat:42.2069,lng:-83.1403,zoom:14,tag:"Detroit",tagColor:"red",
+body:"October 2024: A <b>30-year EGLE employee</b> filed a criminal complaint.<br><br>Alleges EGLE knowingly aided BASF violations.<br>EGLE cited <i>entrapment by estoppel</i>.<br><br><span class='warn'>March 2025: AG declined prosecution.</span>",
+source:"Criminal complaint Oct 2024. Detroit News.",
+narration:"In October 2024, a 30-year EGLE employee filed a criminal complaint with the Michigan Attorney General. The complaint alleges EGLE knowingly aided BASF violations. In March 2025, the Attorney General declined prosecution."},
+{story:"BASF Wyandotte",title:"Cleanup — 40 Years Later",lat:42.2069,lng:-83.1403,zoom:14,tag:"Timeline",tagColor:"yellow",
+body:"<b>1986</b> — Consent decree<br><b>1994</b> — EPA order<br><b>1996–2024</b> — System failing<br><b>June 2026</b> — EPA approves plan<br><b>2027</b> — Construction begins<br><br><span class='warn'>40 years.</span>",
+source:"EPA press release June 2026.",
+narration:"1986 consent decree. 1994 EPA order. 1996 through 2024, four mapping events showed the system failing. June 2026, EPA approved a cleanup plan. 2027, construction begins. Forty years."},
+{story:"BASF Wyandotte",title:"BASF Funding",lat:42.2069,lng:-83.1403,zoom:12,tag:"Funding",tagColor:"green",
+body:"BASF + Wyandotte funding: <b>$15.5M</b><br><br>• PFAS filters: $674K<br>• Lead pipes: $4.7M<br>• Sediment design: $10M<br><br><span class='danger'>No grant for stopping BASF's discharge.</span>",
+source:"EGLE Grants Dashboard.",
+narration:"BASF and Wyandotte connected funding totals 15.5 million dollars. PFAS filters, lead pipe replacement, sediment cleanup design. No reviewed grant was designated for stopping BASF groundwater discharge."},
+{story:"Heights-Ravenna",title:"Heights-Ravenna Corridor",lat:43.1693,lng:-86.2454,zoom:13,tag:"Muskegon",tagColor:"blue",
+body:"EGLE Site <b>61000823</b><br><br><span class='danger'>PFOS: 221 ppt</span> — 55× standard<br><span class='danger'>PFOA: 134 ppt</span> — 33× standard<br><br><span class='warn'>No health study exists.</span>",
+source:"EGLE Site 61000823. EPA standard: 4 ppt.",
+narration:"Place two. Heights Ravenna corridor in Muskegon County. PFOS at 221 parts per trillion. PFOA at 134 parts per trillion. No corridor specific health study has been identified.",
+popups:[{lat:43.1693,lng:-86.2454,html:"<h3>Heights-Ravenna</h3>EGLE 61000823<br><span style='color:#ff4757'>PFOS: 221 ppt</span><br><span style='color:#ffa502'>PFOA: 134 ppt</span>"}]},
+{story:"Heights-Ravenna",title:"Heights-Ravenna Funding",lat:43.1693,lng:-86.2454,zoom:12,tag:"Funding",tagColor:"green",
+body:"<b>$801K</b> — monitoring<br><b>$3.4M</b> — county watermain<br><br><span class='danger'>Source stoppage: not funded</span>",
+source:"EGLE Grants Dashboard.",
+narration:"Heights Ravenna funding. 801 thousand for monitoring. 3.4 million in county wide grants. Source stoppage was not identified."},
+{story:"Cadillac",title:"Cadillac, Michigan",lat:44.2520,lng:-85.4010,zoom:13,tag:"Wexford",tagColor:"red",
+body:"Three layers:<br><br><b>Northernaire</b> — cyanide (1985)<br><b>KYSOR</b> — chromium/VOCs (1989)<br><b>PFAS</b> — industrial park (2024)<br><br><span class='warn'>Cancer rate 13% above state avg.</span>",
+source:"EPA Superfund 0502440, 0502480. MDHHS.",
+narration:"Place three. Cadillac Michigan. Three layers. Northernaire Plating with 5400 gallons of waste cyanide. KYSOR Industrial with six plumes. And PFAS near the Cadillac Industrial Park.",
+popups:[{lat:44.2520,lng:-85.4010,html:"<h3>Cadillac Industrial Area</h3><span style='color:#ff4757'>Northernaire (cyanide)</span><br><span style='color:#ffa502'>KYSOR (chromium)</span><br><span style='color:#60a5fa'>PFAS (2024)</span>"}]},
+{story:"Cadillac",title:"30 Years of Pump-and-Treat",lat:44.2520,lng:-85.4010,zoom:14,tag:"Cadillac",tagColor:"yellow",
+body:"1996: VOCs at <span class='danger'>600 ppb</span><br>Now: <span class='warn'>200 ppb</span><br><br>Still above standards after <b>30 years</b>.",
+source:"City of Cadillac LDFA. EGLE records.",
+narration:"In 1996, VOC concentrations exceeded 600 parts per billion. Recently, just over 200. Still above standards after 30 years."},
+{story:"Cadillac",title:"Cadillac Funding",lat:44.2520,lng:-85.4010,zoom:12,tag:"Funding",tagColor:"green",
+body:"<b>$8.2M</b> — water to 240 homes<br><b>$881K</b> — wastewater<br><b>$500K</b> — brownfield<br><br><span class='danger'>Source stoppage: not funded</span>",
+source:"EGLE Grants Dashboard.",
+narration:"Cadillac funding. 8.2 million to extend municipal water. Source stoppage was not identified."},
+{story:"Two Clocks",title:"The C2R2 Program",lat:43.5,lng:-84.5,zoom:6,tag:"Grants",tagColor:"yellow",
+body:"<b>Contamination Risk Reduction</b><br>22 grants. $45.7M<br><br><b>89%</b> pipes<br><b>8.5%</b> consolidation<br><b>2.5%</b> filters<br><br><span class='danger'>0% source stoppage</span>",
+source:"EGLE Grants Dashboard. C2R2: 22 grants.",
+narration:"The C2R2 program. Contamination Risk Reduction. 22 grants totaling 45.7 million. 89 percent went to watermain extension. Zero percent to source stoppage."},
+{story:"Two Clocks",title:"Systemic Context",lat:43.5,lng:-84.5,zoom:6,tag:"Context",tagColor:"blue",
+body:"<b>1980</b> — Superfund tax on chemical makers<br><b>1995</b> — Tax expires<br><b>2022</b> — Reinstated<br><br>Costs shifted from <b>polluters</b> to <b>public budgets</b>.",
+source:"EPA Superfund history. Congressional Research Service.",
+narration:"In 1980, Congress established the Superfund excise tax. It expired in 1995. Cleanup costs shifted from industrial polluters to public infrastructure budgets."},
+{story:"Two Clocks",title:"The Strongest Sentence",lat:43.5,lng:-84.5,zoom:6,tag:"Conclusion",tagColor:"green",
+body:"<div style='font-family:Georgia,serif;font-size:1rem;line-height:1.7'>Among the awards reviewed, <b>no award description expressly designated funds for stopping the identified industrial source's ongoing release.</b></div><br><span style='color:var(--accent)'>Truth is more valuable than optimism.</span><br><br>Mr. Results — Nvirogear LLC",
+source:"EPA, EGLE, MDHHS, ATSDR. 24+ sources.",
+narration:"Among the awards reviewed, no award description expressly designated funds for stopping the identified industrial source ongoing release. Truth is more valuable than optimism. This has been Mr. Results, Nvirogear LLC."}
+];
+
+const STORY_GROUPS={all:{start:0,end:14,name:"All Stories"},overview:{start:0,end:2,name:"Overview"},basf:{start:3,end:6,name:"BASF Wyandotte"},heights:{start:7,end:8,name:"Heights-Ravenna"},cadillac:{start:9,end:11,name:"Cadillac"},clocks:{start:12,end:14,name:"Two Clocks"}};
+let map,currentScene=0,sceneSet=[],isPlaying=false,tourActive=false,scenePopups=[],advanceTimer=null,selectedVoice=null;
+
+function initMap(){
+  map=L.map('map',{zoomControl:true,attributionControl:true,scrollWheelZoom:true,touchZoom:true}).setView([43.5,-84.5],6);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap © CARTO',subdomains:'abcd',maxZoom:19}).addTo(map);
+  if(window.innerWidth>768)L.control.zoom({position:'bottomleft'}).addTo(map);
+}
+
+function loadVoices(){
+  const voices=speechSynthesis?speechSynthesis.getVoices():[];
+  const preferred=['Google US English','Samantha','Microsoft Aria','Microsoft Jenny','Microsoft Guy','Alex'];
+  let best=voices.find(v=>preferred.some(p=>v.name.includes(p)))||voices.find(v=>v.lang.startsWith('en'))||voices[0];
+  selectedVoice=best;
+  const sel=document.getElementById('voice-select');
+  sel.innerHTML='';
+  voices.filter(v=>v.lang.startsWith('en')).forEach(v=>{
+    const o=document.createElement('option');o.value=v.name;o.textContent=v.name.length>25?v.name.substring(0,25)+'...':v.name;
+    if(v===best)o.selected=true;sel.appendChild(o);
+  });
+}
+
+function changeVoice(){
+  const sel=document.getElementById('voice-select');
+  selectedVoice=speechSynthesis.getVoices().find(v=>v.name===sel.value);
+}
+
+function startTour(key){
+  const g=STORY_GROUPS[key];sceneSet=[];
+  for(let i=g.start;i<=g.end;i++)sceneSet.push(i);
+  currentScene=0;isPlaying=true;tourActive=true;
+  document.getElementById('play-overlay').classList.add('hidden');
+  document.getElementById('voice-bar').classList.add('visible');
+  document.getElementById('controls').classList.add('visible');
+  document.getElementById('progress').classList.add('visible');
+  document.getElementById('dots').classList.add('visible');
+  document.getElementById('side-panel').classList.remove('minimized');
+  buildDots();setTimeout(()=>showScene(0),400);
+}
+
+function buildDots(){
+  const c=document.getElementById('dots');c.innerHTML='';
+  sceneSet.forEach((sIdx,i)=>{const d=document.createElement('div');d.className='dot'+(i===0?' active':'');d.onclick=()=>showScene(i);c.appendChild(d)});
+}
+
+function showScene(idx){
+  if(idx<0||idx>=sceneSet.length)return;
+  currentScene=idx;const s=ALL_SCENES[sceneSet[idx]];
+  map.flyTo([s.lat,s.lng],s.zoom,{duration:2.5});
+  scenePopups.forEach(p=>map.removeLayer(p));scenePopups=[];
+  if(s.popups){setTimeout(()=>{s.popups.forEach(p=>{const m=L.marker([p.lat,p.lng]).addTo(map);m.bindPopup(p.html,{closeButton:false,autoClose:false,closeOnClick:false}).openPopup();scenePopups.push(m)})},1800)}
+  document.getElementById('story-name').textContent=s.story;
+  const tag=document.getElementById('panel-tag');tag.textContent=s.tag;tag.className='panel-tag tag-'+s.tagColor;
+  document.getElementById('panel-title').textContent=s.title;
+  document.getElementById('panel-text').innerHTML=s.body;
+  document.getElementById('panel-source').textContent=s.source;
+  document.querySelectorAll('.dot').forEach((d,i)=>d.classList.toggle('active',i===idx));
+  document.getElementById('progress-fill').style.width=((idx+1)/sceneSet.length*100)+'%';
+  if(isPlaying)speak(s.narration);
+}
+
+function speak(text){
+  if(!speechSynthesis){autoAdvanceOnly();return;}
+  speechSynthesis.cancel();
+  if(advanceTimer){clearTimeout(advanceTimer);advanceTimer=null}
+  const u=new SpeechSynthesisUtterance(text);
+  u.rate=0.92;u.pitch=0.95;u.volume=0.9;
+  if(selectedVoice)u.voice=selectedVoice;
+  document.getElementById('narrate-pulse').classList.add('active');
+  u.onend=()=>{document.getElementById('narrate-pulse').classList.remove('active');if(isPlaying&&currentScene<sceneSet.length-1){advanceTimer=setTimeout(()=>showScene(currentScene+1),1500)}else if(isPlaying){setTimeout(()=>exitTour(),2000)}};
+  u.onerror=()=>{
+    document.getElementById('narrate-pulse').classList.remove('active');
+    // iOS blocks speech if not gesture-triggered — fall back to timed auto-advance
+    if(isPlaying&&currentScene<sceneSet.length-1){advanceTimer=setTimeout(()=>showScene(currentScene+1),5000)}
+  };
+  try{speechSynthesis.speak(u);}catch(e){autoAdvanceOnly();}
+}
+function autoAdvanceOnly(){
+  // Fallback for iOS/blocked speech — just auto-advance with timing
+  if(isPlaying&&currentScene<sceneSet.length-1){advanceTimer=setTimeout(()=>showScene(currentScene+1),6000)}
+}
+
+function togglePlay(){
+  isPlaying=!isPlaying;const b=document.getElementById('play-pause');
+  if(isPlaying){b.innerHTML='⏸';b.classList.add('main');speak(ALL_SCENES[sceneSet[currentScene]].narration)}
+  else{b.innerHTML='▶';speechSynthesis.cancel();document.getElementById('narrate-pulse').classList.remove('active');if(advanceTimer)clearTimeout(advanceTimer)}
+}
+function nextScene(){if(currentScene<sceneSet.length-1)showScene(currentScene+1)}
+function prevScene(){if(currentScene>0)showScene(currentScene-1)}
+function togglePanel(){document.getElementById('side-panel').classList.toggle('minimized');const t=document.getElementById('panel-toggle');if(t)t.textContent=document.getElementById('side-panel').classList.contains('minimized')?'▶':'◀'}
+function exitTour(){
+  isPlaying=false;tourActive=false;speechSynthesis.cancel();if(advanceTimer)clearTimeout(advanceTimer);
+  scenePopups.forEach(p=>map.removeLayer(p));scenePopups=[];
+  document.getElementById('controls').classList.remove('visible');
+  document.getElementById('progress').classList.remove('visible');
+  document.getElementById('dots').classList.remove('visible');
+  document.getElementById('voice-bar').classList.remove('visible');
+  document.getElementById('side-panel').classList.add('minimized');
+  document.getElementById('play-overlay').classList.remove('hidden');
+  map.flyTo([43.5,-84.5],6,{duration:1.5});
+}
+
+document.addEventListener('keydown',e=>{
+  if(!tourActive){if(e.key===' '||e.key==='Enter'){e.preventDefault();startTour('all')}return}
+  switch(e.key){case'ArrowRight':case' ':e.preventDefault();nextScene();break;case'ArrowLeft':e.preventDefault();prevScene();break;case'Escape':exitTour();break;case'p':case'P':togglePlay();break}
+});
+
+// Touch swipe on bottom sheet for mobile
+let touchStartY=0;
+document.getElementById('side-panel').addEventListener('touchstart',e=>{touchStartY=e.touches[0].clientY},{passive:true});
+document.getElementById('side-panel').addEventListener('touchmove',e=>{
+  const diff=touchStartY-e.touches[0].clientY;
+  if(diff>50&&!document.getElementById('side-panel').classList.contains('minimized')){document.getElementById('side-panel').classList.add('minimized')}
+  else if(diff<-50&&document.getElementById('side-panel').classList.contains('minimized')){document.getElementById('side-panel').classList.remove('minimized')}
+},{passive:true});
+
+initMap();
+if(speechSynthesis){speechSynthesis.onvoiceschanged=loadVoices;loadVoices()}
+</script>
+</body>
+</html>

@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>PFAS Community Sampling Sign-Up | MITOXICMAP</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0e14;color:#e8eef5;font-family:system-ui,-apple-system,sans-serif;line-height:1.6;min-height:100vh}
+
+.header{text-align:center;padding:50px 20px 30px;background:linear-gradient(180deg,#0d1520 0%,#0a0e14 100%)}
+.header h1{font-family:Georgia,serif;font-size:1.7rem;color:#fff;margin-bottom:10px}
+.header .sub{color:#00d4a8;font-size:0.95rem;margin-bottom:8px}
+.header p{color:#7d8b9e;max-width:600px;margin:0 auto;font-size:0.85rem}
+
+.form-wrap{max-width:680px;margin:0 auto;padding:30px 20px 60px}
+
+.info-box{background:#0d1520;border:1px solid #1e293b;border-radius:12px;padding:20px;margin-bottom:24px}
+.info-box h3{font-size:0.95rem;color:#00d4a8;margin-bottom:10px;font-weight:700}
+.info-box p{font-size:0.82rem;color:#94a3b8;margin-bottom:8px}
+.info-box ul{list-style:none;padding-left:0;margin-top:10px}
+.info-box li{font-size:0.82rem;color:#94a3b8;padding:4px 0;padding-left:20px;position:relative}
+.info-box li::before{content:'→';position:absolute;left:0;color:#00d4a8}
+
+.consent-box{background:rgba(168,85,247,0.08);border:2px solid rgba(168,85,247,0.3);border-radius:12px;padding:18px;margin-bottom:24px}
+.consent-box h3{font-size:0.9rem;color:#a855f7;margin-bottom:10px;font-weight:700}
+.consent-box .consent-item{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;cursor:pointer;padding:6px;border-radius:6px}
+.consent-box .consent-item:hover{background:rgba(168,85,247,0.05)}
+.consent-box .consent-item input{margin-top:3px;width:18px;height:18px;cursor:pointer;flex-shrink:0}
+.consent-box .consent-item .ci-text{font-size:0.8rem;color:#cbd5e1;line-height:1.5}
+.consent-box .consent-item .ci-text b{color:#fff}
+
+.form-card{background:#111827;border:1px solid #1e293b;border-radius:16px;padding:28px;margin-bottom:24px}
+.form-card h2{font-family:Georgia,serif;font-size:1.1rem;color:#fff;margin-bottom:6px}
+.form-card .hint{font-size:0.8rem;color:#64748b;margin-bottom:16px}
+
+.form-group{margin-bottom:14px}
+.form-group label{display:block;font-size:0.85rem;color:#94a3b8;margin-bottom:5px;font-weight:600}
+.form-group label .req{color:#ff4757}
+.form-group label .opt{color:#475569;font-weight:400}
+.form-group input,.form-group select,.form-group textarea{
+  width:100%;background:#0a0e14;border:1px solid #2a3a4d;border-radius:8px;
+  padding:11px 13px;color:#e8eef5;font-size:0.88rem;font-family:inherit;transition:border-color 0.2s;
+}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:#00d4a8}
+.form-group textarea{min-height:60px;resize:vertical}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+@media(max-width:600px){.form-row,.form-row-3{grid-template-columns:1fr}}
+
+.submit-btn{width:100%;background:#00d4a8;color:#000;border:none;border-radius:12px;padding:15px;font-size:0.95rem;font-weight:700;cursor:pointer;transition:all 0.2s;font-family:inherit}
+.submit-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,212,168,0.3)}
+.submit-btn:disabled{background:#374151;color:#6b7280;cursor:not-allowed;transform:none}
+
+.success-msg{display:none;background:rgba(0,212,168,0.1);border:1px solid #00d4a8;border-radius:12px;padding:24px;text-align:center;margin-bottom:24px}
+.success-msg.show{display:block}
+.success-msg h3{color:#00d4a8;font-size:1.05rem;margin-bottom:8px}
+.success-msg p{color:#94a3b8;font-size:0.82rem}
+
+.contact-box{background:#0d1520;border:1px solid #1e293b;border-radius:12px;padding:18px;margin-bottom:20px}
+.contact-box h3{font-size:0.9rem;color:#00d4a8;margin-bottom:8px}
+.contact-box .phone{font-size:0.92rem;color:#fff;font-weight:600;margin:4px 0}
+
+.back-link{display:inline-block;color:#64748b;font-size:0.85rem;text-decoration:none;margin-top:14px}
+.back-link:hover{color:#00d4a8}
+
+footer{text-align:center;padding:24px 20px;border-top:1px solid #1e293b}
+footer p{font-size:0.78rem;color:#475569}
+footer .brand{font-weight:700;color:#00d4a8}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="sub">MITOXICMAP — Community Action</div>
+  <h1>PFAS Community Water Sampling Sign-Up</h1>
+  <p>Nvirogear is organizing community water sampling events across Michigan. We're partnering with schools, community centers, and local labs to test well water for PFAS. This is community-led science — not an official government test, but real data collected by real people.</p>
+</div>
+
+<div class="form-wrap">
+
+  <div class="success-msg" id="success">
+    <h3>✓ You're on the list</h3>
+    <p>Thank you. We'll contact you when we're organizing a sampling event in your area. Nvirogear will never share your information without permission.</p>
+  </div>
+
+  <div class="info-box">
+    <h3>What Is Community Sampling?</h3>
+    <p>Nvirogear is working to bring schools, community centers, and certified labs together to offer PFAS water testing to residents who may be exposed.</p>
+    <ul>
+      <li>We help organize sampling events in your area</li>
+      <li>Water samples are collected by community members with guidance</li>
+      <li>Samples are sent to a certified lab for analysis</li>
+      <li>Results are mapped on MITOXICMAP — free and public</li>
+      <li>This is community science — not a government program — but the data is real and admissible</li>
+    </ul>
+  </div>
+
+  <!-- Consent -->
+  <div class="consent-box" id="consent-section">
+    <h3>Before You Sign Up</h3>
+    <label class="consent-item">
+      <input type="checkbox" id="consent1" onchange="checkConsent()">
+      <span class="ci-text">I understand this is a <b>community-led initiative</b>, not an official government testing program</span>
+    </label>
+    <label class="consent-item">
+      <input type="checkbox" id="consent2" onchange="checkConsent()">
+      <span class="ci-text">I understand my <b>contact information will be kept confidential</b> and only used to organize sampling events</span>
+    </label>
+    <label class="consent-item">
+      <input type="checkbox" id="consent3" onchange="checkConsent()">
+      <span class="ci-text">I understand participation is <b>voluntary</b> and I can withdraw at any time</span>
+    </label>
+  </div>
+
+  <!-- Form -->
+  <form class="form-card" id="signup-form" onsubmit="return submitForm(event)" style="opacity:0.4;pointer-events:none">
+    <h2>Sign Up For Sampling</h2>
+    <p class="hint">Tell us where you are and how to reach you. We'll contact you when we organize an event in your area.</p>
+
+    <div class="form-row-3">
+      <div class="form-group">
+        <label>County <span class="req">*</span></label>
+        <select name="county" required>
+          <option value="">Select...</option>
+          <option>Alcona</option><option>Allegan</option><option>Alpena</option><option>Antrim</option>
+          <option>Arenac</option><option>Baraga</option><option>Barry</option><option>Bay</option>
+          <option>Benzie</option><option>Berrien</option><option>Branch</option><option>Calhoun</option>
+          <option>Cass</option><option>Charlevoix</option><option>Cheboygan</option><option>Chippewa</option>
+          <option>Clare</option><option>Clinton</option><option>Crawford</option><option>Delta</option>
+          <option>Dickinson</option><option>Eaton</option><option>Emmet</option><option>Genesee</option>
+          <option>Gladwin</option><option>Gogebic</option><option>Grand Traverse</option><option>Gratiot</option>
+          <option>Hillsdale</option><option>Houghton</option><option>Huron</option><option>Ingham</option>
+          <option>Ionia</option><option>Iosco</option><option>Iron</option><option>Isabella</option>
+          <option>Jackson</option><option>Kalamazoo</option><option>Kalkaska</option><option>Kent</option>
+          <option>Keweenaw</option><option>Lake</option><option>Lapeer</option><option>Leelanau</option>
+          <option>Lenawee</option><option>Livingston</option><option>Luce</option><option>Mackinac</option>
+          <option>Macomb</option><option>Manistee</option><option>Marquette</option><option>Mason</option>
+          <option>Mecosta</option><option>Menominee</option><option>Midland</option><option>Missaukee</option>
+          <option>Monroe</option><option>Montcalm</option><option>Montmorency</option><option>Muskegon</option>
+          <option>Newaygo</option><option>Oakland</option><option>Oceana</option><option>Ogemaw</option>
+          <option>Ontonagon</option><option>Osceola</option><option>Oscoda</option><option>Otsego</option>
+          <option>Ottawa</option><option>Presque Isle</option><option>Roscommon</option><option>Saginaw</option>
+          <option>St. Clair</option><option>St. Joseph</option><option>Sanilac</option><option>Schoolcraft</option>
+          <option>Shiawassee</option><option>Tuscola</option><option>Van Buren</option><option>Washtenaw</option>
+          <option>Wayne</option><option>Wexford</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>City / Township <span class="req">*</span></label>
+        <input type="text" name="city" placeholder="e.g. Cadillac" required>
+      </div>
+      <div class="form-group">
+        <label>ZIP Code <span class="opt">— optional</span></label>
+        <input type="text" name="zip" maxlength="5" pattern="[0-9]{5}" placeholder="49601">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>Your Name <span class="req">*</span></label>
+        <input type="text" name="name" placeholder="Full name" required>
+      </div>
+      <div class="form-group">
+        <label>Phone or Email <span class="req">*</span></label>
+        <input type="text" name="contact" placeholder="Phone or email" required>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label>Water Source</label>
+      <select name="water_source">
+        <option value="">Select...</option>
+        <option>Private well — want it tested</option>
+        <option>Private well — already tested (results available)</option>
+        <option>Municipal water — concerned about source</option>
+        <option>Not sure</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>Are you connected to a school, community center, or local organization?</label>
+      <input type="text" name="organization" placeholder="e.g. Member of local church, school parent, community center volunteer...">
+    </div>
+
+    <div class="form-group">
+      <label>Would you be willing to help organize a sampling event in your area?</label>
+      <select name="willing_organize">
+        <option value="">Select...</option>
+        <option>Yes — I can help organize</option>
+        <option>Maybe — need more info</option>
+        <option>No — just want my water tested</option>
+      </select>
+    </div>
+
+    <div class="form-group">
+      <label>How many people in your household drink from this water source?</label>
+      <input type="number" name="household_size" min="1" max="20" placeholder="e.g. 4">
+    </div>
+
+    <div class="form-group">
+      <label>Anything else we should know?</label>
+      <textarea name="notes" placeholder="Concerns, questions, nearby contamination sites, health concerns..."></textarea>
+    </div>
+
+    <button type="submit" class="submit-btn" id="submit-btn">Sign Me Up</button>
+  </form>
+
+  <div class="contact-box">
+    <h3>Questions? Contact Nvirogear</h3>
+    <div class="phone">📞 231-428-0379</div>
+    <div class="phone">✉️ nvirogear1@gmail.com</div>
+    <p style="font-size:0.78rem;color:#64748b;margin-top:10px">EGLE Environmental Assistance: 800-662-9278 · MDHHS Health Hotline: 800-648-6942</p>
+  </div>
+
+  <a href="index.html" class="back-link">← Back to MITOXICMAP</a>
+</div>
+
+<footer>
+  <p><span class="brand">MITOXICMAP</span> · Powered by Nvirogear LLC</p>
+  <p style="margin-top:6px;font-size:0.72rem">Community-led science. Voluntary participation. Confidential data. No information shared without consent.</p>
+</footer>
+
+<script>
+function checkConsent() {
+  const all = ['consent1','consent2','consent3'].every(id => document.getElementById(id).checked);
+  const form = document.getElementById('signup-form');
+  if(all) { form.style.opacity='1'; form.style.pointerEvents='auto'; }
+  else { form.style.opacity='0.4'; form.style.pointerEvents='none'; }
+}
+
+async function submitForm(e) {
+  e.preventDefault();
+  const data = new FormData(e.target);
+  const entry = {
+    county: data.get('county'),
+    city: data.get('city'),
+    zip: data.get('zip') || null,
+    name: data.get('name'),
+    contact: data.get('contact'),
+    water_source: data.get('water_source'),
+    organization: data.get('organization') || null,
+    willing_organize: data.get('willing_organize') || null,
+    household_size: data.get('household_size') ? parseInt(data.get('household_size')) : null,
+    notes: data.get('notes') || null,
+    signup_type: 'pfas_community_sampling',
+    source: 'MITOXICMAP',
+    submitted_at: new Date().toISOString()
+  };
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+  btn.textContent = 'Signing up...';
+
+  // Save locally for now
+  let signups = JSON.parse(localStorage.getItem('nvirogear_sampling_signups') || '[]');
+  signups.push(entry);
+  localStorage.setItem('nvirogear_sampling_signups', JSON.stringify(signups));
+
+  e.target.style.display = 'none';
+  document.getElementById('success').classList.add('show');
+  document.getElementById('success').scrollIntoView({behavior:'smooth'});
+
+  return false;
+}
+</script>
+</body>
+</html>

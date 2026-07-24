@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nvirogear TreeOS — Strategic Investment Deck</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
+:root{
+  --navy:#0E1626;
+  --navy-card:#111d30;
+  --navy-light:#152036;
+  --forest:#133B27;
+  --leaf:#2E7D32;
+  --gold:#C9A66B;
+  --gold-light:#e0be8a;
+  --gray:#E6EBF1;
+  --text-primary:#F5F5F0;
+  --text-secondary:#a8b8c8;
+  --text-muted:#5a6a7a;
+  --border:rgba(201,166,107,0.2);
+  --success:#48bb78;
+  --danger:#f56565;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:var(--navy);color:var(--text-primary);overflow:hidden;height:100vh}
+.deck{width:100vw;height:100vh;position:relative;overflow:hidden}
+.slide{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:44px 64px;opacity:0;transform:translateX(100%);transition:all 0.55s cubic-bezier(0.4,0,0.2,1);background:var(--navy);overflow-y:auto}
+.slide.active{opacity:1;transform:translateX(0)}
+.slide.prev{transform:translateX(-100%)}
+.slide-content{max-width:1200px;width:100%}
+.eyebrow{font-size:0.72rem;text-transform:uppercase;letter-spacing:4px;color:var(--gold);font-weight:600;margin-bottom:12px;font-family:'Inter',sans-serif}
+h1{font-family:'Playfair Display',serif;font-size:3.4rem;font-weight:900;line-height:1.08;margin-bottom:16px}
+h2{font-family:'Playfair Display',serif;font-size:2.4rem;font-weight:700;line-height:1.15;margin-bottom:16px}
+h3{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;color:var(--gold);margin-bottom:8px}
+h4{font-size:0.95rem;font-weight:600;color:var(--text-primary);margin-bottom:6px}
+p{font-size:0.92rem;line-height:1.7;color:var(--text-secondary);margin-bottom:8px}
+.gold{color:var(--gold)}
+.green{color:var(--leaf)}
+.card{background:var(--navy-card);border:1px solid var(--border);border-radius:12px;padding:22px;transition:border-color 0.2s}
+.card:hover{border-color:rgba(201,166,107,0.5)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.four-col{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.metric-card{background:var(--navy-card);border:1px solid var(--border);border-radius:12px;padding:22px 16px;text-align:center}
+.metric-value{font-family:'Playfair Display',serif;font-size:2.8rem;font-weight:900;color:var(--gold);line-height:1}
+.metric-label{font-size:0.72rem;color:var(--text-muted);margin-top:6px;text-transform:uppercase;letter-spacing:1.5px}
+.metric-sub{font-size:0.75rem;color:var(--text-muted);margin-top:4px}
+/* LOGO SVG inline */
+.logo-mark{display:flex;align-items:center;gap:14px;margin-bottom:24px}
+.logo-text{font-family:'Playfair Display',serif}
+.logo-text .top{font-size:2.2rem;font-weight:900;color:var(--text-primary)}
+.logo-text .bottom{font-size:2.2rem;font-weight:900;color:var(--gold);display:block;line-height:0.9}
+/* Capability icons */
+.cap-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;margin-top:16px}
+.cap-item{text-align:center;padding:12px 6px}
+.cap-icon{font-size:1.6rem;margin-bottom:6px}
+.cap-label{font-size:0.65rem;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;line-height:1.3}
+/* Data table */
+.dtable{width:100%;border-collapse:collapse}
+.dtable th{background:rgba(201,166,107,0.12);color:var(--gold);font-weight:600;text-align:left;padding:10px 14px;font-size:0.72rem;text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid var(--gold)}
+.dtable td{padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.06);color:var(--text-secondary);font-size:0.85rem}
+/* Nav */
+.nav{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);display:flex;gap:8px;align-items:center;z-index:100;background:rgba(14,22,38,0.95);backdrop-filter:blur(12px);padding:10px 22px;border-radius:50px;border:1px solid var(--border)}
+.btn{background:transparent;border:1px solid var(--border);color:var(--text-secondary);padding:8px 18px;border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;font-size:0.8rem;transition:all 0.2s}
+.btn:hover{border-color:var(--gold);color:var(--gold)}
+.btn.primary{background:var(--gold);color:var(--navy);border-color:var(--gold);font-weight:700}
+.btn.primary:hover{background:var(--gold-light)}
+.counter{font-size:0.75rem;color:var(--text-muted);min-width:50px;text-align:center}
+.progress{position:fixed;top:0;left:0;height:3px;background:linear-gradient(90deg,var(--forest),var(--gold));transition:width 0.4s ease;z-index:100}
+/* divider line gold */
+.gold-line{width:60px;height:3px;background:linear-gradient(90deg,var(--forest),var(--gold));border-radius:2px;margin:14px 0 20px}
+/* tag */
+.tag{display:inline-block;background:rgba(201,166,107,0.1);border:1px solid rgba(201,166,107,0.25);color:var(--gold);padding:4px 12px;border-radius:20px;font-size:0.72rem;margin:3px}
+/* hero specific */
+.hero{text-align:center}
+.hero h1{font-size:4.2rem}
+.hero .subtitle{font-size:1.2rem;color:var(--text-secondary);margin-bottom:20px;font-weight:300}
+.badge{display:inline-flex;align-items:center;gap:8px;padding:8px 18px;border-radius:8px;font-size:0.82rem;font-weight:600;margin:4px}
+.badge-gold{background:rgba(201,166,107,0.15);border:1px solid rgba(201,166,107,0.4);color:var(--gold)}
+.badge-green{background:rgba(72,187,120,0.12);border:1px solid rgba(72,187,120,0.35);color:var(--success)}
+.badge-patent{background:rgba(46,125,50,0.15);border:1px solid rgba(46,125,50,0.4);color:#81c784}
+/* flywheel */
+.wheel{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:16px 0}
+.wheel-step{background:var(--navy-card);border:1px solid var(--border);border-radius:6px;padding:8px 14px;font-size:0.78rem;color:var(--text-secondary);position:relative}
+.wheel-step::after{content:"→";margin-left:8px;color:var(--gold);opacity:0.6}
+.wheel-step:last-child::after{display:none}
+/* competitor */
+.comp-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:6px;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.06);font-size:0.8rem;color:var(--text-secondary);align-items:center}
+.comp-row.head{color:var(--gold);font-weight:600;font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;border-bottom:2px solid var(--gold)}
+.yes{color:var(--success)}
+.no{color:var(--danger)}
+/* highlight box */
+.hbox{background:linear-gradient(135deg,rgba(19,59,39,0.4) 0%,rgba(201,166,107,0.08) 100%);border:1px solid rgba(201,166,107,0.3);border-radius:10px;padding:18px 22px;margin-top:16px}
+/* closing */
+.tagline-bar{background:linear-gradient(90deg,var(--forest),var(--navy-light));border:1px solid var(--border);border-radius:8px;padding:14px 24px;text-align:center;margin-top:20px;font-size:0.82rem;color:var(--text-muted);letter-spacing:3px;text-transform:uppercase}
+/* gear-tree SVG icon simple version */
+.gear-icon{width:52px;height:52px;flex-shrink:0}
+@media(max-width:900px){.slide{padding:28px 20px}.two-col,.three-col,.four-col,.cap-grid{grid-template-columns:1fr 1fr}.hero h1{font-size:2.6rem}h2{font-size:1.8rem}.metric-value{font-size:2rem}.comp-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="deck" id="deck">
+
+<!-- S1: TITLE -->
+<div class="slide active hero">
+<div class="slide-content">
+  <div class="eyebrow" style="text-align:center;">Strategic Investment Opportunity · 2026</div>
+  <!-- Logo -->
+  <div style="display:flex;align-items:center;justify-content:center;gap:18px;margin-bottom:20px;">
+    <svg class="gear-icon" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="42" stroke="#C9A66B" stroke-width="3" fill="none"/>
+      <!-- gear teeth simplified -->
+      <rect x="46" y="4" width="8" height="10" rx="2" fill="#C9A66B"/>
+      <rect x="46" y="86" width="8" height="10" rx="2" fill="#C9A66B"/>
+      <rect x="4" y="46" width="10" height="8" rx="2" fill="#C9A66B"/>
+      <rect x="86" y="46" width="10" height="8" rx="2" fill="#C9A66B"/>
+      <!-- tree trunk -->
+      <rect x="47" y="55" width="6" height="22" fill="#2E7D32"/>
+      <!-- roots -->
+      <path d="M50 77 Q44 82 38 80" stroke="#2E7D32" stroke-width="2.5" fill="none"/>
+      <path d="M50 77 Q56 82 62 80" stroke="#2E7D32" stroke-width="2.5" fill="none"/>
+      <path d="M50 77 Q50 84 50 88" stroke="#2E7D32" stroke-width="2.5" fill="none"/>
+      <!-- canopy -->
+      <circle cx="50" cy="38" r="18" fill="#133B27"/>
+      <circle cx="38" cy="44" r="12" fill="#133B27"/>
+      <circle cx="62" cy="44" r="12" fill="#133B27"/>
+      <circle cx="50" cy="32" r="14" fill="#2E7D32"/>
+      <circle cx="40" cy="38" r="9" fill="#2E7D32"/>
+      <circle cx="60" cy="38" r="9" fill="#2E7D32"/>
+    </svg>
+    <div class="logo-text">
+      <span class="top">Nvirogear</span>
+      <span class="bottom">TreeOS</span>
+    </div>
+  </div>
+  <p class="subtitle">The Field Operating System for Tree Care Professionals</p>
+  <div class="gold-line" style="margin:0 auto 20px;"></div>
+  <p style="max-width:680px;margin:0 auto 24px;font-size:1rem;color:var(--text-secondary);">A proprietary field intelligence platform transforming every job into a permanent, geospatial, AI-enhanced digital asset — compounding in value with every tree serviced.</p>
+  <div>
+    <span class="badge badge-green">🟢 Live at dalestreeworks.com</span>
+    <span class="badge badge-patent">🛡️ Provisional Patent Filed — July 2025</span>
+    <span class="badge badge-gold">📊 70-Day Pilot — Real Customer Data</span>
+  </div>
+  <div class="tagline-bar" style="margin-top:28px;max-width:700px;margin-left:auto;margin-right:auto;">
+    Intelligent Operations · Safer Crews · Healthier Trees · Stronger Business
+  </div>
+</div>
+</div>
+
+<!-- S2: THE PLATFORM -->
+<div class="slide">
+<div class="slide-content">
+  <div class="eyebrow">Platform Overview</div>
+  <h2>Every Tree. Every Job. <span class="gold">Every Detail.</span></h2>
+  <div class="gold-line"></div>
+  <div class="two-col">
+    <div>
+      <p>Nvirogear TreeOS is a geospatial-first field operating system that replaces paper records, fragmented apps, and manual workflows with a single, intelligent platform built specifically for tree care operations.</p>
+      <p>From the first customer estimate request to final invoice, every interaction is captured, documented, and stored as a permanent property intelligence record — searchable, auditable, and reusable forever.</p>
+      <div class="hbox" style="margin-top:14px;">
+        <p style="margin:0;font-style:italic;font-family:'Playfair Display',serif;font-size:1rem;color:var(--text-primary);">"Traditional software records what happened. TreeOS builds an intelligence asset from what happened."</p>
+      </div>
+    </div>
+    <div>
+      <h3>Eight Core Capabilities</h3>
+      <div style="margin-top:12px;">
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><span style="font-size:1.3rem;">📋</span><span style="font-size:0.85rem;">Estimates &amp; Proposals</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><span style="font-size:1.3rem;">📅</span><span style="font-size:0.85rem;">Scheduling &amp; Dispatch</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><span style="font-size:1.3rem;">👷</span><span style="font-size:0.85rem;">Crew Management &amp; Time Tracking</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><span style="font-size:1.3rem;">🛡️</span><span style="font-size:0.85rem;">Safety &amp; Compliance</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><span style="font-size:1.3rem;">📸</span><span style="font-size:0.85rem;">Documentation &amp; Photos</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><span style="font-size:1.3rem;">🌳</span><span style="font-size:0.85rem;">Asset &amp; Tree Inventory</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><span style="font-size:1.3rem;">📈</span><span style="font-size:0.85rem;">Reports &amp; Business Intelligence</span></div>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;"><span style="font-size:1.3rem;">⚖️</span><span style="font-size:0.85rem;">Risk &amp; Liability Protection</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- S3: THE PROBLEM -->
+<div class="slide">
+<div class="slide-content">
+  <div class="eyebrow">The Market Gap</div>
+  <h2>The Industry Is <span class="gold">Still Running on Paper</span></h2>
+  <div class="gold-line"></div>
+  <div class="two-col">
+    <div>
+      <h3 style="color:var(--danger);">❌ How It Works Today</h3>
+      <p>Tree care contractors manage their businesses with a combination of phone calls, spreadsheets, paper work orders, and consumer apps never designed for field operations.</p>
+      <div style="margin-top:16px;">
+        <div class="card" style="margin-bottom:10px;"><h4>Drive Before You Quote</h4><p style="margin:0;font-size:0.82rem;">Contractors spend 2–4 hours driving to properties just to provide an estimate — before a single dollar is earned.</p></div>
+        <div class="card" style="margin-bottom:10px;"><h4>Photos Lost in Text Chains</h4><p style="margin:0;font-size:0.82rem;">Job documentation lives in personal phone galleries and text threads — impossible to audit, search, or hand off.</p></div>
+        <div class="card"><h4>No Safety Record</h4><p style="margin:0;font-size:0.82rem;">Safety checks are verbal or paper-based. When an OSHA inspector or insurance adjuster asks, there's nothing to show.</p></div>
+      </div>
+    </div>
+    <div>
+      <h3 style="color:var(--success);">✓ What TreeOS Delivers</h3>
+      <p>A single platform that captures everything — from the customer's first tap on the estimate portal to the final invoice — and preserves it as permanent, searchable operational intelligence.</p>
+      <div style="margin-top:16px;">
+        <div class="card" style="margin-bottom:10px;border-color:rgba(72,187,120,0.3);"><h4>Quote From the Office</h4><p style="margin:0;font-size:0.82rem;">Customer submits GPS pins, photos, species, dimensions, and hazards. Dale has everything before driving anywhere.</p></div>
+        <div class="card" style="margin-bottom:10px;border-color:rgba(72,187,120,0.3);"><h4>Chain-of-Evidence Built In</h4><p style="margin:0;font-size:0.82rem;">Every photo, checklist, and approval is timestamped, GPS-tagged, and stored permanently in the job record.</p></div>
+        <div class="card" style="border-color:rgba(72,187,120,0.3);"><h4>Audit-Ready Compliance</h4><p style="margin:0;font-size:0.82rem;">Safety checklists, equipment inspections, and crew sign-offs are captured digitally on every single job.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- S4: LIVE PRODUCT -->
+<div class="slide">
+<div class="slide-content">
+  <div class="eyebrow">Proven in Production</div>
+  <h2>Not a Mockup. <span class="gold">A Live Product.</span></h2>
+  <div class="gold-line"></div>
+  <div class="two-col">
+    <div>
+      <span class="badge badge-green" style="margin-bottom:16px;display:inline-flex;">🟢 LIVE — dalestreeworks.com</span>
+      <p>The origin prototype — Dale's Tree Works — has been running Nvirogear TreeOS in full production for <strong style="color:var(--text-primary);">70 consecutive days</strong>. Real customers. Real estimates. Real revenue. Real geospatial data.</p>
+      <p>Anyone can visit <strong style="color:var(--gold);">dalestreeworks.com</strong> right now, walk through the 6-step zero-friction intake, drop GPS pins on satellite imagery, upload photos, flag hazards, and submit a live estimate request.</p>
+      <div class="hbox" style="margin-top:14px;">
+        <p style="margin:0;color:var(--gold);font-size:0.9rem;font-weight:600;">Every number on the next slide was pulled directly from the production database on July 23, 2026.</p>
+      </div>
+    </div>
+    <div>
+      <h3>The 6-Step Zero-Friction Intake</h3>
+      <div style="margin-top:12px;">
+        <div style="display:flex;align-items:flex-start;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><span style="color:var(--gold);font-weight:700;min-width:22px;">01</span><div><strong style="font-size:0.85rem;">Info</strong> <span style="font-size:0.78rem;color:var(--text-muted);"> — Name, phone, email, address, contact preference</span></div></div>
+        <div style="display:flex;align-items:flex-start;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><span style="color:var(--gold);font-weight:700;min-width:22px;">02</span><div><strong style="font-size:0.85rem;">Map</strong> <span style="font-size:0.78rem;color:var(--text-muted);"> — Drop GPS pins on satellite imagery</span></div></div>
+        <div style="display:flex;align-items:flex-start;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><span style="color:var(--gold);font-weight:700;min-width:22px;">03</span><div><strong style="font-size:0.85rem;">Trees</strong> <span style="font-size:0.78rem;color:var(--text-muted);"> — Species, height, diameter, condition, lean direction</span></div></div>
+        <div style="display:flex;align-items:flex-start;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><span style="color:var(--gold);font-weight:700;min-width:22px;">04</span><div><strong style="font-size:0.85rem;">Photos</strong> <span style="font-size:0.78rem;color:var(--text-muted);"> — Upload from phone, auto-attached to job record</span></div></div>
+        <div style="display:flex;align-items:flex-start;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06)"><span style="color:var(--gold);font-weight:700;min-width:22px;">05</span><div><strong style="font-size:0.85rem;">Access</strong> <span style="font-size:0.78rem;color:var(--text-muted);"> — Gate width, septic, power lines, slope, utilities</span></div></div>
+        <div style="display:flex;align-items:flex-start;gap:12px;padding:8px 0;"><span style="color:var(--gold);font-weight:700;min-width:22px;">06</span><div><strong style="font-size:0.85rem;">Review</strong> <span style="font-size:0.78rem;color:var(--text-muted);"> — Auto-generates PDF estimate. No login required.</span></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- S5: REAL NUMBERS -->
+<div class="slide">
+<div class="slide-content">
+  <div class="eyebrow">Verified Production Metrics — App ID: 6a071b615e1f93ca65836ddb</div>
+  <h2>Real Revenue. <span class="gold">Real Data.</span></h2>
+  <div class="gold-line"></div>
+  <div class="four-col" style="margin-bottom:20px;">
+    <div class="metric-card"><div class="metric-value">19</div><div class="metric-label">Estimate Requests</div><div class="metric-sub">15 via customer portal</div></div>
+    <div class="metric-card"><div class="metric-value" style="color:var(--success);">$2,575</div><div class="metric-label">Invoiced Revenue</div><div class="metric-sub">70-day pilot</div></div>
+    <div class="metric-card"><div class="metric-value">89%</div><div class="metric-label">Gross Margin</div><div class="metric-sub">$2,300 on $2,575</div></div>
+    <div class="metric-card"><div class="metric-value">49</div><div class="metric-label">Trees in Pipeline</div><div class="metric-sub">GPS-pinned &amp; species-tagged</div></div>
+  </div>
+  <div class="two-col">
+    <div>
+      <h3>Completed Jobs</h3>
+      <table class="dtable" style="margin-top:10px;">
+        <thead><tr><th>Customer</th><th>Service</th><th>Trees</th><th>Revenue</th><th>Margin</th></tr></thead>
+        <tbody>
+          <tr><td>Randy Voss</td><td>Removal + Stump</td><td>4</td><td style="color:var(--success);">$1,600</td><td style="color:var(--success);">89%</td></tr>
+          <tr><td>Carol Nyenhuis</td><td>Trim + Crown</td><td>6</td><td style="color:var(--success);">$975</td><td style="color:var(--success);">90%</td></tr>
+        </tbody>
+      </table>
+      <div class="card" style="margin-top:12px;background:rgba(72,187,120,0.08);border-color:rgba(72,187,120,0.3);">
+        <p style="margin:0;color:var(--success);font-size:0.85rem;font-weight:600;">+ $4,250 in outstanding quotes (Riverside Church + Tom Bakker)</p>
+      </div>
+    </div>
+    <div>
+      <h3>Hazard Intelligence Captured</h3>
+      <p style="font-size:0.82rem;margin-bottom:10px;">Every estimate auto-flags site risks before Dale arrives:</p>
+      <div>
+        <span class="tag" style="color:var(--danger);border-color:rgba(245,101,101,0.3);background:rgba(245,101,101,0.08);">Septic Nearby ×4</span>
+        <span class="tag" style="color:var(--danger);border-color:rgba(245,101,101,0.3);background:rgba(245,101,101,0.08);">Power Lines ×3</span>
+        <span class="tag" style="color:var(--danger);border-color:rgba(245,101,101,0.3);background:rgba(245,101,101,0.08);">Narrow Access ×3</span>
+        <span class="tag" style="color:var(--danger);border-color:rgba(245,101,101,0.3);background:rgba(245,101,101,0.08);">Leaning Toward House ×2</span>
+        <span class="tag" style="color:var(--danger);border-color:rgba(245,101,101,0.3);background:rgba(245,101,101,0.08);">Storm Damage ×1</span>
+        <span class="tag" style="color:var(--danger);border-color:rgba(245,101,101,0.3);background:rgba(245,101,101,0.08);">On House ×1</span>
+        <span class="tag" style="color:var(--danger);border-color:rgba(245,101,101,0.3);background:rgba(245,101,101,0.08);">Downed Power Line ×1</span>
+      </div>
+      <div style="margin-top:12px;">
+        <p style="font-size:0.8rem;">11 unique customers · Facebook, Google Search, Neighbor referrals</p>
+        <p style="font-size:0.8rem;">Lead sources verified from customer intake data</p>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- S6: THE DATA FLYWHEEL -->
+<div class="slide">
+<div class="slide-content">
+  <div class="eyebrow">Compounding Value Architecture</div>
+  <h2>The <span class="gold">Intelligence Flywheel</span></h2>
+  <div class="gold-line"></div>
+  <p style="max-width:800px;margin-bottom:20px;">Every completed job makes the platform more valuable. The database deepens. The AI gets smarter. The next estimate takes less time. The data moat widens.</p>
+  <div class="wheel">
+    <div class="wheel-step"><strong>Customer Submits Request</strong></div>
+    <div class="wheel-step"><strong>Property Record Created</strong></div>
+    <div class="wheel-step"><strong>GPS Pins + Photos Captured</strong></div>
+    <div class="wheel-step"><strong>Hazards Auto-Flagged</strong></div>
+    <div class="wheel-step"><strong>Estimate Generated</strong></div>
+    <div class="wheel-step"><strong>Crew Dispatched</strong></div>
+    <div class="wheel-step"><strong>Safety Checks Logged</strong></div>
+    <div class="wheel-step"><strong>Job Completed + Invoiced</strong></div>
+    <div class="wheel-step"><strong>Before/After Photos Archived</strong></div>
+    <div class="wheel-step"><strong>AI Drafts Marketing Content</strong></div>
+    <div class="wheel-step" style="border-color:var(--gold);background:rgba(201,166,107,0.1);color:var(--gold);font-weight:600;"><strong>Property History Compounds → Faster Next Quote</strong></div>
+  </div>
+  <div class="hbox">
+    <p style="margin:0;font-size:1rem;"><span style="color:var(--gold);font-weight:700;">The Key Insight:</span> Unlike traditional SaaS that delivers static value, TreeOS builds a compounding dataset. A property serviced in year one is faster, safer, and cheaper to service in year three. The platform appreciates with use — it doesn't depreciate.</p>
+  </div>
+</div>
+</div>
+
+<!-- S7: COMPETITIVE MOAT -->
+<div class="slide">
+<div class="slide-content">
+  <div class="eyebrow">Defensible Advantage</div>
+  <h2>Nine Layers of <span class="gold">Competitive Moat</span></h2>
+  <div class="gold-line"></div>
+  <div class="three-col" style="margin-bottom:16px;">
+    <div class="card"><span style="font-size:1.4rem;">🏠</span><h4 style="margin-top:8px;">Property Histories</h4><p style="margin:0;font-size:0.82rem;">Complete service timeline per address — reusable forever</p></div>
+    <div class="card"><span style="font-size:1.4rem;">🌳</span><h4 style="margin-top:8px;">Tree Inventories</h4><p style="margin:0;font-size:0.82rem;">Species, condition, hazard ratings, GPS coordinates per tree</p></div>
+    <div class="card"><span style="font-size:1.4rem;">📍</span><h4 style="margin-top:8px;">GPS Asset Database</h4><p style="margin:0;font-size:0.82rem;">Precise geospatial records impossible to replicate without time</p></div>
+    <div class="card"><span style="font-size:1.4rem;">📸</span><h4 style="margin-top:8px;">Photo Evidence Archive</h4><p style="margin:0;font-size:0.82rem;">Before/after, timestamped, GPS-tagged — permanent chain</p></div>
+    <div class="card"><span style="font-size:1.4rem;">⚙️</span><h4 style="margin-top:8px;">Equipment History</h4><p style="margin:0;font-size:0.82rem;">Maintenance logs, inspection records, performance data</p></div>
+    <div class="card"><span style="font-size:1.4rem;">👷</span><h4 style="margin-top:8px;">Crew Performance</h4><p style="margin:0;font-size:0.82rem;">Efficiency metrics, safety records, certification tracking</p></div>
+    <div class="card"><span style="font-size:1.4rem;">📅</span><h4 style="margin-top:8px;">Seasonal Patterns</h4><p style="margin:0;font-size:0.82rem;">Recurring service data optimizes scheduling and pricing</p></div>
+    <div class="card"><span style="font-size:1.4rem;">⭐</span><h4 style="margin-top:8px;">Customer Intelligence</h4><p style="margin:0;font-size:0.82rem;">Preferences, communication history, lifetime value</p></div>
+    <div class="card" style="border-color:rgba(201,166,107,0.5);background:rgba(201,166,107,0.08);"><span style="font-size:1.4rem;">🛡️</span><h4 style="margin-top:8px;">Compliance Records</h4><p style="margin:0;font-size:0.82rem;">Auditable safety logs insurers and regulators demand</p></div>
+  </div>
+  <div class="hbox"><p style="margin:0;color:var(--success);font-weight:600;font-size:0.88rem;">✓ Each layer compounds over time. Competitors cannot buy, copy, or fast-forward this accumulation. A contractor who has used TreeOS for 3 years has a dataset that takes 3 years to replicate.</p></div>
+</div>
+</div>
+
+<!-- S8: COMPETITIVE LANDSCAPE -->
+<div class="slide">
+<div class="slide-content">
+  <div class="eyebrow">Market Position</div>
+  <h2>How TreeOS <span class="gold">Stacks Up</span></h2>
+  <div class="gold-line"></div>
+  <p style="margin-bottom:20px;">Every incumbent was designed for the office first. TreeOS is designed for the field — and the property — first.</p>
+  <div class="card" style="padding:20px;">
+    <div class="comp-row head"><div>Platform</div><div style="text-align:center;">Field-First</div><div style="text-align:center;">Digital Twin</div><div style="text-align:center;">Chain-of-Evidence</div><div style="text-align:center;">AI Marketing</div></div>
+    <div class="comp-row"><div><strong>Jobber</strong></div><div class="no" style="text-align:center;">✗</div><div class="no" style="text-align:center;">✗</div><div class="no" style="text-align:center;">✗</div><div class="no" style="text-align:center;">✗</div></div>
+    <div class="comp-row"><div><strong>ServiceTitan</strong></div><div class="no" style="text-align:center;">✗</div><div class="no" style="text-align:center;">✗</div><div class="no" style="text-align:center;">✗</div><div class="no" style="text-align:center;">✗</div></div>
+    <div class="comp-row"><div><strong>Housecall Pro</strong></div><div class="no" style="text-align:center;">✗</div><div class="no" style="text-align:center;">✗</div><div class="no" style="text-align:center;">✗</div><div class="no" style="text-align:center;">✗</div></div>
+    <div class="comp-row"><div><strong>Arborgold</strong></div><div class="no" style="text-align:center;">✗</div><div class="no" style="text-align:center;">✗</div><div class="no" style="text-align:center;">✗</div><div class="no" style="text-align:center;">✗</div></div>
+    <div class="comp-row" style="background:rgba(201,166,107,0.08);border-radius:8px;"><div><strong style="color:var(--gold);">Nvirogear TreeOS</strong></div><div class="yes" style="text-align:center;">✓</div><div class="yes" style="text-align:center;">✓</div><div class="yes" style="text-align:center;">✓</div><div class="yes" style="text-align:center;">✓</div></div>
+  </div>
+  <div class="hbox" style="margin-top:16px;">
+    <p style="margin:0;color:var(--gold);font-weight:600;">No incumbent offers zero-friction geospatial intake + permanent chain-of-evidence + AI marketing automation in a single platform. TreeOS is the only field-first operating system in this category.</p>
+  </div>
+</div>
+</div>
+
+<!-- S9: MARKET SIZE -->
+<div class="slide">
+<div class="slide-content">
+  <div class="eyebrow">Total Addressable Market</div>
+  <h2>The <span class="gold">Market Opportunity</span></h2>
+  <div class="gold-line"></div>
+  <div class="four-col" style="margin-bottom:20px;">
+    <div class="metric-card"><div class="metric-value">$5.9B</div><div class="metric-label">US Field Service Software</div><div class="metric-sub">2025 market size</div></div>
+    <div class="metric-card"><div class="metric-value">11.2%</div><div class="metric-label">Annual Growth Rate</div><div class="metric-sub">CAGR through 2030</div></div>
+    <div class="metric-card"><div class="metric-value">580K+</div><div class="metric-label">US Tree Care Companies</div><div class="metric-sub">TCIA industry census</div></div>
+    <div class="metric-card"><div class="metric-value">$160B</div><div class="metric-label">Green Industry TAM</div><div class="metric-sub">Tree care + landscaping</div></div>
+  </div>
+  <div class="two-col">
+    <div>
+      <h3>The Wedge Strategy</h3>
+      <p>Tree care is the ideal entry market — high liability, high documentation requirements, complex field operations, and an industry that has been systematically ignored by enterprise software vendors.</p>
+      <p>But the platform is industry-agnostic. The same OS serves any business that sends crews to properties.</p>
+    </div>
+    <div>
+      <h3>Expansion Rings</h3>
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-top:10px;">
+        <div class="card" style="text-align:center;padding:14px;min-width:130px;border-color:var(--gold);"><strong style="color:var(--gold);">Tree Care</strong><p style="font-size:0.75rem;margin:4px 0 0;">580K companies</p></div>
+        <div style="color:var(--gold);">→</div>
+        <div class="card" style="text-align:center;padding:14px;min-width:130px;"><strong>Green Industry</strong><p style="font-size:0.75rem;margin:4px 0 0;">Landscaping, Excavation, Roofing</p></div>
+        <div style="color:var(--gold);">→</div>
+        <div class="card" style="text-align:center;padding:14px;min-width:130px;"><strong>Enterprise</strong><p style="font-size:0.75rem;margin:4px 0 0;">Utilities, Municipalities, PE Roll-Ups</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- S10: IP & PATENT -->
+<div class="slide">
+<div class="slide-content">
+  <div class="eyebrow">Intellectual Property</div>
+  <h2><span class="gold">Defensible IP</span> Portfolio</h2>
+  <div class="gold-line"></div>
+  <div style="margin-bottom:20px;">
+    <span class="badge badge-patent">🛡️ Provisional Patent Filed — Dual-Map Geospatial System — July 2025</span>
+  </div>
+  <div class="three-col" style="margin-bottom:16px;">
+    <div class="card"><h4>1. Frictionless Geospatial Intake</h4><p style="margin:0;font-size:0.82rem;">Zero-login, GPS-first job submission. Patentable workflow removing the #1 cause of lead abandonment in field services.</p></div>
+    <div class="card"><h4>2. Property-Centric Architecture</h4><p style="margin:0;font-size:0.82rem;">Data organized around physical GPS assets — not customer names. A fundamental data architecture shift.</p></div>
+    <div class="card"><h4>3. Chain-of-Evidence Workflow</h4><p style="margin:0;font-size:0.82rem;">Evidentiary capture as a core operational feature — not an optional attachment. Structural liability reduction.</p></div>
+    <div class="card"><h4>4. Embedded Compliance Engine</h4><p style="margin:0;font-size:0.82rem;">Safety inspections, hazard assessments, and crew sign-offs built into the job workflow — not bolted on.</p></div>
+    <div class="card"><h4>5. AI Marketing Automation</h4><p style="margin:0;font-size:0.82rem;">Proprietary prompt pipelines transforming operational data into publishable marketing content automatically.</p></div>
+    <div class="card" style="border-color:var(--gold);background:rgba(201,166,107,0.08);"><h4>6. Permanent Property Intelligence</h4><p style="margin:0;font-size:0.82rem;">The cumulative dataset itself — an appreciating business asset that compounds with every job and cannot be replicated by competitors.</p></div>
+  </div>
+  <div class="hbox">
+    <p style="margin:0;font-size:0.88rem;"><span style="color:var(--gold);font-weight:600;">Acquisition Value:</span> What buyers are acquiring is not just code — it is a portfolio of protectable innovations, a compounding dataset, a proven pilot, and a provisional patent. The moat is structural.</p>
+  </div>
+</div>
+</div>
+
+<!-- S11: COMMERCIALIZATION -->
+<div class="slide">
+<div class="slide-content">
+  <div class="eyebrow">Revenue Model</div>
+  <h2>Multiple Paths to <span class="gold">Monetization</span></h2>
+  <div class="gold-line"></div>
+  <div class="three-col" style="margin-bottom:16px;">
+    <div class="card"><h4>🏷️ SaaS Subscription</h4><p style="margin:0;font-size:0.82rem;">Monthly per-seat or per-company pricing. High retention due to embedded workflow dependency and compounding data lock-in.</p></div>
+    <div class="card"><h4>🏢 Enterprise License</h4><p style="margin:0;font-size:0.82rem;">Multi-branch or PE portfolio deployment. Single contract, standardized workflows across dozens of acquired companies.</p></div>
+    <div class="card"><h4>🔖 White-Label License</h4><p style="margin:0;font-size:0.82rem;">Rebrandable platform for vertical SaaS companies seeking field operations modules without building from scratch.</p></div>
+    <div class="card"><h4>🤝 Strategic Acquisition</h4><p style="margin:0;font-size:0.82rem;">Full IP transfer — patent, prototype, source code, production data, customer pipeline — to PE firm or strategic buyer.</p></div>
+    <div class="card"><h4>🛡️ Insurance Partnerships</h4><p style="margin:0;font-size:0.82rem;">Premium compliance modules and risk-reduction data products sold to underwriters as portfolio risk management tools.</p></div>
+    <div class="card"><h4>⚡ Utility &amp; Municipal</h4><p style="margin:0;font-size:0.82rem;">Vegetation management, ROW clearance, storm response documentation, and public asset inventory for utilities and governments.</p></div>
+    <div class="card"><h4>🔌 API Licensing</h4><p style="margin:0;font-size:0.82rem;">Property intelligence data services and workflow automation endpoints for third-party platform integrations.</p></div>
+    <div class="card"><h4>📊 Data Products</h4><p style="margin:0;font-size:0.82rem;">Aggregated, anonymized operational intelligence sold to industry associations, insurers, and municipal planning departments.</p></div>
+    <div class="card" style="border-color:var(--gold);background:rgba(201,166,107,0.08);"><h4>🌐 Franchise OS</h4><p style="margin:0;font-size:0.82rem;">White-label FieldOS for franchise networks needing standardized field operations across hundreds of franchise locations.</p></div>
+  </div>
+</div>
+</div>
+
+<!-- S12: WHY NOW -->
+<div class="slide">
+<div class="slide-content">
+  <div class="eyebrow">Timing</div>
+  <h2>Why <span class="gold">This Moment</span></h2>
+  <div class="gold-line"></div>
+  <div class="three-col" style="margin-bottom:20px;">
+    <div class="card"><h3>AI Is Ready</h3><p>LLMs can now generate production-quality marketing content from operational data with minimal human review. The AI marketing flywheel is technically feasible today. It wasn't 24 months ago.</p></div>
+    <div class="card"><h3>PE Roll-Up Wave</h3><p>Private equity deployed $1.2 trillion across 9,000+ transactions in 2025. Green industry roll-ups are accelerating. Every acquired company needs operational standardization — immediately.</p></div>
+    <div class="card"><h3>Compliance Tightening</h3><p>OSHA, insurance carriers, and municipal regulators are increasing documentation requirements. Paper safety records no longer pass audit. Digital chain-of-evidence is becoming non-negotiable.</p></div>
+  </div>
+  <div class="two-col">
+    <div>
+      <h3>The Pilot Timeline</h3>
+      <div style="margin-top:10px;">
+        <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);"><span style="color:var(--gold);font-size:0.78rem;min-width:70px;">May 2026</span><span style="font-size:0.82rem;">Dale's Tree Works prototype deployed — pilot begins</span></div>
+        <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);"><span style="color:var(--gold);font-size:0.78rem;min-width:70px;">Jul 2025</span><span style="font-size:0.82rem;">Provisional patent filed — IP protection secured</span></div>
+        <div style="display:flex;gap:12px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.06);"><span style="color:var(--gold);font-size:0.78rem;min-width:70px;">Jul 2026</span><span style="font-size:0.82rem;">70-day pilot complete — 19 estimates, $2,575 revenue, 89% margin</span></div>
+        <div style="display:flex;gap:12px;padding:8px 0;"><span style="color:var(--text-muted);font-size:0.78rem;min-width:70px;">Next</span><span style="font-size:0.82rem;color:var(--text-muted);">Non-provisional patent + first licensing partner or acquisition</span></div>
+      </div>
+    </div>
+    <div class="card" style="border-color:var(--gold);background:rgba(201,166,107,0.08);">
+      <h3>The Window</h3>
+      <p>The field service market is at an inflection point. The first platform to establish geospatial-first, chain-of-evidence documentation as the industry standard will own the category. That window is open now — and it closes as incumbents invest in catching up.</p>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- S13: THE ASK -->
+<div class="slide">
+<div class="slide-content">
+  <div class="eyebrow">Engagement Models</div>
+  <h2>Three Paths <span class="gold">Forward</span></h2>
+  <div class="gold-line"></div>
+  <div class="three-col" style="margin-bottom:20px;">
+    <div class="card" style="border-color:var(--gold);background:rgba(201,166,107,0.06);">
+      <div style="font-size:1.8rem;margin-bottom:10px;">🤝</div>
+      <h3>Path A — Acquisition</h3>
+      <p>Full IP transfer: provisional patent, prototype, source code, 70-day production dataset, customer pipeline, and brand identity.</p>
+      <p style="color:var(--gold);font-size:0.82rem;font-weight:600;margin-top:8px;">Best for: PE firms with green industry roll-up thesis seeking a proprietary operational platform for portfolio standardization.</p>
+    </div>
+    <div class="card">
+      <div style="font-size:1.8rem;margin-bottom:10px;">📄</div>
+      <h3>Path B — Licensing</h3>
+      <p>Enterprise or white-label license to deploy TreeOS across portfolio companies, or rebrand and resell as an embedded field operations module.</p>
+      <p style="color:var(--gold);font-size:0.82rem;font-weight:600;margin-top:8px;">Best for: SaaS platforms adding field operations, PE operating partners, or franchise networks needing standardized workflows.</p>
+    </div>
+    <div class="card">
+      <div style="font-size:1.8rem;margin-bottom:10px;">💰</div>
+      <h3>Path C — Seed Capital</h3>
+      <p>Capital to build the production-scale platform, file non-provisional patent, and launch the first industry edition at commercial scale.</p>
+      <p style="color:var(--gold);font-size:0.82rem;font-weight:600;margin-top:8px;">Best for: Angel investors or early-stage VCs with conviction on field-first as the next field-service paradigm.</p>
+    </div>
+  </div>
+  <div class="hbox">
+    <p style="margin:0;font-size:1rem;"><span style="color:var(--gold);font-weight:700;">The prototype works. The patent is filed. The metrics are real. The product is live.</span> What's needed is capital and distribution — and the right partner to take it to scale.</p>
+  </div>
+</div>
+</div>
+
+<!-- S14: CLOSING -->
+<div class="slide hero">
+<div class="slide-content">
+  <div class="eyebrow" style="text-align:center;">The Opportunity</div>
+  <!-- Logo repeat -->
+  <div style="display:flex;align-items:center;justify-content:center;gap:18px;margin-bottom:20px;">
+    <svg class="gear-icon" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="50" cy="50" r="42" stroke="#C9A66B" stroke-width="3" fill="none"/>
+      <rect x="46" y="4" width="8" height="10" rx="2" fill="#C9A66B"/>
+      <rect x="46" y="86" width="8" height="10" rx="2" fill="#C9A66B"/>
+      <rect x="4" y="46" width="10" height="8" rx="2" fill="#C9A66B"/>
+      <rect x="86" y="46" width="10" height="8" rx="2" fill="#C9A66B"/>
+      <rect x="47" y="55" width="6" height="22" fill="#2E7D32"/>
+      <path d="M50 77 Q44 82 38 80" stroke="#2E7D32" stroke-width="2.5" fill="none"/>
+      <path d="M50 77 Q56 82 62 80" stroke="#2E7D32" stroke-width="2.5" fill="none"/>
+      <path d="M50 77 Q50 84 50 88" stroke="#2E7D32" stroke-width="2.5" fill="none"/>
+      <circle cx="50" cy="38" r="18" fill="#133B27"/>
+      <circle cx="38" cy="44" r="12" fill="#133B27"/>
+      <circle cx="62" cy="44" r="12" fill="#133B27"/>
+      <circle cx="50" cy="32" r="14" fill="#2E7D32"/>
+      <circle cx="40" cy="38" r="9" fill="#2E7D32"/>
+      <circle cx="60" cy="38" r="9" fill="#2E7D32"/>
+    </svg>
+    <div class="logo-text">
+      <span class="top">Nvirogear</span>
+      <span class="bottom">TreeOS</span>
+    </div>
+  </div>
+  <div class="gold-line" style="margin:0 auto 20px;"></div>
+  <p style="font-family:'Playfair Display',serif;font-size:1.4rem;font-style:italic;max-width:820px;margin:0 auto 20px;line-height:1.6;color:var(--text-primary);">"Traditional field-service software records work. Nvirogear TreeOS builds a permanent operational intelligence asset — one that reduces risk, increases efficiency, and grows more valuable with every tree serviced."</p>
+  <div style="margin:20px 0;">
+    <span class="badge badge-green">🟢 Live at dalestreeworks.com</span>
+    <span class="badge badge-patent">🛡️ Provisional Patent Filed</span>
+    <span class="badge badge-gold">📊 $2,575 Revenue · 89% Margin · 70 Days</span>
+  </div>
+  <div style="margin-top:20px;display:flex;gap:20px;justify-content:center;flex-wrap:wrap;">
+    <span class="tag">Acquisition</span><span class="tag">Enterprise Licensing</span><span class="tag">White-Label</span><span class="tag">API Licensing</span><span class="tag">Insurance Partnerships</span><span class="tag">Utility &amp; Municipal</span>
+  </div>
+  <div class="tagline-bar" style="margin-top:24px;max-width:700px;margin-left:auto;margin-right:auto;">
+    Every Tree · Every Job · Every Detail
+  </div>
+  <p style="margin-top:20px;font-size:0.82rem;color:var(--text-muted);">Nvirogear LLC · Joseph Smith · nvirogear1@gmail.com · 231-428-0379</p>
+</div>
+</div>
+
+</div><!-- /deck -->
+
+<div class="nav">
+  <button class="btn" onclick="prev()">← Prev</button>
+  <span class="counter"><span id="cur">1</span> / <span id="tot">14</span></span>
+  <button class="btn primary" onclick="next()">Next →</button>
+</div>
+<div style="position:fixed;bottom:24px;right:24px;font-size:0.68rem;color:var(--text-muted);z-index:99;">← → keys · swipe</div>
+
+<script>
+let c=0;const sl=document.querySelectorAll('.slide');const tot=sl.length;document.getElementById('tot').textContent=tot;
+function go(){sl.forEach((s,i)=>{s.classList.remove('active','prev');if(i===c)s.classList.add('active');else if(i<c)s.classList.add('prev')});document.getElementById('cur').textContent=c+1;document.getElementById('progress').style.width=((c+1)/tot*100)+'%'}
+function next(){if(c<tot-1){c++;go()}}
+function prev(){if(c>0){c--;go()}}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key===' ')next();if(e.key==='ArrowLeft')prev()});
+let tx=0;document.addEventListener('touchstart',e=>tx=e.changedTouches[0].screenX);
+document.addEventListener('touchend',e=>{const d=tx-e.changedTouches[0].screenX;if(Math.abs(d)>50)d>0?next():prev()});
+go();
+</script>
+</body>
+</html>

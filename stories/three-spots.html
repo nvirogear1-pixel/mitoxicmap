@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Three Places, One Funding Pattern | Nvirogear</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root {
+  --bg: #0a0e14;
+  --surface: rgba(19,25,34,0.95);
+  --card: #1a2332;
+  --border: #2a3a4d;
+  --text: #e8eef5;
+  --muted: #7d8b9e;
+  --accent: #00d4a8;
+  --danger: #ff4757;
+  --warn: #ffa502;
+  --info: #3742fa;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;overflow:auto;min-height:100vh}
+
+#map{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:1}
+
+/* Big Play Button — centered on map when idle */
+#play-overlay{
+  position:fixed;
+  top:0;left:0;width:100vw;height:100vh;
+  z-index:50;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:radial-gradient(ellipse at center,rgba(10,14,20,0.85) 0%,rgba(10,14,20,0.5) 100%);
+  transition:opacity 0.6s ease;
+}
+#play-overlay.hidden{opacity:0;pointer-events:none}
+
+#play-card{
+  text-align:center;
+  max-width:560px;
+  padding:48px 40px;
+}
+#play-card h1{
+  font-family:Georgia,serif;
+  font-size:2.2rem;
+  font-weight:700;
+  margin-bottom:12px;
+  letter-spacing:-0.02em;
+  color:#fff;
+}
+#play-card .sub{
+  font-size:1rem;
+  color:var(--accent);
+  margin-bottom:8px;
+}
+#play-card .desc{
+  font-size:0.9rem;
+  color:var(--muted);
+  margin-bottom:32px;
+  line-height:1.6;
+}
+#play-button{
+  background:var(--accent);
+  color:#000;
+  border:none;
+  width:80px;height:80px;
+  border-radius:50%;
+  cursor:pointer;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-size:28px;
+  transition:all 0.3s;
+  box-shadow:0 8px 32px rgba(0,212,168,0.3);
+  margin:0 auto;
+}
+#play-button:hover{
+  transform:scale(1.1);
+  box-shadow:0 12px 48px rgba(0,212,168,0.5);
+}
+#play-button:active{transform:scale(0.95)}
+#play-button.playing{background:var(--danger);box-shadow:0 8px 32px rgba(255,71,87,0.3)}
+#play-label{
+  display:block;
+  margin-top:16px;
+  font-size:0.85rem;
+  color:var(--muted);
+}
+
+/* Top bar — shown during tour */
+#top-bar{
+  position:fixed;
+  top:0;left:0;right:0;
+  z-index:30;
+  display:none;
+  align-items:center;
+  justify-content:space-between;
+  padding:16px 24px;
+  background:linear-gradient(180deg,rgba(10,14,20,0.9) 0%,transparent 100%);
+  pointer-events:none;
+}
+#top-bar.visible{display:flex}
+
+#tour-title{
+  font-family:Georgia,serif;
+  font-size:1.1rem;
+  color:#fff;
+  pointer-events:auto;
+}
+#tour-counter{
+  font-size:0.8rem;
+  color:var(--muted);
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:6px 14px;
+  pointer-events:auto;
+}
+
+/* Pop-up card — appears on the map */
+#popup-card{
+  position:fixed;
+  z-index:25;
+  background:var(--surface);
+  backdrop-filter:blur(20px);
+  border:1px solid var(--border);
+  border-radius:16px;
+  padding:24px 28px;
+  max-width:420px;
+  max-height:60vh;
+  overflow-y:auto;
+  box-shadow:0 8px 48px rgba(0,0,0,0.5);
+  transition:opacity 0.5s ease,transform 0.5s ease;
+  opacity:0;
+  pointer-events:none;
+  transform:translateY(20px);
+  scrollbar-width:thin;
+  scrollbar-color:var(--border) transparent;
+}
+#popup-card.visible{opacity:1;pointer-events:auto;transform:translateY(0)}
+#popup-card::-webkit-scrollbar{width:4px}
+#popup-card::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+#popup-card .popup-tag{
+  display:inline-block;
+  font-size:0.65rem;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:0.08em;
+  padding:3px 10px;
+  border-radius:12px;
+  margin-bottom:10px;
+}
+#popup-card .popup-tag.red{background:rgba(255,71,87,0.15);color:var(--danger)}
+#popup-card .popup-tag.green{background:rgba(0,212,168,0.15);color:var(--accent)}
+#popup-card .popup-tag.yellow{background:rgba(255,165,2,0.15);color:var(--warn)}
+#popup-card .popup-tag.blue{background:rgba(55,66,250,0.15);color:var(--info)}
+
+#popup-card h2{
+  font-family:Georgia,serif;
+  font-size:1.3rem;
+  margin-bottom:10px;
+  color:#fff;
+}
+#popup-card .popup-body{
+  font-size:0.85rem;
+  line-height:1.65;
+  color:var(--text);
+}
+#popup-card .popup-body b{color:var(--accent)}
+#popup-card .popup-body .danger{color:var(--danger)}
+#popup-card .popup-body .warn{color:var(--warn)}
+#popup-card .popup-source{
+  margin-top:14px;
+  padding-top:10px;
+  border-top:1px solid var(--border);
+  font-size:0.7rem;
+  color:var(--muted);
+}
+
+/* Bottom controls — prev/next/pause */
+#bottom-controls{
+  position:fixed;
+  bottom:24px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:30;
+  display:none;
+  align-items:center;
+  gap:12px;
+  background:var(--surface);
+  backdrop-filter:blur(16px);
+  border:1px solid var(--border);
+  border-radius:28px;
+  padding:8px 12px;
+  box-shadow:0 4px 24px rgba(0,0,0,0.4);
+}
+#bottom-controls.visible{display:flex}
+
+.ctrl-btn{
+  background:transparent;
+  color:var(--text);
+  border:none;
+  width:40px;height:40px;
+  border-radius:50%;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:14px;
+  transition:all 0.2s;
+}
+.ctrl-btn:hover{background:var(--border)}
+.ctrl-btn.play{background:var(--accent);color:#000}
+.ctrl-btn.play:hover{transform:scale(1.1)}
+
+/* Progress bar */
+#progress-bar{
+  position:fixed;
+  bottom:0;left:0;
+  width:100%;height:3px;
+  background:var(--border);
+  z-index:40;
+  display:none;
+}
+#progress-bar.visible{display:block}
+#progress-fill{
+  height:100%;
+  background:var(--accent);
+  width:0%;
+  transition:width 0.5s ease;
+}
+
+/* Scene dots */
+#scene-dots{
+  position:fixed;
+  right:20px;
+  top:50%;
+  transform:translateY(-50%);
+  z-index:30;
+  display:none;
+  flex-direction:column;
+  gap:8px;
+  align-items:center;
+}
+#scene-dots.visible{display:flex}
+.scene-dot{
+  width:8px;height:8px;
+  border-radius:50%;
+  background:var(--border);
+  cursor:pointer;
+  transition:all 0.3s;
+}
+.scene-dot.active{background:var(--accent);transform:scale(1.5)}
+.scene-dot:hover{background:var(--muted)}
+
+/* Narration indicator */
+#narration-indicator{
+  position:fixed;
+  bottom:80px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:30;
+  display:none;
+  align-items:center;
+  gap:8px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:20px;
+  padding:6px 16px;
+  font-size:0.75rem;
+  color:var(--muted);
+}
+#narration-indicator.visible{display:flex}
+#narration-indicator .pulse{
+  width:8px;height:8px;
+  border-radius:50%;
+  background:var(--accent);
+  animation:pulse 1.5s infinite;
+}
+@keyframes pulse{
+  0%,100%{opacity:1;transform:scale(1)}
+  50%{opacity:0.4;transform:scale(0.8)}
+}
+
+/* Leaflet popup customization */
+.leaflet-popup-content-wrapper{
+  background:var(--surface) !important;
+  border:1px solid var(--border) !important;
+  border-radius:12px !important;
+  box-shadow:0 4px 24px rgba(0,0,0,0.5) !important;
+}
+.leaflet-popup-content{color:var(--text) !important;font-family:system-ui,sans-serif !important}
+.leaflet-popup-tip{background:var(--surface) !important}
+.leaflet-popup-close-button{color:var(--muted) !important}
+</style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<!-- Big Play Button Overlay -->
+<div id="play-overlay">
+  <div id="play-card">
+    <div class="sub">Nvirogear presents</div>
+    <h1>Three Places, One Funding Pattern</h1>
+    <p class="desc">$92.8 million in identified public grants across three Michigan communities. 87% went to pipes. 0% went to stopping industrial pollution. Press play and I'll walk you through it.</p>
+    <button id="play-button" onclick="startTour()">▶</button>
+    <span id="play-label">Press play to begin the tour</span>
+  </div>
+</div>
+
+<!-- Top bar during tour -->
+<div id="top-bar">
+  <div id="tour-title">Three Places, One Funding Pattern</div>
+  <div id="tour-counter">1 / 17</div>
+</div>
+
+<!-- Pop-up card that appears on the map -->
+<div id="popup-card">
+  <span class="popup-tag green" id="popup-tag">Scene</span>
+  <h2 id="popup-title">Title</h2>
+  <div class="popup-body" id="popup-body">Content</div>
+  <div class="popup-source" id="popup-source">Source</div>
+</div>
+
+<!-- Narration indicator -->
+<div id="narration-indicator">
+  <div class="pulse"></div>
+  <span>Narrating...</span>
+</div>
+
+<!-- Bottom controls -->
+<div id="bottom-controls">
+  <button class="ctrl-btn" onclick="prevScene()">⏮</button>
+  <button class="ctrl-btn play" id="pause-btn" onclick="togglePlay()">⏸</button>
+  <button class="ctrl-btn" onclick="nextScene()">⏭</button>
+  <button class="ctrl-btn" onclick="stopTour()" title="Exit">✕</button>
+</div>
+
+<!-- Progress bar -->
+<div id="progress-bar"><div id="progress-fill"></div></div>
+
+<!-- Scene dots -->
+<div id="scene-dots"></div>
+
+<script>
+const scenes = [
+  {
+    title: "Three Places, One Funding Pattern",
+    lat: 43.5, lng: -84.5, zoom: 6,
+    tag: "Intro", tagColor: "green",
+    body: "Three places in Michigan. One funding pattern. <b>$92.8 million</b> in identified public grants across three case study areas and related regional infrastructure.<br><br>Mostly for <span class='warn'>pipes, filters, monitoring, and planning</span> — rather than contaminant-source control.",
+    source: "Sources: EPA, EGLE, public records. July 2026.",
+    narration: "Three places in Michigan. One funding pattern. Ninety two point eight million dollars in identified public grants across three case study areas and related regional infrastructure. Mostly for pipes, filters, monitoring, and planning. Rather than contaminant source control. Press the next button to walk through each location."
+  },
+  {
+    title: "Three Case-Study Areas",
+    lat: 43.5, lng: -84.5, zoom: 6,
+    tag: "Overview", tagColor: "blue",
+    body: "Three places where industrial contamination has been documented in public records for <b>decades</b>.<br><br>In each place, public money has been spent. In each place, contamination remains under investigation, treatment, monitoring, or corrective action.<br><br><b>Detroit / Wyandotte</b> — BASF chemical plant<br><b>Heights-Ravenna</b> — Muskegon County PFAS<br><b>Cadillac</b> — Cyanide, PBBs, PFAS",
+    source: "EPA Superfund records, EGLE Part 201 site database, EGLE PFAS map.",
+    narration: "Three places where industrial contamination has been documented in public records for decades. In each place, public money has been spent. In each place, the sources reviewed identify contamination that remains under investigation, treatment, monitoring, or corrective action. Let's go to the first place. BASF Wyandotte, on the Detroit River."
+  },
+  {
+    title: "BASF Wyandotte",
+    lat: 42.2069, lng: -83.1403, zoom: 13,
+    tag: "Detroit / Wyandotte", tagColor: "red",
+    body: "A <b>230-acre chemical plant</b> on the Detroit River.<br><br>Consent decree: <b>1986</b>. The state required BASF to maintain an inward hydraulic gradient to halt contaminated groundwater flow.<br><br><span class='danger'>Up to 60 gallons per minute</span> of contaminated groundwater flows into the Detroit River.<br><br>PFOS detected at <span class='danger'>359 ppt</span> — EPA's drinking water standard is 4 ppt.<br><br>pH reported at <span class='danger'>13.22</span> — exceeds federal hazardous waste corrosivity threshold (12.5).",
+    source: "EPA Superfund 0502480. EGLE PFAS Site Review 2022. Planet Detroit Nov 2024. Criminal complaint filed by Art Ostaszewski Oct 31, 2024.",
+    narration: "Place one. BASF Wyandotte. A two hundred and thirty acre chemical plant on the Detroit River. In 1986, the State of Michigan entered a consent decree requiring BASF to maintain an inward hydraulic gradient to halt the flow of contaminated groundwater into the river. Groundwater mapping from 1996, 2019, 2021, and 2024 showed the system was not achieving the required gradient. Up to 60 gallons per minute of contaminated groundwater flows into the Detroit River. PFOS was reported at 359 parts per trillion. EPA's drinking water standard is 4 parts per trillion.",
+    popups: [
+      {lat:42.2069,lng:-83.1403,html:"<h3>BASF North Works</h3>230-acre chemical plant<br><b>Consent decree: 1986</b><br><span style='color:#ff4757'>60 gpm contaminated groundwater into Detroit River</span>"}
+    ]
+  },
+  {
+    title: "The Whistleblower",
+    lat: 42.2069, lng: -83.1403, zoom: 14,
+    tag: "Detroit / Wyandotte", tagColor: "red",
+    body: "On <b>October 31, 2024</b>, Art Ostaszewski — a 30-year EGLE employee — filed a criminal complaint with the Michigan Attorney General.<br><br>The complaint alleges EGLE's Law Enforcement Division knowingly aided and abetted BASF's criminal water quality violations.<br><br>EGLE investigator Vence Woods told Ostaszewski he would not pursue action against BASF because of <i>"entrapment by estoppel"</i> — because BASF had been in violation for so long without department action.<br><br><span class='warn'>March 2025: AG declined prosecution.</span>",
+    source: "Criminal complaint filed Oct 31, 2024. Detroit News March 2025. Planet Detroit Nov 2024.",
+    narration: "The whistleblower. On October 31, 2024, Art Ostaszewski, a 30 year EGLE employee, filed a criminal complaint with the Michigan Attorney General. The complaint alleges that EGLE's Law Enforcement Division knowingly aided and abetted BASF's criminal water quality violations. The complaint states that EGLE investigator Vence Woods told Ostaszewski he would not pursue action against BASF because of, quote, entrapment by estoppel, end quote. Because BASF had been in violation for so long without department action. In March 2025, the Michigan Attorney General declined to pursue criminal charges."
+  },
+  {
+    title: "EPA Approves Cleanup — 40 Years Later",
+    lat: 42.2069, lng: -83.1403, zoom: 14,
+    tag: "Timeline", tagColor: "yellow",
+    body: "<b>1986</b> — State consent decree signed<br><b>1994</b> — EPA order on consent<br><b>1996–2024</b> — Four mapping events show system not achieving required gradient<br><b>March 2025</b> — AG declines prosecution<br><b>June 29, 2026</b> — EPA approves comprehensive groundwater cleanup plan<br><b>2027</b> — Construction begins<br><br><span class='warn'>40 years from consent decree to construction.</span>",
+    source: "EPA press release June 29, 2026. ClickOnDetroit. Planet Detroit Nov 2024.",
+    narration: "EPA approves cleanup, 40 years later. 1986, state consent decree signed. 1994, EPA order on consent. 1996 through 2024, four mapping events show the system not achieving the required gradient. March 2025, the Attorney General declines prosecution. June 29, 2026, EPA approves a comprehensive groundwater cleanup plan. 2027, construction begins. That is the BASF estimate."
+  },
+  {
+    title: "BASF-Connected Funding",
+    lat: 42.2069, lng: -83.1403, zoom: 12,
+    tag: "Funding", tagColor: "green",
+    body: "BASF + Wyandotte connected funding: <b>$15.5M</b><br><br>• PFAS filters for water treatment plant: <b>$674K</b><br>• Lead service line replacement: <b>$4.7M</b><br>• Detroit River sediment cleanup design: <b>$10M</b><br><br>Separately, <b>$67.8M</b> in broader Detroit infrastructure (DWSD) — listed as regional context, not attributed solely to BASF.<br><br><span class='danger'>No reviewed grant designated for stopping BASF's groundwater discharge.</span>",
+    source: "EGLE Grants Dashboard (ArcGIS API). 438 grants, $887M total.",
+    narration: "BASF and Wyandotte connected funding totals 15.5 million dollars. This includes PFAS filters for the water treatment plant, lead service line replacement, and sediment cleanup design for the Detroit River Area of Concern. Separately, 67.8 million in broader Detroit water infrastructure went to DWSD for watermain replacement and lead service line work. This report does not claim those DWSD grants were awarded because of BASF contamination. They are listed as regional context. No reviewed grant was designated for stopping BASF's groundwater discharge. Now let's go to the second place. Heights Ravenna in Muskegon County."
+  },
+  {
+    title: "Heights-Ravenna Corridor",
+    lat: 43.1693, lng: -86.2454, zoom: 13,
+    tag: "Muskegon County", tagColor: "blue",
+    body: "EGLE Site <b>61000823</b><br><br><span class='danger'>PFOS: 221 ppt</span> — 55× the federal standard (4 ppt)<br><span class='danger'>PFOA: 134 ppt</span> — 33× the federal standard<br><br>The map circle represents an <b>approximate investigation area</b>, not a documented plume boundary.<br><br><span class='warn'>No publicly identified corridor-specific health study exists as of July 2026.</span>",
+    source: "EGLE Site 61000823. Nvirogear investigation records. EPA PFAS drinking water standard: 4 ppt.",
+    narration: "Place two. The Heights Ravenna corridor in Muskegon County. EGLE Site 61000823 documents PFOS at 221 parts per trillion and PFOA at 134 parts per trillion in groundwater. The map circle represents an approximate investigation area, not a documented plume boundary. Nvirogear found no publicly identified corridor specific health study in the sources reviewed as of July 20, 2026.",
+    popups: [
+      {lat:43.1693,lng:-86.2454,html:"<h3>Heights-Ravenna</h3>Approximate investigation area<br><b>EGLE Site 61000823</b><br><span style='color:#ff4757'>PFOS: 221 ppt (55× standard)</span><br><span style='color:#ffa502'>PFOA: 134 ppt (33× standard)</span>"}
+    ]
+  },
+  {
+    title: "Heights-Ravenna Funding",
+    lat: 43.1693, lng: -86.2454, zoom: 12,
+    tag: "Funding", tagColor: "green",
+    body: "<b>$801K</b> — corridor-specific monitoring and investigation<br><br><b>$3.4M</b> — county-wide C2R2 grants for watermain extension (may serve area, county-wide not corridor-specific)<br><br><span class='danger'>Full plume delineation: not identified in grants</span><br><span class='danger'>Health study: not identified in grants</span><br><span class='danger'>Source stoppage: not identified in grants</span>",
+    source: "EGLE Grants Dashboard. State Cleanup (Renew Michigan) program. C2R2 program grants.",
+    narration: "Heights Ravenna funding. 801,000 dollars in state funding went to corridor specific monitoring and investigation. 3.4 million in county wide C2R2 grants funded watermain extension that may serve the area, but these are county wide projects, not corridor specific. Full plume delineation was not identified in reviewed grants. Health study was not identified in reviewed grants. Source stoppage was not identified in reviewed grant descriptions. Now let's go to the third place. Cadillac, Michigan."
+  },
+  {
+    title: "Cadillac, Michigan",
+    lat: 44.2520, lng: -85.4010, zoom: 13,
+    tag: "Wexford County", tagColor: "red",
+    body: "Three layers of industrial contamination:<br><br><b>Layer 1: Northernaire Plating</b> — EPA Superfund since 1985. 5,400 gallons of waste cyanide.<br><br><b>Layer 2: KYSOR Industrial</b> — EPA Superfund since 1989. Six contaminant plumes including chromium and cyanide. Pump-and-treat operating since 1996.<br><br><b>Layer 3: PFAS</b> — near Cadillac Industrial Park. Private wells above Michigan drinking water criteria in 2024-2025.<br><br><span class='warn'>Wexford County cancer rate: 509.8 per 100K — 13% above state average.</span>",
+    source: "EPA Superfund 0502440 (Northernaire). EPA Superfund 0502480 (KYSOR). EGLE PFAS map. MDHHS cancer registry.",
+    narration: "Place three. Cadillac, Michigan. Three layers of industrial contamination in Wexford County. Layer one: Northernaire Plating. EPA Superfund since 1985. The site contained 5,400 gallons of waste cyanide. Layer two: KYSOR Industrial. EPA Superfund since 1989. Six contaminant plumes including chromium and cyanide. A pump and treat system has been operating since 1996. Layer three: PFAS contamination near the Cadillac Industrial Park. Private wells above Michigan drinking water criteria in 2024 and 2025.",
+    popups: [
+      {lat:44.2520,lng:-85.4010,html:"<h3>Cadillac Industrial Area</h3><span style='color:#ff4757'>Northernaire Plating (Superfund)</span><br><span style='color:#ffa502'>KYSOR Industrial (Superfund)</span><br><span style='color:#3742fa'>PFAS contamination (2024-2025)</span>"}
+    ]
+  },
+  {
+    title: "30 Years of Pump-and-Treat",
+    lat: 44.2520, lng: -85.4010, zoom: 14,
+    tag: "Cadillac", tagColor: "yellow",
+    body: "In 1996: influent VOCs exceeded <span class='danger'>600 ppb</span><br>Recently: just over <span class='warn'>200 ppb</span><br><br>Still above standards after <b>30 years</b> of continuous operation.<br><br>Chromium concentrations reduced to cleanup criteria — EPA petitioned for closure of chromium treatment.<br><br>City of Cadillac released <span class='danger'>16M+ gallons</span> of untreated/partially treated sewage into river system.",
+    source: "City of Cadillac official site (LDFA page). UpNorthLive. 9&10 News. Spectrum Local News July 2026.",
+    narration: "30 years of pump and treat. In 1996, influent VOC concentrations exceeded 600 parts per billion. Recently, they were just over 200 parts per billion. Still above standards after 30 years of continuous operation. Chromium concentrations have been reduced to cleanup criteria and EPA has been petitioned for closure of the chromium treatment process. The City of Cadillac also released untreated and partially treated sewage into the river system. Reported volumes include more than 16 million gallons."
+  },
+  {
+    title: "Cadillac Funding",
+    lat: 44.2520, lng: -85.4010, zoom: 12,
+    tag: "Funding", tagColor: "green",
+    body: "<b>$8.2M</b> — extend municipal water to ~240 homes on private wells<br><br><b>$881K</b> — wastewater collection system improvements<br><br><b>$524K</b> — asset management planning<br><br><b>$500K</b> — brownfield site assessment<br><br><span class='danger'>Cleaning PFAS from groundwater: not in grants</span><br><span class='danger'>Source stoppage: not in grants</span>",
+    source: "EGLE Grants Dashboard. UpNorthLive. 9&10 News. EPA Brownfields grant records.",
+    narration: "Cadillac funding. 8.2 million dollars to extend municipal water service to approximately 240 homes currently on private wells. 881,000 dollars for wastewater collection system improvements. 524,000 dollars for asset management planning. 500,000 dollars for brownfield site assessment. Cleaning PFAS from the groundwater was not identified in reviewed grants. Source stoppage was not identified in reviewed grant descriptions. Now let's zoom out and look at the pattern across all three places."
+  },
+  {
+    title: "The Pattern",
+    lat: 43.5, lng: -84.5, zoom: 6,
+    tag: "Analysis", tagColor: "blue",
+    body: "Across three case study areas: <b>$92.8M</b> in public grants identified and categorized.<br><br><b>87%</b> → infrastructure (pipes, watermains, sewers)<br><b>11.6%</b> → sediment cleanup / monitoring / PFAS filters<br><b>0.5%</b> → brownfield assessment<br><br><span class='danger' style='font-size:1.2em'>Source stoppage: 0%</span>",
+    source: "EGLE Grants Dashboard analysis. 438 grants totaling $887M reviewed.",
+    narration: "The pattern. Across three case study areas, 92.8 million dollars in public grants were identified and categorized. 87 percent went to infrastructure. Pipes, watermains, sewers. 11.6 percent went to sediment cleanup, monitoring, and PFAS filters. Half a percent went to brownfield assessment. Source stoppage received zero percent."
+  },
+  {
+    title: "The Finding",
+    lat: 43.5, lng: -84.5, zoom: 6,
+    tag: "Finding", tagColor: "red",
+    body: "Among the specific public grants identified and categorized in this report, <b>no award description expressly designated funds for stopping the identified industrial source's ongoing release.</b><br><br>This is limited to grants reviewed. It does not account for:<br>• BASF-funded corrective action<br>• EPA-directed cleanup<br>• Superfund spending<br>• Consent decree obligations<br>• Enforcement settlements<br><br><span class='warn'>Extending safe water does not clean the aquifer. Adding filters does not stop the release. Monitoring alone does not remove a plume.</span>",
+    source: "Analysis of 438 EGLE grants from ArcGIS dashboard API. July 2026.",
+    narration: "The finding. Among the specific public grants identified and categorized in this report, no award description expressly designated funds for stopping the identified industrial source's ongoing release. This observation is limited to the grants reviewed. It does not account for BASF funded corrective action, EPA directed cleanup, Superfund spending, consent decree obligations, enforcement settlements, or grants not in the EGLE dashboard. Extending safe water does not clean the aquifer. Adding filters does not stop the release. Monitoring alone does not remove a plume or stop its source."
+  },
+  {
+    title: "The C2R2 Program",
+    lat: 43.5, lng: -84.5, zoom: 6,
+    tag: "Grant Language", tagColor: "yellow",
+    body: "<b>Consolidation and Contamination Risk Reduction</b><br>22 grants. <b>$45.7M</b> total.<br><br><b>89%</b> → watermain extension (pipes)<br><b>8.5%</b> → system consolidation<br><b>2.5%</b> → PFAS filters<br><br><span class='danger'>0% → source stoppage</span><br><br>The program is called <i>"Contamination Risk Reduction."</i> Every reviewed dollar goes to pipes, filters, or consolidation.<br><br><span class='warn'>No reviewed award description designated funds for stopping the industrial user from contaminating.</span>",
+    source: "EGLE Grants Dashboard. C2R2 program analysis: 22 grants, $45.77M total.",
+    narration: "The C2R2 program. A particularly clear example within the reviewed grants. Consolidation and Contamination Risk Reduction. 22 grants totaling 45.7 million dollars. 89 percent went to watermain extension. 8.5 percent went to system consolidation. 2.5 percent went to PFAS filters. Zero percent went to source stoppage. The program is called Contamination Risk Reduction. Every reviewed dollar goes to pipes, filters, or consolidation. No reviewed award description designated funds for stopping the industrial user from contaminating."
+  },
+  {
+    title: "Systemic Context",
+    lat: 43.5, lng: -84.5, zoom: 6,
+    tag: "Context", tagColor: "blue",
+    body: "<b>1980</b> — Congress establishes Superfund excise tax on chemical manufacturers<br><br><b>Dec 31, 1995</b> — Tax expires. Congress does not reauthorize until 2022.<br><br>After expiration, Superfund increasingly depended on:<br>• Congressional appropriations<br>• Recoveries from responsible parties<br>• General federal funding<br><br><span class='warn'>The cost of cleanup shifted from industrial polluters to public infrastructure budgets.</span><br><br><b>2022</b> — Tax reinstated as part of Infrastructure Investment and Jobs Act.",
+    source: "EPA Superfund history. Infrastructure Investment and Jobs Act (2021). Congressional Research Service.",
+    narration: "Systemic context. In 1980, Congress established the Superfund excise tax on chemical manufacturers to fund cleanup of contaminated sites. The tax expired on December 31, 1995. Congress did not reauthorize it until 2022. After the excise taxes expired, Superfund increasingly depended on congressional appropriations and recoveries from responsible parties. This increased the role of general federal funding in financing orphan site cleanup."
+  },
+  {
+    title: "The Strongest Sentence",
+    lat: 43.5, lng: -84.5, zoom: 6,
+    tag: "Conclusion", tagColor: "green",
+    body: "<div style='font-family:Georgia,serif;font-size:1.15rem;line-height:1.7'>Among the awards reviewed, <b>no award description expressly designated funds for stopping the identified industrial source's ongoing release.</b></div><br><br>That is narrow. It is measurable. It is difficult to argue with.<br><br><span style='color:var(--accent)'>Truth is more valuable than optimism.</span><br><br>Nvirogear does not claim that PFAS or any contamination caused any specific person's illness. Nvirogear documents public environmental records, water-response records, and grant funding patterns.<br><br><b>Mr. Results (Overseer) — Nvirogear LLC — July 2026</b>",
+    source: "All findings sourced from EPA, EGLE, MDHHS, ATSDR, and public records. 24+ verified public sources.",
+    narration: "The strongest sentence in the entire report. Among the awards reviewed, no award description expressly designated funds for stopping the identified industrial source's ongoing release. That is narrow. It is measurable. It is difficult to argue with. The remaining work is no longer a rewrite. It is evidence closure. Obtaining primary records. Building a claim by claim verification ledger. And preserving the API export with timestamp and hash. Truth is more valuable than optimism. This has been Mr. Results, Nvirogear LLC, July 2026."
+  }
+];
+
+let map;
+let currentScene = 0;
+let isPlaying = false;
+let tourActive = false;
+let scenePopups = [];
+let utterance = null;
+let autoAdvanceTimer = null;
+
+function initMap() {
+  map = L.map('map', {
+    zoomControl: false,
+    attributionControl: true,
+    scrollWheelZoom: true
+  }).setView([43.5, -84.5], 6);
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+    attribution: '© OpenStreetMap © CARTO',
+    subdomains: 'abcd',
+    maxZoom: 19
+  }).addTo(map);
+
+  L.control.zoom({position:'bottomleft'}).addTo(map);
+}
+
+function buildSceneDots() {
+  const container = document.getElementById('scene-dots');
+  container.innerHTML = '';
+  scenes.forEach((s, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'scene-dot' + (i === 0 ? ' active' : '');
+    dot.onclick = () => showScene(i);
+    container.appendChild(dot);
+  });
+}
+
+function updateSceneDots() {
+  document.querySelectorAll('.scene-dot').forEach((d, i) => {
+    d.classList.toggle('active', i === currentScene);
+  });
+}
+
+function showScene(idx) {
+  if(idx < 0 || idx >= scenes.length) return;
+  currentScene = idx;
+  const s = scenes[idx];
+
+  // Fly to location
+  map.flyTo([s.lat, s.lng], s.zoom, {duration: 2.5, easeLinearity: 0.25});
+
+  // Remove old map popups
+  scenePopups.forEach(p => map.removeLayer(p));
+  scenePopups = [];
+
+  // Add new map popups after fly animation
+  setTimeout(() => {
+    if(s.popups) {
+      s.popups.forEach(p => {
+        const marker = L.marker([p.lat, p.lng]).addTo(map);
+        marker.bindPopup(p.html, {closeButton: false, autoClose: false, closeOnClick: false}).openPopup();
+        scenePopups.push(marker);
+      });
+    }
+  }, 1500);
+
+  // Show pop-up card
+  const card = document.getElementById('popup-card');
+  document.getElementById('popup-tag').textContent = s.tag;
+  document.getElementById('popup-tag').className = 'popup-tag ' + s.tagColor;
+  document.getElementById('popup-title').textContent = s.title;
+  document.getElementById('popup-body').innerHTML = s.body;
+  document.getElementById('popup-source').textContent = s.source;
+
+  // Position popup card based on scene
+  positionPopupCard();
+
+  card.classList.add('visible');
+
+  // Update counter
+  document.getElementById('tour-counter').textContent = `${idx + 1} / ${scenes.length}`;
+
+  // Update dots
+  updateSceneDots();
+
+  // Update progress bar
+  const pct = ((idx + 1) / scenes.length) * 100;
+  document.getElementById('progress-fill').style.width = pct + '%';
+
+  // Narrate
+  if(isPlaying) {
+    speak(s.narration);
+  }
+}
+
+function positionPopupCard() {
+  const card = document.getElementById('popup-card');
+  const s = scenes[currentScene];
+
+  // For wide zoom (state view), center the card
+  if(s.zoom <= 8) {
+    card.style.top = '50%';
+    card.style.left = '50%';
+    card.style.transform = 'translate(-50%, -50%)';
+  } else {
+    // For zoomed-in views, position card to the side
+    if(window.innerWidth > 768) {
+      // Desktop: left side
+      card.style.top = '50%';
+      card.style.left = '40px';
+      card.style.transform = 'translateY(-50%)';
+    } else {
+      // Mobile: bottom
+      card.style.top = 'auto';
+      card.style.left = '50%';
+      card.style.bottom = '100px';
+      card.style.transform = 'translateX(-50%)';
+    }
+  }
+}
+
+// Voice narration
+function speak(text) {
+  if(!window.speechSynthesis) return;
+
+  // Cancel any ongoing narration
+  window.speechSynthesis.cancel();
+
+  // Clear any pending auto-advance
+  if(autoAdvanceTimer) {
+    clearTimeout(autoAdvanceTimer);
+    autoAdvanceTimer = null;
+  }
+
+  utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = 0.95;
+  utterance.pitch = 0.95;
+  utterance.volume = 0.9;
+
+  // Try to find a good voice
+  const voices = window.speechSynthesis.getVoices();
+  const preferred = voices.find(v => v.name.includes('Google US English') || v.name.includes('Samantha') || v.name.includes('Alex'));
+  if(preferred) utterance.voice = preferred;
+
+  document.getElementById('narration-indicator').classList.add('visible');
+
+  utterance.onend = () => {
+    document.getElementById('narration-indicator').classList.remove('visible');
+    // Auto-advance after narration ends + short pause
+    if(isPlaying && currentScene < scenes.length - 1) {
+      autoAdvanceTimer = setTimeout(() => {
+        showScene(currentScene + 1);
+      }, 1500);
+    } else if(isPlaying) {
+      // Tour complete
+      stopTour();
+    }
+  };
+
+  utterance.onerror = () => {
+    document.getElementById('narration-indicator').classList.remove('visible');
+    // Fallback: auto-advance after fixed time
+    if(isPlaying && currentScene < scenes.length - 1) {
+      autoAdvanceTimer = setTimeout(() => {
+        showScene(currentScene + 1);
+      }, 8000);
+    }
+  };
+
+  window.speechSynthesis.speak(utterance);
+}
+
+function startTour() {
+  tourActive = true;
+  isPlaying = true;
+  currentScene = 0;
+
+  // Hide play overlay
+  document.getElementById('play-overlay').classList.add('hidden');
+
+  // Show tour UI
+  document.getElementById('top-bar').classList.add('visible');
+  document.getElementById('bottom-controls').classList.add('visible');
+  document.getElementById('scene-dots').classList.add('visible');
+  document.getElementById('progress-bar').classList.add('visible');
+
+  // Build scene dots
+  buildSceneDots();
+
+  // Show first scene
+  setTimeout(() => showScene(0), 500);
+}
+
+function togglePlay() {
+  isPlaying = !isPlaying;
+  const btn = document.getElementById('pause-btn');
+  if(isPlaying) {
+    btn.innerHTML = '⏸';
+    btn.classList.add('play');
+    speak(scenes[currentScene].narration);
+  } else {
+    btn.innerHTML = '▶';
+    btn.classList.remove('play');
+    window.speechSynthesis.cancel();
+    document.getElementById('narration-indicator').classList.remove('visible');
+    if(autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
+  }
+}
+
+function nextScene() {
+  if(currentScene < scenes.length - 1) {
+    showScene(currentScene + 1);
+  }
+}
+
+function prevScene() {
+  if(currentScene > 0) {
+    showScene(currentScene - 1);
+  }
+}
+
+function stopTour() {
+  isPlaying = false;
+  tourActive = false;
+  window.speechSynthesis.cancel();
+  if(autoAdvanceTimer) clearTimeout(autoAdvanceTimer);
+
+  // Remove map popups
+  scenePopups.forEach(p => map.removeLayer(p));
+  scenePopups = [];
+
+  // Hide tour UI
+  document.getElementById('top-bar').classList.remove('visible');
+  document.getElementById('bottom-controls').classList.remove('visible');
+  document.getElementById('scene-dots').classList.remove('visible');
+  document.getElementById('progress-bar').classList.remove('visible');
+  document.getElementById('popup-card').classList.remove('visible');
+  document.getElementById('narration-indicator').classList.remove('visible');
+
+  // Show play overlay again
+  document.getElementById('play-overlay').classList.remove('hidden');
+
+  // Reset map view
+  map.flyTo([43.5, -84.5], 6, {duration: 1.5});
+}
+
+// Keyboard controls
+document.addEventListener('keydown', (e) => {
+  if(!tourActive) {
+    if(e.key === ' ' || e.key === 'Enter') {
+      e.preventDefault();
+      startTour();
+    }
+    return;
+  }
+  switch(e.key) {
+    case 'ArrowRight': case ' ':
+      e.preventDefault();
+      nextScene();
+      break;
+    case 'ArrowLeft':
+      e.preventDefault();
+      prevScene();
+      break;
+    case 'Escape':
+      stopTour();
+      break;
+    case 'p': case 'P':
+      togglePlay();
+      break;
+  }
+});
+
+// Handle window resize for popup positioning
+window.addEventListener('resize', () => {
+  if(tourActive) positionPopupCard();
+});
+
+// Initialize
+initMap();
+
+// Preload voices
+if(window.speechSynthesis) {
+  window.speechSynthesis.onvoiceschanged = () => {
+    // Voices loaded
+  };
+}
+</script>
+</body>
+</html>

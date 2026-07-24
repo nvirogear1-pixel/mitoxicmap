@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>Cadillac Cyanide — Nvirogear Property Intelligence</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0a0a0a;color:#e0e0e0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;overflow-x:hidden}
+.hero{position:relative;min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px 20px;background:linear-gradient(180deg,#0a0a0a 0%,#1a0a0a 50%,#0a0a0a 100%)}
+.hero h1{font-size:clamp(2rem,8vw,4.5rem);font-weight:900;color:#ff4444;line-height:1.1;margin-bottom:16px;letter-spacing:-1px}
+.hero h2{font-size:clamp(1rem,4vw,1.8rem);font-weight:300;color:#999;margin-bottom:30px}
+.hero .tagline{font-size:0.85rem;color:#666;max-width:600px;line-height:1.5;margin-top:20px}
+.hero .badge{display:inline-block;padding:4px 12px;border:1px solid #ff4444;border-radius:20px;color:#ff4444;font-size:0.75rem;margin:4px;letter-spacing:1px}
+.audio-bar{position:fixed;bottom:0;left:0;right:0;background:#111;z-index:9999;padding:12px 16px;border-top:1px solid #333;display:flex;align-items:center;gap:12px}
+.audio-bar button{background:#ff4444;color:#fff;border:none;border-radius:50%;width:44px;height:44px;font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.audio-bar .wave{flex:1;height:32px;display:flex;align-items:center;gap:2px;overflow:hidden}
+.audio-bar .wave .bar{flex:1;background:#444;min-height:3px;border-radius:2px;transition:background 0.2s}
+.audio-bar .wave .bar.active{background:#ff4444}
+.audio-bar .caption{font-size:0.75rem;color:#999;max-width:40%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.scroll-section{padding:60px 20px;max-width:700px;margin:0 auto;opacity:0.3;transition:opacity 0.5s}
+.scroll-section.active{opacity:1}
+.scroll-section .label{font-size:0.7rem;color:#ff4444;letter-spacing:2px;text-transform:uppercase;margin-bottom:12px}
+.scroll-section h3{font-size:clamp(1.3rem,5vw,2rem);font-weight:700;margin-bottom:16px;color:#fff;line-height:1.2}
+.scroll-section p{font-size:1rem;line-height:1.7;color:#bbb;margin-bottom:16px}
+.scroll-section .stat{font-size:clamp(2rem,10vw,4rem);font-weight:900;color:#ff4444;margin:20px 0;line-height:1}
+.scroll-section .stat-label{font-size:0.8rem;color:#999;margin-top:4px}
+.evidence-box{background:#1a1a1a;border-left:3px solid #ff4444;padding:16px;margin:20px 0;border-radius:0 8px 8px 0}
+.evidence-box .tag{font-size:0.7rem;color:#ff6644;font-weight:700;text-transform:uppercase;letter-spacing:1px}
+.evidence-box .text{font-size:0.9rem;color:#ccc;margin-top:8px;line-height:1.5}
+.map-container{padding:0 0 60px 0}
+#map{height:500px;width:100%;border-radius:0}
+.map-overlay{background:#0a0a0a;padding:20px;text-align:center}
+.map-overlay h3{color:#fff;font-size:1.2rem;margin-bottom:8px}
+.map-overlay p{color:#999;font-size:0.85rem}
+.filter-bar{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:16px;background:#111}
+.filter-btn{padding:8px 16px;border:1px solid #333;border-radius:20px;background:transparent;color:#999;font-size:0.8rem;cursor:pointer;transition:all 0.2s}
+.filter-btn.active{background:#ff4444;color:#fff;border-color:#ff4444}
+.table-section{padding:60px 20px;max-width:900px;margin:0 auto}
+.table-section h3{color:#fff;font-size:1.3rem;margin-bottom:20px}
+.data-table{width:100%;border-collapse:collapse;font-size:0.8rem}
+.data-table th{text-align:left;padding:8px;border-bottom:2px solid #ff4444;color:#ff6644;font-size:0.75rem;text-transform:uppercase}
+.data-table td{padding:8px;border-bottom:1px solid #222;color:#ccc}
+.data-table tr.superfund td{color:#ff6644;font-weight:700}
+.source-section{padding:40px 20px;max-width:700px;margin:0 auto;border-top:1px solid #222}
+.source-section h4{color:#666;font-size:0.8rem;margin-bottom:8px;text-transform:uppercase}
+.source-section p{font-size:0.75rem;color:#555;line-height:1.5;margin-bottom:4px}
+.footer{text-align:center;padding:40px 20px;color:#444;font-size:0.75rem;border-top:1px solid #222}
+.footer strong{color:#666}
+@media(max-width:600px){
+  .audio-bar .caption{max-width:30%}
+  #map{height:400px}
+}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="badge">EPA SUPERFUND</div>
+  <div class="badge">EGLE PART 201</div>
+  <div class="badge">PFAS AREA OF INTEREST</div>
+  <h1>5,400 Gallons</h1>
+  <h2>That's how much waste cyanide was found at one plating shop in Cadillac, Michigan.</h2>
+  <p class="tagline">Nvirogear does not find cheap land. Nvirogear finds the reason cheap land is cheap — then tells you if there is still a play.</p>
+</div>
+
+<div class="audio-bar" id="audioBar">
+  <button id="playBtn" onclick="toggleAudio()">&#9654;</button>
+  <div class="wave" id="waveform"></div>
+  <div class="caption" id="caption">Tap play for audio briefing</div>
+</div>
+
+<div id="sections">
+
+  <div class="scroll-section" data-idx="0">
+    <div class="label">1983 — The Discovery</div>
+    <h3>The EPA walked into a small plating shop in Cadillac, Michigan.</h3>
+    <p>What they found would change the town forever.</p>
+    <div class="stat">5,400 gal</div>
+    <div class="stat-label">Waste cyanide on-site</div>
+    <p>Plus 140 barrels of waste cyanide mix. Plus 3,450 gallons of acid. Plus 5,000 gallons of other hazardous waste. All sitting on the ground at Northernaire Plating Company, 1002 6th Street, Cadillac.</p>
+    <div class="evidence-box">
+      <div class="tag">Documented Fact — Court Record</div>
+      <div class="text">US v. Northernaire Plating Co., 670 F. Supp. 742 (W.D. Mich. 1987): "Included among the substances found at the Northernaire site were 5400 gallons of waste cyanide, 140 barrels of waste cyanide mix, 3450 gallons of acid and 5000 gallons of [other waste]."</div>
+    </div>
+  </div>
+
+  <div class="scroll-section" data-idx="1">
+    <div class="label">The Spread</div>
+    <h3>The cyanide didn't stay in the soil.</h3>
+    <p>Northernaire Plating was a custom chromium and nickel electroplater. They used cyanide-based solutions to plate metal. When they were done, they poured waste into the sewer and dumped it on the ground.</p>
+    <p>The cyanide leached down. Into the groundwater. Into the aquifer that flows beneath Cadillac.</p>
+    <div class="evidence-box">
+      <div class="tag">Documented Fact — EPA Record of Decision</div>
+      <div class="text">EPA ROD, Northernaire Plating, MI: "The Northernaire Plating facility provided custom chromium and nickel [plating]... cyanide) to the soil which have subsequently leached from the soil to the [groundwater]."</div>
+    </div>
+  </div>
+
+  <div class="scroll-section" data-idx="2">
+    <div class="label">The Commingling</div>
+    <h3>Two sites became one problem.</h3>
+    <p>Next door, in the Cadillac Industrial Park, KYSOR Industrial Corporation had been making automotive parts since 1959. Their waste disposal created six separate groundwater plumes of volatile organic compounds.</p>
+    <p>When Northernaire's cyanide and chromium plume reached KYSOR's property, the plumes merged. Six became seven. All flowing north.</p>
+    <div class="evidence-box">
+      <div class="tag">Documented Fact — EPA Record of Decision</div>
+      <div class="text">EPA ROD, Kysor Industrial, MI: "contamination by hexavalent chromium and cyanide." The Kysor site has "six commingled groundwater contaminant plumes."</div>
+    </div>
+  </div>
+
+  <div class="scroll-section" data-idx="3">
+    <div class="label">The Migration</div>
+    <h3>The plume reached a residential area.</h3>
+    <p>Contaminated groundwater migrated under the city of Cadillac and into Haring Township. Into a residential area. Where people have private wells. Where families drink from the aquifer.</p>
+    <p>The City of Cadillac monitors 42 wells — 21 shallow, 21 intermediate — to track the commingled plumes. Shallow wells are 35-70 feet deep. Intermediate wells are 120-200 feet deep.</p>
+    <div class="evidence-box">
+      <div class="tag">Documented Fact — EPA Five-Year Review</div>
+      <div class="text">EPA Fifth Five-Year Review (2020): Groundwater migrated northward to Haring Township. City adopted new groundwater use restriction ordinance September 2018. Haring Township restrictions also strengthened.</div>
+    </div>
+  </div>
+
+  <div class="scroll-section" data-idx="4">
+    <div class="label">The Pump That Never Stops</div>
+    <h3>The cleanup system is still running. Right now.</h3>
+    <p>EPA placed Northernaire on the National Priorities List in 1985. KYSOR followed in 1989. A pump-and-treat system was installed to pull contaminated water out of the ground, clean it, and return it.</p>
+    <p>Soil removal was completed by 1996. Soil vapor extraction shut down in 2010. But the groundwater pump-and-treat system is still running. In 2025. Forty-two years after the cyanide was found.</p>
+    <p>EPA's next five-year review is planned for 2025. Fall 2025: EPA and the Cadillac Local Development Finance Authority will sample monitoring wells for VOCs, hexavalent chromium, and PFAS.</p>
+    <div class="evidence-box">
+      <div class="tag">Documented Fact — EPA Site Status</div>
+      <div class="text">KYSOR Industrial Corp Superfund Site (EPA ID: 0502480): "Operations and maintenance activities are ongoing for the groundwater remediation system."</div>
+    </div>
+  </div>
+
+  <div class="scroll-section" data-idx="5">
+    <div class="label">2024-2025 — The New Threat</div>
+    <h3>On top of the cyanide, they found PFAS.</h3>
+    <p>In late 2024 and early 2025, Michigan's PFAS Action Response Team (MPART) sampled residential wells near the Cadillac Industrial Park. Results: PFAS above Michigan Drinking Water Criteria in some private wells.</p>
+    <p>The local health department offered filters to affected residents. EPA data indicates the KYSOR and Northernaire Superfund sites are not the source of the PFAS. The source is still under investigation.</p>
+    <div class="evidence-box">
+      <div class="tag">Documented Fact — MPART/EGLE</div>
+      <div class="text">Michigan PFAS Response: "PFAS is present above Michigan Drinking Water Criteria in some private wells in the Cadillac Industrial Sampling Area."</div>
+    </div>
+  </div>
+
+  <div class="scroll-section" data-idx="6">
+    <div class="label">The Scale</div>
+    <h3>56 contamination sites. One county.</h3>
+    <div class="stat">56</div>
+    <div class="stat-label">Non-petroleum EGLE Part 201 sites in Wexford County</div>
+    <p>Not oil and gas wells. Fifty-six industrial, commercial, and residential contamination sites registered with EGLE. Twenty-six have short-term risks that require action now. Eighteen have long-term risks. Seven are controlled. Four don't have enough data to assign a risk level.</p>
+    <p>The EGLE Cadillac District Office is at 120 West Chapin Street. Their number is 231-775-3960.</p>
+  </div>
+
+  <div class="scroll-section" data-idx="7">
+    <div class="label">The Property Buyer Who Didn't Know</div>
+    <h3>If you buy a house near the Cadillac Industrial Park without knowing this...</h3>
+    <p>You don't know about the 5,400 gallons of cyanide that leached into the aquifer. You don't know about the six commingled plumes beneath the industrial park. You don't know the pump-and-treat system is still running because the groundwater isn't clean yet.</p>
+    <p>You don't know about the PFAS in private wells. You don't know about the groundwater use restrictions in Haring Township.</p>
+    <p>You drink from a private well.</p>
+    <p>Years later, you find contamination.</p>
+  </div>
+
+  <div class="scroll-section" data-idx="8">
+    <div class="label">What Nvirogear Does About It</div>
+    <h3>This is why Nvirogear exists.</h3>
+    <p>A Nvirogear Phase 1 Pre-Diligence Report on any property near the Cadillac Industrial Park would have flagged both Superfund sites. All 56 Part 201 sites. The PFAS Area of Interest. The groundwater use restrictions.</p>
+    <p>It would have said: Phase I ESA recommended. Private well testing required before purchase.</p>
+    <p>The buyer would have known to ask: Is this property served by city water or a private well? Are there groundwater use restrictions on this parcel?</p>
+    <div class="evidence-box">
+      <div class="tag">Nvirogear Doctrine</div>
+      <div class="text">Nvirogear does not find cheap land. Nvirogear finds the reason cheap land is cheap — then tells you if there is still a play. In Cadillac, the reason is 5,400 gallons of cyanide. And the play is knowing before you buy.</div>
+    </div>
+  </div>
+
+</div>
+
+
+  <div class="scroll-section" data-idx="9">
+    <div class="label">ATSDR Health Assessment (1989)</div>
+    <h3>The CDC's own assessment said: this is a health risk.</h3>
+    <p>In 1989, the Agency for Toxic Substances and Disease Registry — the CDC's environmental health arm — conducted a formal Public Health Assessment of the Northernaire Plating site.</p>
+    <p>They found the site was "approximately 1,500 feet from the Cadillac municipal well field." Two chromium plumes in the groundwater. Widespread VOC contamination.</p>
+    <p>Their words: "The use of the VOC or metal-contaminated ground water for potable purposes could pose a significant health risk."</p>
+    <p>Also: "Inhalation exposure to dust or the ingestion of soil from these contaminated areas could pose a potential health risk."</p>
+    <div class="evidence-box">
+      <div class="tag">Documented Fact — ATSDR Federal Health Assessment (1989)</div>
+      <div class="text">OSTI ID: 5219404. Agency for Toxic Substances and Disease Registry. CERCLIS No. MID020883609.</div>
+    </div>
+  </div>
+
+  <div class="scroll-section" data-idx="10">
+    <div class="label">The Second Layer — PBBs (1973)</div>
+    <h3>It's not just cyanide. PBBs were dumped in a Cadillac landfill too.</h3>
+    <p>In 1973, the Michigan Chemical Corporation accidentally shipped polybrominated biphenyls (PBBs) instead of cattle feed supplement. It was the largest food contamination event in U.S. history. Millions of pounds of contaminated material needed disposal.</p>
+    <p>ATSDR's own Toxicological Profile for PBBs documents: the waste "were disposed of in a sanitary landfill in Cadillac, Michigan."</p>
+    <p>PBB health effects documented by ATSDR and MDHHS: skin problems, altered thyroid function, altered liver function, breast cancer risk, miscarriages, multigenerational effects.</p>
+    <div class="evidence-box">
+      <div class="tag">Documented Fact — ATSDR Toxicological Profile for PBBs</div>
+      <div class="text">atsdr.cdc.gov/toxprofiles/tp68.pdf — PBB screenings were held in Cadillac as part of the PBB Oral History Project.</div>
+    </div>
+  </div>
+
+  <div class="scroll-section" data-idx="11">
+    <div class="label">The Cancer Data</div>
+    <h3>Wexford County's cancer rate is 13% above the Michigan state average.</h3>
+    <div class="stat">509.8</div>
+    <div class="stat-label">All invasive cancer incidence per 100,000 — Wexford County</div>
+    <div class="stat" style="font-size:clamp(1.5rem,6vw,2.5rem);color:#999">450.9</div>
+    <div class="stat-label">Michigan state average</div>
+    <p>Source: Michigan Department of Health and Human Services, PCNA Wexford County Profile. Wexford County ranks 64th out of 83 Michigan counties for health outcomes.</p>
+    <div class="evidence-box">
+      <div class="tag">Documented Fact — State Health Statistics</div>
+      <div class="text">MDHHS PCNA Overall Rank 25: Wexford County Profile. Cancer mortality rate: 173.1 per 100,000. Female breast cancer incidence: 114.1 per 100,000.</div>
+    </div>
+  </div>
+
+  <div class="scroll-section" data-idx="12">
+    <div class="label">What Nvirogear Does NOT Claim</div>
+    <h3>Concurrent documentation. Not causation.</h3>
+    <p>Nvirogear documents what federal and state health agencies have published. We do not claim that contamination caused any specific person's illness.</p>
+    <p>What we can document: Three distinct contamination layers exist in Cadillac — cyanide from plating (1971), PBBs from Velsicol (1973), and PFAS (2024). Wexford County's cancer rate is above the state average. The CDC assessed health risks at the Northernaire site in 1989.</p>
+    <p>What we cannot claim: That any specific contamination caused any specific cancer case. That the elevated cancer rate is caused by the Superfund sites. That PBB disposal, cyanide, and PFAS are connected beyond geography.</p>
+    <div class="evidence-box">
+      <div class="tag">Nvirogear Four-Lane Doctrine</div>
+      <div class="text">Nvirogear does not claim that PFAS or any contamination caused any specific person's illness. We document what is. The rest is for doctors, epidemiologists, and the community to determine.</div>
+    </div>
+  </div>
+
+<div class="map-container">
+  <div class="map-overlay">
+    <h3>Interactive Contamination Map — Cadillac & Wexford County</h3>
+    <p>56 EGLE Part 201 sites + 2 EPA Superfund sites + PFAS Area of Interest</p>
+  </div>
+  <div class="filter-bar">
+    <button class="filter-btn active" onclick="filterMap('all',this)">All Sites (56)</button>
+    <button class="filter-btn" onclick="filterMap('superfund',this)">Superfund (2)</button>
+    <button class="filter-btn" onclick="filterMap('short',this)">Short-Term Risk (26)</button>
+    <button class="filter-btn" onclick="filterMap('controlled',this)">Controlled (7)</button>
+  </div>
+  <div id="map"></div>
+</div>
+
+<div class="table-section">
+  <h3>Key Contamination Sites — Cadillac Area</h3>
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Site</th>
+        <th>Address</th>
+        <th>Contaminants</th>
+        <th>Risk</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr class="superfund">
+        <td>Northernaire Plating</td>
+        <td>6th St & Frisbie St</td>
+        <td>Cyanide, Chromium, VOCs, Metals</td>
+        <td>Controlled-Interim</td>
+      </tr>
+      <tr class="superfund">
+        <td>KYSOR Industrial</td>
+        <td>Cadillac Industrial Park</td>
+        <td>VOCs, Cyanide, Hex. Chromium</td>
+        <td>Short-Term Risk</td>
+      </tr>
+      <tr>
+        <td>AAR Cadillac Mfg</td>
+        <td>201 Haynes St</td>
+        <td>Chlorinated VOCs</td>
+        <td>Short-Term Risk</td>
+      </tr>
+      <tr>
+        <td>CRC Cadillac Molded Rubber</td>
+        <td>600 W 7th St</td>
+        <td>Chlorinated VOCs</td>
+        <td>Short-Term Risk</td>
+      </tr>
+      <tr>
+        <td>MDOT Railroad Yard</td>
+        <td>1203 N Mitchell St</td>
+        <td>Chlorinated VOCs</td>
+        <td>Short-Term Risk</td>
+      </tr>
+      <tr>
+        <td>Mitchell Bentley</td>
+        <td>514 Wright St</td>
+        <td>Chlorinated VOCs</td>
+        <td>Short-Term Risk</td>
+      </tr>
+      <tr>
+        <td>Old Cadillac Dump</td>
+        <td>Northern RR & Avart Rd</td>
+        <td>VOCs, Metals, Non-Petroleum</td>
+        <td>Controlled-Interim</td>
+      </tr>
+      <tr>
+        <td>Cadillac Tar & Chemical</td>
+        <td>Cadillac</td>
+        <td>Non-Petroleum</td>
+        <td>Short-Term Risk</td>
+      </tr>
+      <tr>
+        <td>City of Cadillac Private Wells</td>
+        <td>Leeson Ave & Plett Rd</td>
+        <td>Elements/Metals</td>
+        <td>Long-Term Risk</td>
+      </tr>
+      <tr>
+        <td>Four Winns Cruiser Plant</td>
+        <td>Cadillac</td>
+        <td>Non-Petroleum</td>
+        <td>Short-Term Risk</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="source-section">
+  <h4>Sources & Evidence Chain</h4>
+  <p>1. EPA Superfund — Northernaire Plating (EPA ID: 0502440)</p>
+  <p>2. EPA Superfund — KYSOR Industrial (EPA ID: 0502480)</p>
+  <p>3. US v. Northernaire Plating Co., 670 F. Supp. 742 (1987)</p>
+  <p>4. EPA Record of Decision — Northernaire Plating, MI</p>
+  <p>5. EPA Record of Decision — KYSOR Industrial, MI</p>
+  <p>6. EPA Fifth Five-Year Review Report — KYSOR Industrial (2020)</p>
+  <p>7. EGLE Part 201 ArcGIS REST API — Wexford County (87 sites)</p>
+  <p>8. EGLE PFAS Response — Cadillac Industrial Park AOI</p>
+  <p>9. EPA Superfund Emergency Response Actions Summary</p>
+  <p>10. EGLE Enforcement Actions — AAR Cadillac (Wexford County)</p>
+  <p>11. EPA Superfund Sites in Reuse — Michigan</p>
+</div>
+
+<div class="footer">
+  <strong>Nvirogear LLC</strong> | Mr. Results (Overseer) | 2026-07-18<br>
+  Generated by Nvirogear Property Intelligence System<br>
+  Truth is more valuable than optimism
+</div>
+
+<script>
+const SITES = [
+    {id:'83000001',name:"Kysor/Cadillac Area Groundwater",addr:"Cadillac Industrial Park",lat:44.257011,lng:-85.422437,risk:"Risks Present and Require Action in Short-term",type:'superfund',contam:"Chlorinated Volatile and Semi Volatile Organic Compounds, Elements/Metals/Other Inorganics, Non-Petroleum Hydrocarbons, Petroleum Volatile and Semi Volatile Organic Compounds"},
+    {id:'83000003',name:"City of Cadillac Private Wells",addr:"Leeson Avenue and Plett Road",lat:44.265389,lng:-85.395753,risk:"Risks Present and Require Action in Long-term",type:'part201',contam:"Elements/Metals/Other Inorganics"},
+    {id:'83000005',name:"CRC Cadillac Molded Rubber",addr:"600 West 7th Street",lat:44.261538,lng:-85.416913,risk:"Risks Present and Require Action in Short-term",type:'part201',contam:"Chlorinated Volatile and Semi Volatile Organic Compounds"},
+    {id:'83000020',name:"Liberty Cherry and Fruit Co",addr:"10760 North 13 Road (M-37) P.O. Box 85",lat:44.49412871,lng:-85.69553913,risk:"Risks Present and Require Action in Long-term",type:'part201',contam:"Elements/Metals/Other Inorganics, Petroleum Volatile and Semi Volatile Organic Compounds"},
+    {id:'83000024',name:"Northernaire Plating",addr:"1002 908 6th Street and 905 Frisbie Street",lat:44.26008571,lng:-85.42026782,risk:"Risks Controlled-Interim",type:'superfund',contam:"Chlorinated Volatile and Semi Volatile Organic Compounds, Elements/Metals/Other Inorganics"},
+    {id:'83000025',name:"Old Cadillac Dump",addr:"Northern RR and Avart Road and Granite S",lat:44.239857,lng:-85.387305,risk:"Risks Controlled-Interim",type:'part201',contam:"Chlorinated Volatile and Semi Volatile Organic Compounds, Elements/Metals/Other Inorganics, Non-Petroleum Hydrocarbons, Not Otherwise Classified"},
+    {id:'83000028',name:"Res Well Cedar Creek",addr:"41 1/2 Road",lat:44.41487102,lng:-85.41497369,risk:"Risks Present and Require Action in Long-term",type:'part201',contam:"Elements/Metals/Other Inorganics"},
+    {id:'83000030',name:"Wexford Co Rd Comm Mesick",addr:"4785 Industrial Dr. (Old 37)",lat:44.407235,lng:-85.704136,risk:"Risks Present and Require Action in Short-term",type:'part201',contam:"Elements/Metals/Other Inorganics, Petroleum Volatile and Semi Volatile Organic Compounds"},
+    {id:'83000031',name:"Wexford Co Sanitary LF",addr:"990 N 131 RD",lat:44.349802,lng:-85.395194,risk:"Risks Controlled-Interim",type:'part201',contam:"Chlorinated Volatile and Semi Volatile Organic Compounds, Elements/Metals/Other Inorganics, Non-Petroleum Hydrocarbons"},
+    {id:'83000032',name:"Wexford Sand Company",addr:"8770 West 28 Mile Road",lat:44.32796945,lng:-85.75626974,risk:"Contact Lead Division",type:'part201',contam:"Elements/Metals/Other Inorganics, Lead"},
+    {id:'83000036',name:"AAR Cadillac Manufacturing",addr:"201 Haynes Street",lat:44.252734,lng:-85.407513,risk:"Risks Present and Require Action in Short-term",type:'part201',contam:"Chlorinated Volatile and Semi Volatile Organic Compounds"},
+    {id:'83000037',name:"MDOT Cadillac Railroad Yard",addr:"1203 North Mitchell Street",lat:44.26544,lng:-85.406736,risk:"Risks Present and Require Action in Short-term",type:'part201',contam:"Chlorinated Volatile and Semi Volatile Organic Compounds"},
+    {id:'83000042',name:"Mitchell Bentley - Cadillac",addr:"514 Wright Street",lat:44.256957,lng:-85.414357,risk:"Risks Present and Require Action in Short-term",type:'part201',contam:"Chlorinated Volatile and Semi Volatile Organic Compounds"},
+    {id:'83000049',name:"Michigan Gas Utilities Corporation",addr:"140 COBB ST",lat:44.244354,lng:-85.393774,risk:"Risks Present and Require Action in Short-term",type:'part201',contam:"Elements/Metals/Other Inorganics, Non-Petroleum Hydrocarbons, Petroleum Volatile and Semi Volatile Organic Compounds"},
+    {id:'83000053',name:"Cadillac Wexford Transit Authority",addr:"1202 N MITCHELL ST",lat:44.265238,lng:-85.4056531,risk:"Risks Present and Require Action in Long-term",type:'part201',contam:"Elements/Metals/Other Inorganics, Lead"},
+    {id:'83000055',name:"Cadillac Tar and Chemical Plant",addr:"Sunset Lane",lat:44.248641,lng:-85.416355,risk:"Risks Present and Require Action in Short-term",type:'part201',contam:"Elements/Metals/Other Inorganics, Not Otherwise Classified, Petroleum Volatile and Semi Volatile Organic Compounds"},
+    {id:'83000102',name:"Rexair",addr:"230 7th Street",lat:44.261862,lng:-85.409999,risk:"Risks Controlled-Interim",type:'part201',contam:"Chlorinated Volatile and Semi Volatile Organic Compounds"},
+    {id:'83000103',name:"JoMarc/4 Star",addr:"1413 6th Avenue",lat:44.262971,lng:-85.4182006,risk:"Risks Present and Require Action in Short-term",type:'part201',contam:"Chlorinated Volatile and Semi Volatile Organic Compounds"},
+    {id:'83000110',name:"Cadillac Metal Casters",addr:"411 7th Street",lat:44.260268,lng:-85.410904,risk:"Risks Controlled-Interim",type:'part201',contam:"Elements/Metals/Other Inorganics, Lead"},
+    {id:'83000115',name:"W.D. Lumber",addr:"326 Haynes Street",lat:44.253496,lng:-85.408539,risk:"Risks Present and Require Action in Short-term",type:'part201',contam:"Elements/Metals/Other Inorganics"},
+    {id:'83000120',name:"Former Ferrellgas",addr:"180 West 13th St",lat:44.267218,lng:-85.4079237,risk:"Risks Present and Require Action in Short-term",type:'part201',contam:"Elements/Metals/Other Inorganics, Lead"},
+    {id:'83000121',name:"Ingrahams Property",addr:"1304 Leeson Avenue",lat:44.261898,lng:-85.4254646,risk:"Risks Present and Require Action in Short-term",type:'part201',contam:"Chlorinated Volatile and Semi Volatile Organic Compounds, Petroleum Volatile and Semi Volatile Organic Compounds"},
+    {id:'83000124',name:"Four Winns Cruiser Plant",addr:"609 Thirteenth Street",lat:44.266039,lng:-85.4176798,risk:"Risks Present and Require Action in Short-term",type:'part201',contam:"Chlorinated Volatile and Semi Volatile Organic Compounds, Elements/Metals/Other Inorganics, Petroleum Volatile and Semi Volatile Organic Compounds"},
+    {id:'83000129',name:"Mitchell St. Groundwater Contamination",addr:"Various",lat:44.252868,lng:-85.403004,risk:"Risks Present and Require Action in Short-term",type:'part201',contam:"Chlorinated Volatile and Semi Volatile Organic Compounds, Non-Petroleum Hydrocarbons"},
+    {id:'83000130',name:"Four Winns Frisbie Street",addr:"925 Frisbie Street",lat:44.26378,lng:-85.4251759,risk:"Risks Present and Require Action in Short-term",type:'part201',contam:"Chlorinated Volatile and Semi Volatile Organic Compounds, Non-Petroleum Hydrocarbons"},
+    {id:'83000148',name:"Kings Cleaner - Former",addr:"117 115 West Cass Street",lat:44.24860798,lng:-85.39951539,risk:"Risks Present and Require Action in Short-term",type:'part201',contam:"Chlorinated Volatile and Semi Volatile Organic Compounds"},
+    {id:'83000149',name:"Former Wellington Dry Cleaners",addr:"201 207 215 South Mitchell Sreet & 208 East Cass Street",lat:44.24885294,lng:-85.39752855,risk:"Risks Present and Require Action in Short-term",type:'part201',contam:"Chlorinated Volatile and Semi Volatile Organic Compounds, Lead, Mercury"},
+    {id:'83000155',name:"1026 1030 West Thirteenth Street",addr:"1026 West Thirteenth Street",lat:44.26733399,lng:-85.42493915,risk:"Risks Present and Require Action in Short-term",type:'part201',contam:"Elements/Metals/Other Inorganics, Lead, Mercury"},
+    {id:'83000156',name:"103 10th Street ",addr:"103 10th Street",lat:44.26238857,lng:-85.40733945,risk:"Risks Present and Require Action in Long-term",type:'part201',contam:"Carcinogenic PAHs, Elements/Metals/Other Inorganics, Lead"},
+    {id:'83000157',name:"108 North Mitchell & 121 East Harris St ",addr:"108 North Mitchell & 121 East Harris St",lat:44.25076144,lng:-85.39926163,risk:"Risks Present and Require Action in Long-term",type:'part201',contam:"Elements/Metals/Other Inorganics, Mercury"},
+    {id:'83000158',name:"110, 116 and Parcel A West Pine St (Former Johnson Auto Body)",addr:"110, 116 and Parcel A West Pine St (Form er Johnson Auto Body)",lat:44.25208233,lng:-85.40179907,risk:"Risks Present and Require Action in Short-term",type:'part201',contam:"Carcinogenic PAHs, Chlorinated Volatile and Semi Volatile Organic Compounds, Elements/Metals/Other Inorganics, Mercury"},
+    {id:'83000159',name:"1105 Leeson Avenue ",addr:"1105 Leeson Avenue",lat:44.25991588,lng:-85.42719224,risk:"Risks Present and Require Action in Long-term",type:'part201',contam:"Elements/Metals/Other Inorganics"},
+    {id:'83000160',name:"111 West River Street ",addr:"111 West River Street",lat:44.25578805,lng:-85.4053645,risk:"Risks Present and Require Action in Short-term",type:'part201',contam:"Elements/Metals/Other Inorganics, Lead"},
+    {id:'83000161',name:"116 West Harris St & 800 ft West Mason ",addr:"116 West Harris St & 800 ft West Mason",lat:44.2500798,lng:-85.40042231,risk:"Risks Present and Require Action in Short-term",type:'part201',contam:"Carcinogenic PAHs, Elements/Metals/Other Inorganics, Lead, Mercury, Petroleum Volatile and Semi Volatile Organic Compounds"},
+    {id:'83000162',name:"1212 North Mitchell Street ",addr:"1212 North Mitchell Street",lat:44.26573855,lng:-85.40561857,risk:"Risks Present and Require Action in Long-term",type:'part201',contam:"Elements/Metals/Other Inorganics, Lead"},
+    {id:'83000163',name:"1219 N. Mitchell Street ",addr:"1219 N. Mitchell Street",lat:44.26639636,lng:-85.40719289,risk:"Risks Present and Require Action in Short-term",type:'part201',contam:"Chlorinated Volatile and Semi Volatile Organic Compounds"},
+    {id:'83000164',name:"1337 N. Mitchell Street",addr:"1337 N. Mitchell",lat:44.26859212,lng:-85.40728199,risk:"Risks Present and Require Action in Long-term",type:'part201',contam:"Elements/Metals/Other Inorganics, Lead, Mercury, Petroleum Volatile and Semi Volatile Organic Compounds"},
+    {id:'83000165',name:"1423 North Mitchell Street ",addr:"1423 North Mitchell Street",lat:44.27091573,lng:-85.40721873,risk:"Risks Present and Require Action in Long-term",type:'part201',contam:"Carcinogenic PAHs, Elements/Metals/Other Inorganics, Lead, Petroleum Volatile and Semi Volatile Organic Compounds"},
+    {id:'83000166',name:"150 Works Avenue ",addr:"150 Works Avenue",lat:44.2773266,lng:-85.40382997,risk:"Inadequate Data to Assign Risk",type:'part201',contam:"Carcinogenic PAHs, Elements/Metals/Other Inorganics"},
+    {id:'83000168',name:"210 Wall Street ",addr:"210 Wall Street",lat:44.40896568,lng:-85.39947466,risk:"Risks Present and Require Action in Long-term",type:'part201',contam:"Elements/Metals/Other Inorganics, Mercury"},
+    {id:'83000169',name:"400 Hobart St; Hobart St; 711 & 828 Oak  Cobb St; 807 & 825 Lynn St; Lester St",addr:"400 Hobart St; Hobart St; 711 & 828 Oak Cobb St; 807 & 825 Lynn St; Lester St",lat:44.24557594,lng:-85.38959288,risk:"Inadequate Data to Assign Risk",type:'part201',contam:"Elements/Metals/Other Inorganics"},
+    {id:'83000170',name:"412 South Mitchell Street ",addr:"412 South Mitchell Street",lat:44.24714114,lng:-85.39752265,risk:"Risks Present and Require Action in Short-term",type:'part201',contam:"Elements/Metals/Other Inorganics, Lead"},
+    {id:'83000171',name:"450 S US 131 ",addr:"450 S US 131",lat:44.33212685,lng:-85.40280287,risk:"Inadequate Data to Assign Risk",type:'part201',contam:"Carcinogenic PAHs, Elements/Metals/Other Inorganics"},
+    {id:'83000172',name:"460 5th Street ",addr:"460 5th Street",lat:44.25788167,lng:-85.41711499,risk:"Risks Present and Require Action in Short-term",type:'part201',contam:"Carcinogenic PAHs, Elements/Metals/Other Inorganics, Lead, Mercury, Petroleum Volatile and Semi Volatile Organic Compounds"},
+    {id:'83000173',name:"5018 East Highway M-115 ",addr:"5018 East Highway M-115",lat:44.27771961,lng:-85.47783889,risk:"Risks Present and Require Action in Long-term",type:'part201',contam:"Elements/Metals/Other Inorganics, Lead"},
+    {id:'83000174',name:"602 South Mitchell Street ",addr:"602 South Mitchell Street",lat:44.24611019,lng:-85.39795543,risk:"Risks Present and Require Action in Long-term",type:'part201',contam:"Elements/Metals/Other Inorganics, Petroleum Volatile and Semi Volatile Organic Compounds"},
+    {id:'83000175',name:"7110 East 34 Road ",addr:"7110 East 34 Road",lat:44.28078922,lng:-85.43559729,risk:"Risks Present and Require Action in Long-term",type:'part201',contam:"Elements/Metals/Other Inorganics, Lead, Mercury"},
+    {id:'83000176',name:"805 811 815 North Mitchell Street",addr:"805 811 815 North Mitchell Street",lat:44.25743147,lng:-85.40512023,risk:"Risks Present and Require Action in Short-term",type:'part201',contam:"Elements/Metals/Other Inorganics"},
+    {id:'83000177',name:"905 Frisbie Street ",addr:"905 Frisbie Street",lat:44.26343535,lng:-85.4223441,risk:"Risks Present and Require Action in Long-term",type:'part201',contam:"Chlorinated Volatile and Semi Volatile Organic Compounds"},
+    {id:'83000179',name:"3822 North Mackinaw Trail Manton",addr:"3822 North Mackinaw Trail Manton",lat:44.39431464,lng:-85.39422111,risk:"Inadequate Data to Assign Risk",type:'part201',contam:"Elements/Metals/Other Inorganics, Lead"},
+    {id:'83000181',name:"Wright Street ",addr:"Wright Street",lat:44.25661498,lng:-85.41958826,risk:"Risks Present and Require Action in Short-term",type:'part201',contam:"Carcinogenic PAHs, Elements/Metals/Other Inorganics"},
+    {id:'83000183',name:"1005 Leeson Avenue",addr:"1005 Leeson Avenue",lat:44.25932786,lng:-85.42720088,risk:"Risks Present and Require Action in Long-term",type:'part201',contam:"Elements/Metals/Other Inorganics"},
+    {id:'83000186',name:"509 5th Street",addr:"509 5th Street",lat:44.25787708,lng:-85.411967,risk:"Risks Present and Require Action in Long-term",type:'part201',contam:"Elements/Metals/Other Inorganics, Petroleum Volatile and Semi Volatile Organic Compounds"},
+    {id:'83000188',name:"411 North Michigan Avenue",addr:"411 North Michigan Avenue",lat:44.41505494,lng:-85.39867168,risk:"Risks Present and Require Action in Long-term",type:'part201',contam:"Elements/Metals/Other Inorganics"},
+    {id:'83000191',name:"3765 South 41 Road Cadillac",addr:"3765 South 41 Road",lat:44.28558458,lng:-85.41562635,risk:"Risks Controlled-Interim",type:'part201',contam:"Elements/Metals/Other Inorganics, Per- and Polyfluoroalkyl Substances"},
+    {id:'83000193',name:"901 South Mitchell Street, Cadillac",addr:"901 South Mitchell Street",lat:44.24296669,lng:-85.39593401,risk:"Risks Controlled-Interim",type:'part201',contam:"Carcinogenic PAHs, Elements/Metals/Other Inorganics"}
+];
+
+// Audio narration script
+const SCRIPT = [
+  "In 1983, the EPA walked into a small plating shop in Cadillac, Michigan. What they found would change the town forever. Five thousand four hundred gallons of waste cyanide. One hundred and forty barrels of cyanide mix. Sitting on the ground. Leaching into the soil.",
+  "Northernaire Plating Company was a chrome and nickel electroplater on 6th Street. They used cyanide-based solutions to plate metal. And when they were done, they poured the waste into the sewer and dumped it on the ground. The cyanide didn't stay in the soil. It leached down. Into the groundwater. Into the aquifer that flows beneath Cadillac.",
+  "Next door, in the Cadillac Industrial Park, KYSOR Industrial Corporation had been making automotive parts since 1959. Their waste disposal practices created six separate groundwater plumes of volatile organic compounds. When Northernaire's cyanide and chromium plume reached KYSOR's property, the plumes merged. Six became seven. And all of them flowed north.",
+  "The contaminated groundwater migrated under the city of Cadillac and into Haring Township. Into a residential area. Where people have private wells. Where families drink from the aquifer.",
+  "The EPA put both sites on the Superfund National Priorities List. Northernaire in 1985. KYSOR in 1989. A pump-and-treat system was installed to pull contaminated water out of the ground, clean it, and put it back. That system is still running. Today. In 2025.",
+  "And then, on top of the cyanide, on top of the chromium, on top of the VOCs, they found PFAS. In private wells. Above Michigan drinking water criteria. The state is still testing homes. Still offering filters. Still looking for the source.",
+  "But here's what the state's own data shows. Fifty-six environmental contamination sites in Wexford County. Not oil and gas wells. Fifty-six industrial, commercial, and residential contamination sites. Twenty-six with short-term risks that require action now. Seven controlled. Four without enough data to assign a risk level.",
+  "If you buy a house near the Cadillac Industrial Park without knowing this, without a Phase 1 Environmental Site Assessment, without testing your well, you are buying into a story that started in 1983 and hasn't ended yet.",
+  "Nvirogear finds the reason cheap land is cheap. Then tells you if there is still a play. In Cadillac, the reason is five thousand four hundred gallons of cyanide. And the play is knowing before you buy.",
+  "But there is a second layer. In 1973, the Michigan Chemical Corporation accidentally shipped PBBs instead of cattle feed. It was the largest food contamination event in US history. And the waste? It was disposed in a sanitary landfill in Cadillac. The CDC documented health effects from PBB exposure: thyroid problems, liver problems, breast cancer risk. Multigenerational effects.",
+  "And the cancer data. Wexford County has an all-cancer incidence rate of five hundred and ten per hundred thousand. The Michigan state average is four hundred and fifty-one. That is thirteen percent above average. Wexford County ranks sixty-fourth out of eighty-three Michigan counties for health outcomes.",
+  "Nvirogear does not claim that contamination caused any specific illness. We document what federal and state agencies have published. Three contamination layers. Cancer rates above the state average. A CDC health assessment that said drinking contaminated groundwater poses a significant health risk. The rest is for doctors and epidemiologists to determine. But you deserve to know what is documented before you buy."
+];
+
+// Audio system
+let audioPlaying = false;
+let currentUtterance = 0;
+let synth = window.speechSynthesis;
+let voices = [];
+let currentVoice = null;
+let sectionMarkers = [];
+let sectionTimings = [];
+
+function loadVoices() {
+  voices = synth.getVoices();
+  currentVoice = voices.find(v => v.lang === 'en-US' && v.name.includes('Google')) || voices.find(v => v.lang === 'en-US') || voices[0];
+}
+loadVoices();
+if (speechSynthesis.onvoiceschanged !== undefined) synth.onvoiceschanged = loadVoices;
+
+// Build waveform
+function buildWaveform() {
+  const wave = document.getElementById('waveform');
+  for (let i = 0; i < 40; i++) {
+    const bar = document.createElement('div');
+    bar.className = 'bar';
+    bar.style.height = (5 + Math.random() * 25) + 'px';
+    wave.appendChild(bar);
+  }
+}
+buildWaveform();
+
+// Estimate timing for each script section (approx 15 words per second)
+function calcTimings() {
+  let cumulative = 0;
+  sectionTimings = SCRIPT.map((text, i) => {
+    const words = text.split(' ').length;
+    const duration = (words / 2.5) * 1000; // ~150 WPM
+    const start = cumulative;
+    cumulative += duration;
+    return { start, end: cumulative, idx: i };
+  });
+}
+calcTimings();
+
+let audioStartTime = 0;
+let waveAnimInterval = null;
+
+function toggleAudio() {
+  if (audioPlaying) {
+    stopAudio();
+  } else {
+    startAudio();
+  }
+}
+
+function startAudio() {
+  audioPlaying = true;
+  currentUtterance = 0;
+  audioStartTime = Date.now();
+  document.getElementById('playBtn').innerHTML = '&#10074;&#10074;';
+  speakNext();
+  animateWave();
+}
+
+function speakNext() {
+  if (currentUtterance >= SCRIPT.length) {
+    stopAudio();
+    return;
+  }
+  if (!audioPlaying) return;
+  
+  const utter = new SpeechSynthesisUtterance(SCRIPT[currentUtterance]);
+  if (currentVoice) utter.voice = currentVoice;
+  utter.rate = 1.0;
+  utter.pitch = 1.0;
+  utter.volume = 1.0;
+  
+  utter.onstart = () => {
+    updateCaption(currentUtterance);
+    highlightSection(currentUtterance);
+  };
+  
+  utter.onend = () => {
+    currentUtterance++;
+    if (audioPlaying && currentUtterance < SCRIPT.length) {
+      setTimeout(speakNext, 300);
+    } else if (currentUtterance >= SCRIPT.length) {
+      stopAudio();
+    }
+  };
+  
+  utter.onerror = () => {
+    currentUtterance++;
+    if (audioPlaying && currentUtterance < SCRIPT.length) {
+      setTimeout(speakNext, 100);
+    }
+  };
+  
+  synth.speak(utter);
+}
+
+function stopAudio() {
+  audioPlaying = false;
+  synth.cancel();
+  document.getElementById('playBtn').innerHTML = '&#9654;';
+  const bars = document.querySelectorAll('.wave .bar');
+  bars.forEach(b => b.classList.remove('active'));
+}
+
+function updateCaption(idx) {
+  const text = SCRIPT[idx];
+  const short = text.length > 60 ? text.substring(0, 57) + '...' : text;
+  document.getElementById('caption').textContent = short;
+}
+
+function highlightSection(idx) {
+  document.querySelectorAll('.scroll-section').forEach(s => s.classList.remove('active'));
+  const section = document.querySelector('[data-idx="' + idx + '"]');
+  if (section) {
+    section.classList.add('active');
+    section.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+function animateWave() {
+  const bars = document.querySelectorAll('.wave .bar');
+  let frame = 0;
+  waveAnimInterval = setInterval(() => {
+    if (!audioPlaying) {
+      clearInterval(waveAnimInterval);
+      bars.forEach(b => b.classList.remove('active'));
+      return;
+    }
+    bars.forEach((bar, i) => {
+      const phase = Math.sin(frame * 0.15 + i * 0.5) * 0.5 + 0.5;
+      const height = 5 + phase * 25 + Math.random() * 5;
+      bar.style.height = height + 'px';
+      if (phase > 0.6) bar.classList.add('active');
+      else bar.classList.remove('active');
+    });
+    frame++;
+  }, 80);
+}
+
+// Intersection observer for scroll-based section highlighting
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      entry.target.classList.add('active');
+    }
+  });
+}, { threshold: 0.3 });
+
+document.querySelectorAll('.scroll-section').forEach(s => observer.observe(s));
+
+// Initialize map
+const map = L.map('map', { zoomControl: true, scrollWheelZoom: true }).setView([44.257, -85.415], 13);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: 'OpenStreetMap',
+  maxZoom: 19
+}).addTo(map);
+
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+  attribution: 'Esri',
+  maxZoom: 19
+}).addTo(map);
+
+// PFAS AOI circle
+const pfasCircle = L.circle([44.257, -85.415], {
+  radius: 1500,
+  color: '#ff6600',
+  fillColor: '#ff6600',
+  fillOpacity: 0.08,
+  weight: 2,
+  dashArray: '8 4'
+}).addTo(map).bindPopup('<b>PFAS Area of Interest</b><br>Cadillac Industrial Park<br>PFAS above MI drinking water criteria in private wells (2024-2025)');
+
+// Site markers
+let allMarkers = [];
+
+SITES.forEach(site => {
+  let color, zIndex;
+  if (site.type === 'superfund') {
+    color = '#ff0000';
+    zIndex = 1000;
+  } else if (site.risk.includes('Short-term')) {
+    color = '#ff6600';
+    zIndex = 500;
+  } else if (site.risk.includes('Long-term')) {
+    color = '#ffaa00';
+    zIndex = 400;
+  } else if (site.risk.includes('Controlled')) {
+    color = '#00aa00';
+    zIndex = 300;
+  } else {
+    color = '#666666';
+    zIndex = 200;
+  }
+  
+  const marker = L.circleMarker([site.lat, site.lng], {
+    radius: site.type === 'superfund' ? 10 : 6,
+    fillColor: color,
+    color: '#fff',
+    weight: 2,
+    fillOpacity: 0.8,
+    zIndexOffset: zIndex
+  });
+  
+  const riskShort = site.risk.replace('Risks Present and Require Action in ', '').replace('Risks Controlled-Interim', 'Controlled').replace('Inadequate Data to Assign Risk', 'Inadequate Data').replace('Contact Lead Division', 'Contact Lead Div');
+  
+  const popup = '<b>' + (site.type === 'superfund' ? 'EPA SUPERFUND — ' : '') + site.name + '</b><br>' +
+    site.addr + '<br><br>' +
+    '<b>Contaminants:</b> ' + site.contam.substring(0, 120) + (site.contam.length > 120 ? '...' : '') + '<br>' +
+    '<b>Risk:</b> ' + riskShort + '<br>' +
+    '<b>EGLE Site ID:</b> ' + site.id;
+  
+  marker.bindPopup(popup);
+  marker._siteData = site;
+  allMarkers.push(marker);
+  marker.addTo(map);
+});
+
+// Filter function
+function filterMap(filter, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  
+  allMarkers.forEach(m => {
+    map.removeLayer(m);
+  });
+  
+  allMarkers.forEach(m => {
+    const s = m._siteData;
+    let show = false;
+    if (filter === 'all') show = true;
+    else if (filter === 'superfund') show = s.type === 'superfund';
+    else if (filter === 'short') show = s.risk.includes('Short-term');
+    else if (filter === 'controlled') show = s.risk.includes('Controlled');
+    
+    if (show) m.addTo(map);
+  });
+}
+
+// Prevent body scroll when interacting with map
+document.getElementById('map').addEventListener('touchstart', function(e) {
+  e.stopPropagation();
+}, { passive: true });
+
+</script>
+</body>
+</html>
