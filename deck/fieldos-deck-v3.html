@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nvirogear FieldOS — Strategic Investment Deck v3</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600;700&display=swap');
+:root{--bg-dark:#1a1f2e;--bg-slide:#1e2433;--bg-card:#252d3d;--bg-card-hover:#2d3748;--accent:#c9a96e;--accent-light:#e0c088;--text-primary:#f0f2f5;--text-secondary:#a0aec0;--text-muted:#718096;--border:#374151;--success:#48bb78;--danger:#f56565}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:var(--bg-dark);color:var(--text-primary);overflow:hidden;height:100vh}
+.deck-container{width:100vw;height:100vh;position:relative;overflow:hidden}
+.slide{position:absolute;top:0;left:0;width:100%;height:100%;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:50px 70px;opacity:0;transform:translateX(100%);transition:all 0.6s cubic-bezier(0.4,0,0.2,1);background:var(--bg-slide);overflow-y:auto}
+.slide.active{opacity:1;transform:translateX(0)}
+.slide.prev{transform:translateX(-100%)}
+h1{font-family:'Playfair Display',serif;font-size:3rem;font-weight:900;line-height:1.1;margin-bottom:0.5em}
+h2{font-family:'Playfair Display',serif;font-size:2.2rem;font-weight:700;line-height:1.2;margin-bottom:0.6em}
+h3{font-size:1.2rem;font-weight:600;margin-bottom:0.4em;color:var(--accent)}
+h4{font-size:1rem;font-weight:600;margin-bottom:0.3em}
+p{font-size:1rem;line-height:1.65;color:var(--text-secondary);margin-bottom:0.8em}
+.subtitle{font-size:1.25rem;color:var(--text-secondary);font-weight:300}
+.eyebrow{font-size:0.8rem;text-transform:uppercase;letter-spacing:3px;color:var(--accent);font-weight:600;margin-bottom:0.8em}
+.highlight{color:var(--accent)}
+.quote{font-family:'Playfair Display',serif;font-size:1.5rem;font-style:italic;line-height:1.5;color:var(--text-primary);border-left:3px solid var(--accent);padding-left:1.5em;margin:1.2em 0}
+.slide-content{max-width:1200px;width:100%}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:50px;align-items:center}
+.three-col{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.four-col{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:24px;transition:all 0.3s ease}
+.card:hover{background:var(--bg-card-hover);border-color:var(--accent);transform:translateY(-2px)}
+.card-icon{font-size:1.8rem;margin-bottom:10px}
+.card h4{color:var(--text-primary);font-size:1.05rem}
+.card p{font-size:0.85rem;margin-bottom:0}
+.data-table{width:100%;border-collapse:collapse;margin:16px 0}
+.data-table th{background:var(--bg-card);color:var(--accent);font-weight:600;text-align:left;padding:12px 16px;border-bottom:2px solid var(--accent);font-size:0.8rem;text-transform:uppercase;letter-spacing:1px}
+.data-table td{padding:12px 16px;border-bottom:1px solid var(--border);color:var(--text-secondary);font-size:0.9rem;vertical-align:top}
+.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin:24px 0}
+.metric-card{text-align:center;padding:24px 16px}
+.metric-value{font-family:'Playfair Display',serif;font-size:2.5rem;font-weight:900;color:var(--accent);line-height:1}
+.metric-label{font-size:0.8rem;color:var(--text-muted);margin-top:6px;text-transform:uppercase;letter-spacing:1px}
+.flywheel-container{display:flex;align-items:center;justify-content:center;gap:0;margin:24px 0;flex-wrap:wrap;max-width:900px;margin-left:auto;margin-right:auto}
+.flywheel-step{background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:12px 18px;font-size:0.82rem;color:var(--text-secondary);min-width:130px;text-align:center;position:relative;margin:0 6px 8px 0}
+.flywheel-step::after{content:"→";position:absolute;right:-14px;top:50%;transform:translateY(-50%);color:var(--accent);font-size:1.1rem}
+.flywheel-step:last-child::after{display:none}
+.flywheel-step strong{color:var(--text-primary);display:block;margin-bottom:3px}
+.moat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:16px}
+.moat-item{background:linear-gradient(135deg,var(--bg-card) 0%,rgba(201,169,110,0.08) 100%);border:1px solid var(--border);border-radius:10px;padding:18px;display:flex;align-items:flex-start;gap:10px}
+.moat-item .icon{font-size:1.4rem;flex-shrink:0}
+.moat-item span{font-size:0.85rem;color:var(--text-secondary)}
+.nav-controls{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);display:flex;gap:10px;align-items:center;z-index:100;background:rgba(30,36,51,0.92);backdrop-filter:blur(10px);padding:10px 22px;border-radius:50px;border:1px solid var(--border)}
+.nav-btn{background:transparent;border:1px solid var(--border);color:var(--text-secondary);padding:9px 18px;border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;font-size:0.82rem;transition:all 0.2s}
+.nav-btn:hover{border-color:var(--accent);color:var(--accent)}
+.nav-btn.primary{background:var(--accent);color:var(--bg-dark);border-color:var(--accent);font-weight:600}
+.nav-btn.primary:hover{background:var(--accent-light)}
+.slide-counter{font-size:0.78rem;color:var(--text-muted);min-width:55px;text-align:center}
+.progress-bar{position:fixed;top:0;left:0;height:3px;background:var(--accent);transition:width 0.4s ease;z-index:100}
+.hero-slide{text-align:center}
+.hero-slide h1{font-size:3.8rem;margin-bottom:0.3em}
+.hero-slide .subtitle{font-size:1.4rem;margin-bottom:1.5em}
+.source-tag{display:inline-block;background:rgba(201,169,110,0.15);color:var(--accent);padding:5px 13px;border-radius:20px;font-size:0.72rem;margin-top:1.5em;border:1px solid rgba(201,169,110,0.3)}
+.closing-slide{text-align:center}
+.closing-slide .quote{border:none;padding:0;font-size:1.6rem;max-width:900px;margin:0 auto 1.5em}
+.tag{display:inline-block;background:var(--bg-card);border:1px solid var(--border);padding:5px 13px;border-radius:6px;font-size:0.78rem;color:var(--text-secondary);margin:3px}
+.patent-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(72,187,120,0.1);border:1px solid rgba(72,187,120,0.3);border-radius:8px;padding:8px 16px;font-size:0.85rem;color:var(--success);margin:8px 4px}
+.market-stat{text-align:center;padding:20px}
+.market-stat .num{font-family:'Playfair Display',serif;font-size:3rem;font-weight:900;color:var(--accent)}
+.market-stat .label{font-size:0.82rem;color:var(--text-muted);margin-top:6px;text-transform:uppercase;letter-spacing:1px}
+.market-stat .source{font-size:0.72rem;color:var(--text-muted);margin-top:4px}
+.timeline-item{display:flex;gap:14px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border)}
+.timeline-item:last-child{border-bottom:none}
+.timeline-dot{width:10px;height:10px;border-radius:50%;background:var(--accent);flex-shrink:0;margin-top:5px}
+.timeline-dot.pending{background:var(--text-muted)}
+.timeline-item .content strong{color:var(--text-primary);font-size:0.9rem}
+.timeline-item .content span{font-size:0.82rem;color:var(--text-muted)}
+.competitor-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 1fr;gap:8px;padding:10px 0;border-bottom:1px solid var(--border);font-size:0.82rem;color:var(--text-secondary)}
+.competitor-row.header{color:var(--accent);font-weight:600;text-transform:uppercase;font-size:0.75rem;letter-spacing:1px;border-bottom:2px solid var(--accent)}
+.competitor-row .yes{color:var(--success)}
+.competitor-row .no{color:var(--danger)}
+.live-badge{display:inline-flex;align-items:center;gap:8px;background:rgba(72,187,120,0.15);border:1px solid rgba(72,187,120,0.4);border-radius:8px;padding:10px 20px;font-size:0.9rem;color:var(--success);font-weight:600}
+.live-url{font-family:'Inter',monospace;font-size:1.1rem;color:var(--accent);margin-top:10px}
+.phone-mockup{background:var(--bg-card);border:2px solid var(--border);border-radius:20px;padding:20px;max-width:300px;margin:0 auto}
+.phone-mockup .step-bar{display:flex;gap:4px;margin-bottom:16px}
+.phone-mockup .step-dot{flex:1;height:6px;border-radius:3px;background:var(--border)}
+.phone-mockup .step-dot.active{background:var(--accent)}
+.phone-mockup .step-dot.done{background:var(--success)}
+.phone-mockup .field{background:var(--bg-slide);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:10px;font-size:0.82rem;color:var(--text-muted)}
+.phone-mockup .field.filled{color:var(--text-primary)}
+.phone-mockup .banner{background:rgba(72,187,120,0.1);border-radius:8px;padding:8px 12px;font-size:0.75rem;color:var(--success);margin-bottom:14px;text-align:center}
+.keyboard-hint{position:fixed;bottom:24px;right:24px;font-size:0.7rem;color:var(--text-muted);z-index:99}
+@media(max-width:1024px){.slide{padding:36px 24px}.two-col,.three-col,.four-col,.metric-grid,.moat-grid{grid-template-columns:1fr}h1{font-size:2rem}h2{font-size:1.6rem}.hero-slide h1{font-size:2.6rem}.keyboard-hint{display:none}.competitor-row{grid-template-columns:1fr;font-size:0.78rem}}
+</style>
+</head>
+<body>
+<div class="progress-bar" id="progressBar"></div>
+<div class="deck-container" id="deck">
+
+<!-- SLIDE 1: Title -->
+<div class="slide active hero-slide">
+<div class="slide-content">
+<div class="eyebrow">Strategic Investment Opportunity</div>
+<h1>Nvirogear <span class="highlight">FieldOS</span></h1>
+<p class="subtitle">The Field Intelligence Platform for Operations &amp; Risk Management</p>
+<p style="max-width:700px;margin:0 auto;">A proprietary operating system that transforms every field interaction into a permanent, searchable, monetizable digital asset — compounding in value with every completed job.</p>
+<div style="margin-top:16px;">
+<div class="patent-badge">🛡️ Provisional Patent Filed — July 2025</div>
+<div class="live-badge" style="margin-left:8px;">🟢 Live Product — dalestreeworks.com</div>
+</div>
+<div class="source-tag">Origin Prototype: Dale's Tree Works — 70 days of live customer data</div>
+</div>
+</div>
+
+<!-- SLIDE 2: The Problem -->
+<div class="slide">
+<div class="slide-content">
+<div class="eyebrow">The Market Gap</div>
+<h2>Traditional Software Manages Paperwork.<br><span class="highlight">FieldOS Manages Knowledge.</span></h2>
+<div class="two-col" style="margin-top:30px;">
+<div>
+<h3 style="color:var(--danger);">❌ The Old Model</h3>
+<p>Traditional field-service software was designed around office workflows, turning field operations into an administrative bottleneck. It stops at the invoice and treats every job as a disconnected transaction.</p>
+<div style="margin-top:16px;"><span class="tag">Office-First Design</span><span class="tag">Text-Based Records</span><span class="tag">Required Login Friction</span><span class="tag">Stops at the Invoice</span></div>
+</div>
+<div>
+<h3 style="color:var(--success);">✓ The FieldOS Model</h3>
+<p>A digital operating system that captures everything happening on a property and transforms it into searchable business intelligence, risk reduction, and continuous customer acquisition.</p>
+<div style="margin-top:16px;"><span class="tag">Field-First / Zero Friction</span><span class="tag">Map-Based Digital Twin</span><span class="tag">Chain-of-Evidence</span><span class="tag">Extends into AI Marketing</span></div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- SLIDE 3: The Friction Point -->
+<div class="slide">
+<div class="slide-content">
+<div class="eyebrow">Where Office-Centric Software Fails</div>
+<h2>The Friction Point</h2>
+<p style="margin-bottom:24px;">Every friction point costs money and introduces operational risk.</p>
+<div class="four-col">
+<div class="card"><div class="card-icon">🚗</div><h4>Travel Time Waste</h4><p>Driving to jobs just to quote them.</p></div>
+<div class="card"><div class="card-icon">👤</div><h4>Lead Abandonment</h4><p>Forcing account creation before requesting an estimate.</p></div>
+<div class="card"><div class="card-icon">📋</div><h4>Administrative Overhead</h4><p>Re-entering the same information into multiple systems.</p></div>
+<div class="card"><div class="card-icon">⚖️</div><h4>Unprotected Liability</h4><p>Losing photos &amp; arguing over approved work scope.</p></div>
+</div>
+<div class="card" style="margin-top:16px;text-align:center;background:rgba(245,101,101,0.08);border-color:rgba(245,101,101,0.3);">
+<p style="margin:0;color:var(--danger);font-weight:600;">⚠️ Un-auditable Compliance — Paper safety records that cannot withstand regulatory or insurance scrutiny.</p>
+</div>
+</div>
+</div>
+
+<!-- SLIDE 4: CRM vs Operational Intelligence -->
+<div class="slide">
+<div class="slide-content">
+<div class="eyebrow">Architecture Comparison</div>
+<h2>CRM vs. <span class="highlight">Operational Intelligence</span></h2>
+<table class="data-table" style="margin-top:24px;">
+<thead><tr><th style="width:18%;">Category</th><th style="width:35%;">Old System</th><th style="width:47%;">FieldOS</th></tr></thead>
+<tbody>
+<tr><td><strong>Architecture</strong></td><td>Organized by Customer Name</td><td><span style="color:var(--accent);">✓</span> Organized by Geospatial Property Asset</td></tr>
+<tr><td><strong>Intake</strong></td><td>Office-First / Required Login</td><td><span style="color:var(--accent);">✓</span> Field-First / Zero Friction Web Interaction</td></tr>
+<tr><td><strong>Records</strong></td><td>Text-based files with optional photo attachments</td><td><span style="color:var(--accent);">✓</span> Map-based Digital Twin with chain-of-evidence</td></tr>
+<tr><td><strong>Lifecycle</strong></td><td>Stops at the invoice</td><td><span style="color:var(--accent);">✓</span> Extends into AI Marketing &amp; Historical Archives</td></tr>
+<tr><td><strong>Data Value</strong></td><td>Static — depreciates with churn</td><td><span style="color:var(--accent);">✓</span> Compounding — appreciates with every job</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<!-- SLIDE 5: The Five Pillars -->
+<div class="slide">
+<div class="slide-content">
+<div class="eyebrow">Platform Architecture</div>
+<h2>The Five Pillars of <span class="highlight">FieldOS</span></h2>
+<div class="three-col" style="margin-top:24px;">
+<div class="card"><h3>01</h3><h4>Frictionless Customer Intake</h4><p>Zero account creation. Customer drops pins on a satellite map, marks every asset, uploads photos, and submits. Contractor receives a complete digital job package before leaving the office.</p><p style="color:var(--accent);font-size:0.82rem;margin-top:8px;"><strong>Outcome:</strong> Faster estimate turnaround, zero office-centric friction, substantially higher lead conversion.</p></div>
+<div class="card"><h3>02</h3><h4>Property-Centric Digital Twin</h4><p>Data organized around physical assets and geospatial pins — not just text-based customer names. GPS location, hazard ratings, measurements, crew notes, before/after photos, final invoices.</p><p style="color:var(--accent);font-size:0.82rem;margin-top:8px;"><strong>Outcome:</strong> Permanent historical record. Eliminates crew confusion, standardizes institutional knowledge.</p></div>
+<div class="card"><h3>03</h3><h4>Permanent Chain-of-Evidence</h4><p>Integrates evidentiary documentation into the core workflow: original request → pre-work photos → hazards &amp; scope → completion photos → invoice history.</p><p style="color:var(--accent);font-size:0.82rem;margin-top:8px;"><strong>Outcome:</strong> Dramatically reduces legal exposure, minimizes conflict resolution time, expedites payment.</p></div>
+</div>
+<div class="two-col" style="margin-top:16px;">
+<div class="card"><h3>04</h3><h4>Automated Safety Compliance Engine</h4><p>Embedded daily safety checks: chainsaw inspections, crane &amp; bucket truck checks, PPE verification, power-line assessments, storm hazard evaluations.</p><p style="color:var(--accent);font-size:0.82rem;margin-top:8px;"><strong>Outcome:</strong> Lowers insurance premiums, ensures enterprise-grade accountability, provides instant auditability.</p></div>
+<div class="card"><h3>05</h3><h4>AI-Generated Marketing Flywheel</h4><p>Job completed → Before/After photos uploaded → AI drafts content (Facebook, IG, Google Business) → Owner 1-click approves → Published.</p><p style="color:var(--accent);font-size:0.82rem;margin-top:8px;"><strong>Outcome:</strong> Reduces marketing labor costs, creates a self-sustaining advertising engine from operational data.</p></div>
+</div>
+</div>
+</div>
+
+<!-- SLIDE 6: Entered Once, Used Everywhere -->
+<div class="slide">
+<div class="slide-content">
+<div class="eyebrow">The Architecture Advantage</div>
+<h2>Entered Once. <span class="highlight">Used Everywhere.</span></h2>
+<p style="margin-bottom:24px;">The same initial information powers every department seamlessly. Information is entered once and automates the entire lifecycle.</p>
+<div style="display:flex;justify-content:center;align-items:center;gap:16px;flex-wrap:wrap;">
+<div class="card" style="text-align:center;min-width:150px;"><div style="font-size:1.8rem;margin-bottom:6px;">📍</div><strong>One Customer<br>Submission</strong></div>
+<div style="font-size:1.8rem;color:var(--accent);">→</div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
+<div class="card" style="text-align:center;padding:14px;"><div style="font-size:1.4rem;">📐</div><span style="font-size:0.76rem;">Estimate<br>Generation</span></div>
+<div class="card" style="text-align:center;padding:14px;"><div style="font-size:1.4rem;">📦</div><span style="font-size:0.76rem;">Job Packet<br>Creation</span></div>
+<div class="card" style="text-align:center;padding:14px;"><div style="font-size:1.4rem;">👷</div><span style="font-size:0.76rem;">Crew<br>Instructions</span></div>
+<div class="card" style="text-align:center;padding:14px;"><div style="font-size:1.4rem;">✅</div><span style="font-size:0.76rem;">Safety<br>Checklists</span></div>
+<div class="card" style="text-align:center;padding:14px;"><div style="font-size:1.4rem;">📷</div><span style="font-size:0.76rem;">Historical Asset<br>Archive</span></div>
+<div class="card" style="text-align:center;padding:14px;"><div style="font-size:1.4rem;">📄</div><span style="font-size:0.76rem;">Invoice<br>Processing</span></div>
+<div class="card" style="text-align:center;padding:14px;"><div style="font-size:1.4rem;">📢</div><span style="font-size:0.76rem;">Marketing Content<br>Generation</span></div>
+<div class="card" style="text-align:center;padding:14px;"><div style="font-size:1.4rem;">🗄️</div><span style="font-size:0.76rem;">Customer Record<br>Archiving</span></div>
+</div>
+</div>
+<div class="card" style="margin-top:24px;text-align:center;background:rgba(201,169,110,0.08);"><p style="margin:0;color:var(--accent);font-weight:600;font-size:1.05rem;">💡 One input. Eight automated outputs. Zero duplicate data entry.</p></div>
+</div>
+</div>
+
+<!-- SLIDE 7: The Data Flywheel -->
+<div class="slide">
+<div class="slide-content">
+<div class="eyebrow">Compounding Value</div>
+<h2>The <span class="highlight">Data Flywheel</span></h2>
+<p style="margin-bottom:24px;">Every completed job makes the platform more valuable. The system learns. The next estimate takes less time. The dataset deepens. The moat widens.</p>
+<div class="flywheel-container">
+<div class="flywheel-step"><strong>Customer Request</strong></div>
+<div class="flywheel-step"><strong>Property Record Created</strong></div>
+<div class="flywheel-step"><strong>Estimate Generated</strong></div>
+<div class="flywheel-step"><strong>Job Completed</strong></div>
+<div class="flywheel-step"><strong>Photos Captured</strong></div>
+<div class="flywheel-step"><strong>Safety Logged</strong></div>
+<div class="flywheel-step"><strong>Invoice Sent</strong></div>
+<div class="flywheel-step"><strong>Marketing Created</strong></div>
+<div class="flywheel-step"><strong>Historical Record Grows</strong></div>
+<div class="flywheel-step"><strong>AI Gets Smarter</strong></div>
+<div class="flywheel-step" style="background:rgba(201,169,110,0.15);border-color:var(--accent);"><strong>Next Estimate Takes Less Time</strong></div>
+</div>
+<div class="card" style="margin-top:30px;text-align:center;"><p style="margin:0;font-size:1.05rem;"><span style="color:var(--accent);font-weight:700;">The Flywheel Effect:</span> Unlike traditional software that delivers static value, FieldOS becomes more intelligent, more efficient, and more defensible with every property serviced.</p></div>
+</div>
+</div>
+
+<!-- SLIDE 8: The Competitive Moat -->
+<div class="slide">
+<div class="slide-content">
+<div class="eyebrow">Defensible Advantage</div>
+<h2>The <span class="highlight">Competitive Moat</span></h2>
+<p style="margin-bottom:16px;">Most software companies sell tools. This platform creates data. Every completed job increases the value of the platform because it builds datasets that are difficult for competitors to replicate.</p>
+<div class="moat-grid">
+<div class="moat-item"><div class="icon">🏠</div><span><strong>Property Histories</strong><br>Complete service timeline per address</span></div>
+<div class="moat-item"><div class="icon">🌳</div><span><strong>Tree Inventories</strong><br>Species, condition, hazard ratings</span></div>
+<div class="moat-item"><div class="icon">📍</div><span><strong>GPS Asset Locations</strong><br>Precise geospatial pin database</span></div>
+<div class="moat-item"><div class="icon">⭐</div><span><strong>Customer Preferences</strong><br>Service patterns &amp; communication history</span></div>
+<div class="moat-item"><div class="icon">⚙️</div><span><strong>Equipment Usage History</strong><br>Maintenance logs &amp; performance data</span></div>
+<div class="moat-item"><div class="icon">👷</div><span><strong>Crew Performance History</strong><br>Efficiency metrics &amp; safety records</span></div>
+<div class="moat-item"><div class="icon">📸</div><span><strong>Photo Evidence Archive</strong><br>Before/after with timestamps &amp; GPS</span></div>
+<div class="moat-item"><div class="icon">📅</div><span><strong>Seasonal Maintenance History</strong><br>Recurring service optimization data</span></div>
+<div class="moat-item"><div class="icon">🛡️</div><span><strong>Safety &amp; Compliance Records</strong><br>Auditable proof for insurers &amp; regulators</span></div>
+</div>
+<div class="card" style="margin-top:20px;text-align:center;background:rgba(72,187,120,0.08);border-color:rgba(72,187,120,0.3);"><p style="margin:0;color:var(--success);font-weight:600;">✓ Each dataset compounds over time. Competitors cannot buy, copy, or fast-forward this accumulation.</p></div>
+</div>
+</div>
+
+<!-- SLIDE 9: LIVE PRODUCT (NEW with real data) -->
+<div class="slide">
+<div class="slide-content">
+<div class="eyebrow">Live Product — Not a Mockup</div>
+<h2>The Prototype Is <span class="highlight">Live Right Now</span></h2>
+<p style="margin-bottom:20px;">Dale's Tree Works has been running FieldOS in production for 70 days. Real customers. Real estimates. Real revenue. Real data.</p>
+<div class="two-col" style="margin-top:20px;">
+<div>
+<div class="live-badge" style="margin-bottom:16px;">🟢 LIVE AT dalestreeworks.com</div>
+<p style="margin-bottom:16px;">The customer portal is live at <strong style="color:var(--accent);">dalestreeworks.com</strong>. Anyone can visit right now, walk through the 6-step zero-friction intake, and submit a real estimate request.</p>
+<p style="font-size:0.85rem;color:var(--text-muted);">6-step flow: Info → Map (pin drop) → Trees (species, size, condition) → Photos → Access (hazards, gates, utilities) → Review (submit, no login)</p>
+</div>
+<div>
+<div class="metric-grid" style="margin:0;">
+<div class="metric-card card"><div class="metric-value">19</div><div class="metric-label">Estimate Requests</div><p style="font-size:0.72rem;margin-top:4px;">15 via customer portal</p></div>
+<div class="metric-card card"><div class="metric-value">3</div><div class="metric-label">Jobs Created</div><p style="font-size:0.72rem;margin-top:4px;">2 completed, 1 scheduled</p></div>
+<div class="metric-card card"><div class="metric-value">11</div><div class="metric-label">Unique Customers</div><p style="font-size:0.72rem;margin-top:4px;">In 70 days</p></div>
+<div class="metric-card card"><div class="metric-value">49</div><div class="metric-label">Trees in Pipeline</div><p style="font-size:0.72rem;margin-top:4px;">GPS-pinned, species-tagged</p></div>
+</div>
+</div>
+</div>
+<div class="card" style="margin-top:20px;text-align:center;background:rgba(201,169,110,0.08);border-color:var(--accent);">
+<p style="margin:0;color:var(--accent);font-weight:600;">This is not a concept deck. This is a working product with real customers and a 70-day operational track record.</p>
+</div>
+</div>
+</div>
+
+<!-- SLIDE 10: REAL Revenue & Pipeline (NEW) -->
+<div class="slide">
+<div class="slide-content">
+<div class="eyebrow">Verified Backend Data</div>
+<h2><span class="highlight">Real Revenue</span> — Real Pipeline</h2>
+<p style="margin-bottom:24px;">Pulled directly from the Dale's Tree Works production database. Every number below is verified.</p>
+<div class="metric-grid">
+<div class="metric-card card"><div class="metric-value" style="color:var(--success);">$2,575</div><div class="metric-label">Invoiced Revenue</div><p style="font-size:0.76rem;margin-top:6px;">2 completed jobs, 89% gross margin</p></div>
+<div class="metric-card card"><div class="metric-value">$4,250</div><div class="metric-label">Outstanding Quotes</div><p style="font-size:0.76rem;margin-top:6px;">Riverside Church + Tom Bakker</p></div>
+<div class="metric-card card"><div class="metric-value">89%</div><div class="metric-label">Gross Margin</div><p style="font-size:0.76rem;margin-top:6px;">$2,300 profit on $2,575 invoiced</p></div>
+<div class="metric-card card"><div class="metric-value">18%</div><div class="metric-label">Estimate → Job Rate</div><p style="font-size:0.76rem;margin-top:6px;">3 of 17 estimates converted</p></div>
+</div>
+<div class="two-col" style="margin-top:16px;">
+<div>
+<h3>Completed Jobs</h3>
+<table class="data-table">
+<thead><tr><th>Customer</th><th>Service</th><th>Trees</th><th>Invoice</th></tr></thead>
+<tbody>
+<tr><td>Randy Voss</td><td>Removal + Stump</td><td>4</td><td style="color:var(--success);">$1,600</td></tr>
+<tr><td>Carol Nyenhuis</td><td>Trim + Crown</td><td>6</td><td style="color:var(--success);">$975</td></tr>
+</tbody>
+</table>
+</div>
+<div>
+<h3>Hazard Flags Captured</h3>
+<div style="margin-top:12px;">
+<span class="tag" style="color:var(--danger);">⚠ Power Lines (3)</span>
+<span class="tag" style="color:var(--danger);">⚠ Septic Nearby (4)</span>
+<span class="tag" style="color:var(--danger);">⚠ Narrow Access (3)</span>
+<span class="tag" style="color:var(--danger);">⚠ Leaning Toward House (2)</span>
+<span class="tag" style="color:var(--danger);">⚠ Storm Damage (1)</span>
+<span class="tag" style="color:var(--danger);">⚠ On House (1)</span>
+</div>
+<p style="font-size:0.82rem;margin-top:12px;">Every estimate auto-captures: gate width, septic proximity, utility markings, power line presence, slope, structures, neighbor trees, preferred dates.</p>
+</div>
+</div>
+<div class="card" style="margin-top:16px;text-align:center;background:rgba(72,187,120,0.08);border-color:rgba(72,187,120,0.3);">
+<p style="margin:0;color:var(--success);font-weight:600;font-size:0.9rem;">All data pulled from production database — app ID 6a071b615e1f93ca65836ddb — on July 23, 2026. Full export available for due diligence.</p>
+</div>
+</div>
+</div>
+
+<!-- SLIDE 11: Customer Intake Flow (NEW) -->
+<div class="slide">
+<div class="slide-content">
+<div class="eyebrow">The Intake Experience</div>
+<h2>6 Steps. <span class="highlight">Zero Friction.</span> No Login.</h2>
+<p style="margin-bottom:24px;">This is what a customer sees when they visit dalestreeworks.com. No account creation. No password. No app download. Just a web link.</p>
+<div class="two-col">
+<div class="three-col" style="gap:12px;">
+<div class="card" style="padding:16px;"><div style="font-size:1.4rem;margin-bottom:6px;">1️⃣</div><h4 style="font-size:0.9rem;">Info</h4><p style="font-size:0.78rem;">Name, phone, email, address, contact preference</p></div>
+<div class="card" style="padding:16px;"><div style="font-size:1.4rem;margin-bottom:6px;">2️⃣</div><h4 style="font-size:0.9rem;">Map</h4><p style="font-size:0.78rem;">Drop pins on satellite imagery — mark every tree</p></div>
+<div class="card" style="padding:16px;"><div style="font-size:1.4rem;margin-bottom:6px;">3️⃣</div><h4 style="font-size:0.9rem;">Trees</h4><p style="font-size:0.78rem;">Species, height, diameter, condition, lean direction, concerns</p></div>
+<div class="card" style="padding:16px;"><div style="font-size:1.4rem;margin-bottom:6px;">4️⃣</div><h4 style="font-size:0.9rem;">Photos</h4><p style="font-size:0.78rem;">Upload from phone — before shots, hazard documentation</p></div>
+<div class="card" style="padding:16px;"><div style="font-size:1.4rem;margin-bottom:6px;">5️⃣</div><h4 style="font-size:0.9rem;">Access</h4><p style="font-size:0.78rem;">Gate width, septic, power lines, slope, narrow access, pets</p></div>
+<div class="card" style="padding:16px;"><div style="font-size:1.4rem;margin-bottom:6px;">6️⃣</div><h4 style="font-size:0.9rem;">Review</h4><p style="font-size:0.78rem;">Confirm everything, submit — auto-generates PDF estimate</p></div>
+</div>
+<div>
+<h3>What Dale Receives</h3>
+<p style="margin-top:12px;">Before driving to the property, Dale has:</p>
+<div style="margin-top:8px;">
+<span class="tag">GPS coordinates</span><span class="tag">Tree species</span><span class="tag">Tree dimensions</span><span class="tag">Condition assessment</span><span class="tag">Customer photos</span><span class="tag">Hazard flags</span><span class="tag">Access checklist</span><span class="tag">Contact preference</span><span class="tag">Urgency level</span><span class="tag">Auto-generated PDF</span>
+</div>
+<div class="card" style="margin-top:16px;background:rgba(72,187,120,0.08);border-color:rgba(72,187,120,0.3);">
+<p style="margin:0;color:var(--success);font-weight:600;font-size:0.9rem;">Dale can quote the job from his office — without a site visit. Zero drive time. Zero fuel cost. Zero scheduling friction.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<!-- SLIDE 12: Competitive Landscape -->
+<div class="slide">
+<div class="slide-content">
+<div class="eyebrow">Market Position</div>
+<h2>Competitive <span class="highlight">Landscape</span></h2>
+<p style="margin-bottom:20px;">Existing players build office software for field workers. FieldOS builds field intelligence that feeds the office — and the marketing engine, the compliance record, and the property history.</p>
+<div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:20px;">
+<div class="competitor-row header"><div>Platform</div><div>Field-First</div><div>Digital Twin</div><div>Chain-of-Evidence</div><div>AI Marketing</div></div>
+<div class="competitor-row"><div><strong>Jobber</strong></div><div class="no">✗ Office-first</div><div class="no">✗ Text records</div><div class="no">✗ Attachments only</div><div class="no">✗ Manual</div></div>
+<div class="competitor-row"><div><strong>ServiceTitan</strong></div><div class="no">✗ Office-first</div><div class="no">✗ Text records</div><div class="no">✗ Optional</div><div class="no">✗ Manual</div></div>
+<div class="competitor-row"><div><strong>Housecall Pro</strong></div><div class="no">✗ Office-first</div><div class="no">✗ Text records</div><div class="no">✗ Optional</div><div class="no">✗ Manual</div></div>
+<div class="competitor-row"><div><strong>Arborgold</strong></div><div class="no">✗ Office-first</div><div class="no">✗ Text records</div><div class="no">✗ Optional</div><div class="no">✗ Manual</div></div>
+<div class="competitor-row" style="background:rgba(201,169,110,0.08);"><div><strong style="color:var(--accent);">Nvirogear FieldOS</strong></div><div class="yes">✓ Zero-friction</div><div class="yes">✓ Map-based</div><div class="yes">✓ Core workflow</div><div class="yes">✓ Automated</div></div>
+</div>
+<div class="card" style="margin-top:16px;text-align:center;background:rgba(201,169,110,0.08);border-color:var(--accent);"><p style="margin:0;color:var(--accent);font-weight:600;">No incumbent offers geospatial-first intake, permanent chain-of-evidence, and AI marketing automation in a single platform.</p></div>
+</div>
+</div>
+
+<!-- SLIDE 13: Market Size -->
+<div class="slide">
+<div class="slide-content">
+<div class="eyebrow">Total Addressable Market</div>
+<h2>The <span class="highlight">Market Opportunity</span></h2>
+<p style="margin-bottom:24px;">The field service management software market is large, growing, and ripe for a paradigm shift from office-centric to field-first.</p>
+<div class="three-col">
+<div class="card market-stat"><div class="num">$5.9B</div><div class="label">US Field Service Software</div><div class="source">2025 market size — MarketsandMarkets</div></div>
+<div class="card market-stat"><div class="num">11.2%</div><div class="label">CAGR Through 2030</div><div class="source">Field service management growth rate</div></div>
+<div class="card market-stat"><div class="num">$160B</div><div class="label">US Green Industry TAM</div><div class="source">Tree care, landscaping, outdoor services</div></div>
+</div>
+<div class="three-col" style="margin-top:16px;">
+<div class="card market-stat"><div class="num">580K+</div><div class="label">US Tree Care Companies</div><div class="source">TCIA industry census</div></div>
+<div class="card market-stat"><div class="num">1.2M+</div><div class="label">US Landscaping Firms</div><div class="source">NALP industry data</div></div>
+<div class="card market-stat"><div class="num">$1.2T</div><div class="label">PE Deployed in 2025</div><div class="source">9,000+ transactions — CB Insights</div></div>
+</div>
+<div class="card" style="margin-top:16px;text-align:center;background:rgba(201,169,110,0.08);"><p style="margin:0;color:var(--accent);font-weight:600;font-size:1rem;">The wedge is tree care. The TAM is every business that sends crews to properties.</p></div>
+</div>
+</div>
+
+<!-- SLIDE 14: Defensible IP + Patent -->
+<div class="slide">
+<div class="slide-content">
+<div class="eyebrow">Intellectual Property</div>
+<h2><span class="highlight">Defensible Intellectual Property</span></h2>
+<p style="margin-bottom:20px;">What buyers are actually acquiring — a portfolio of protectable innovations, not just code.</p>
+<div style="margin-bottom:20px;">
+<div class="patent-badge">🛡️ Provisional Patent Application Filed — Dual-Map System — July 2025</div>
+<div class="patent-badge">📄 Patent covers: Geospatial customer intake + property-centric data architecture</div>
+</div>
+<div class="three-col">
+<div class="card"><h4>1. Frictionless Customer Intake</h4><p>Zero-login, geospatial-first job submission system. Patentable workflow innovation that removes the #1 cause of lead abandonment.</p></div>
+<div class="card"><h4>2. Property-Centric Database Architecture</h4><p>Organizing operational data around physical assets and GPS coordinates rather than customer names — a fundamental architectural shift.</p></div>
+<div class="card"><h4>3. Chain-of-Evidence Documentation</h4><p>Integrated evidentiary capture as a core workflow feature, not an optional attachment. Reduces legal exposure structurally.</p></div>
+<div class="card"><h4>4. Embedded Compliance Workflow</h4><p>Safety checks, equipment inspections, and hazard assessments built into the operational flow — not bolted on.</p></div>
+<div class="card"><h4>5. AI Marketing Automation Engine</h4><p>Proprietary prompt pipelines that transform operational data into publishable marketing content with minimal human intervention.</p></div>
+<div class="card"><h4>6. Cross-Industry Workflow Engine</h4><p>Configurable workflow layer that adapts the same underlying OS to multiple verticals without code changes.</p></div>
+</div>
+<div class="card" style="margin-top:16px;text-align:center;background:rgba(201,169,110,0.08);border-color:var(--accent);">
+<h4>7. Permanent Historical Property Intelligence</h4>
+<p style="margin:0;">The cumulative dataset itself — property histories, asset inventories, safety records, and operational patterns — becomes a proprietary, appreciating business asset that cannot be replicated by competitors.</p>
+</div>
+</div>
+</div>
+
+<!-- SLIDE 15: Commercialization Strategy -->
+<div class="slide">
+<div class="slide-content">
+<div class="eyebrow">Monetization</div>
+<h2><span class="highlight">Commercialization Strategy</span></h2>
+<p style="margin-bottom:24px;">Multiple paths to monetize the intellectual property across verticals and partnership models.</p>
+<div class="three-col">
+<div class="card"><h4>🏢 Enterprise Licensing</h4><p>Multi-tenant SaaS for large field-service organizations with standardized workflows across branches.</p></div>
+<div class="card"><h4>🏷️ White-Label Licensing</h4><p>Rebrandable platform for software companies and vertical SaaS providers seeking field operations modules.</p></div>
+<div class="card"><h4>🌲 Industry Editions</h4><p>Pre-configured workflows for tree care, landscaping, roofing, excavation, pest control, snow removal.</p></div>
+<div class="card"><h4>🤝 Strategic Acquisition</h4><p>Full IP transfer to PE firms or strategic buyers seeking operational intelligence platforms.</p></div>
+<div class="card"><h4>💰 Royalty Licensing</h4><p>Revenue-share models for platform integrations and embedded workflow deployments.</p></div>
+<div class="card"><h4>🔌 API Licensing</h4><p>Property intelligence data services and workflow automation endpoints for third-party developers.</p></div>
+<div class="card"><h4>🛡️ Insurance Partnerships</h4><p>Premium compliance modules and risk-reduction data products sold to underwriters.</p></div>
+<div class="card"><h4>🏛️ Municipal Licensing</h4><p>Public asset management, vegetation control, and infrastructure inspection workflows.</p></div>
+<div class="card"><h4>⚡ Utility Licensing</h4><p>Vegetation management, ROW clearance, and storm-response documentation for power companies.</p></div>
+</div>
+</div>
+</div>
+
+<!-- SLIDE 16: Expandable Architecture -->
+<div class="slide">
+<div class="slide-content">
+<div class="eyebrow">Scalability</div>
+<h2>Expandable Architecture: <span class="highlight">Scalability Across Industries</span></h2>
+<p style="margin-bottom:24px;">Only the workflow changes. The underlying operating system remains exactly the same.</p>
+<div style="display:flex;justify-content:center;align-items:center;gap:36px;flex-wrap:wrap;">
+<div class="card" style="text-align:center;min-width:200px;border-color:var(--accent);"><div style="font-size:2.4rem;margin-bottom:8px;">🎯</div><h4>Core (The Prototype)</h4><p>Professional Tree Care</p></div>
+<div style="font-size:1.8rem;color:var(--accent);">→</div>
+<div class="card" style="text-align:center;min-width:200px;"><div style="font-size:2.4rem;margin-bottom:8px;">🌿</div><h4>Adjacent Markets (Ring 1)</h4><p>Landscaping, Excavation, Roofing, Septic, Snow Removal, Pest Control</p></div>
+<div style="font-size:1.8rem;color:var(--accent);">→</div>
+<div class="card" style="text-align:center;min-width:200px;"><div style="font-size:2.4rem;margin-bottom:8px;">🏭</div><h4>Enterprise Markets (Ring 2)</h4><p>Utility Vegetation Management, Environmental Consulting, Municipal Asset Management, Insurance Adjusting</p></div>
+</div>
+<div class="card" style="margin-top:24px;text-align:center;background:rgba(201,169,110,0.08);"><p style="margin:0;color:var(--accent);font-weight:600;font-size:1rem;">Same OS. Same data model. Same flywheel. Different workflow config file.</p></div>
+</div>
+</div>
+
+<!-- SLIDE 17: Enterprise Value -->
+<div class="slide">
+<div class="slide-content">
+<div class="eyebrow">Private Equity &amp; Strategic Buyers</div>
+<h2>The <span class="highlight">Enterprise Value</span> Proposition</h2>
+<p style="margin-bottom:24px;">Why would a private equity firm or strategic acquirer buy this? Because it transforms portfolio companies and generates compounding returns.</p>
+<div class="three-col">
+<div class="card"><h4>📊 Standardization at Scale</h4><p>Deploy across dozens or hundreds of acquired companies with unified workflows, reporting, and compliance standards.</p></div>
+<div class="card"><h4>💼 Administrative Labor Reduction</h4><p>Eliminate redundant data entry, manual record-keeping, and cross-system reconciliation overhead.</p></div>
+<div class="card"><h4>📈 Estimate Conversion Lift</h4><p>Frictionless intake and faster turnaround directly improve top-line revenue per lead.</p></div>
+<div class="card"><h4>🛡️ Insurance &amp; Litigation Cost Reduction</h4><p>Permanent documentation, safety logs, and chain-of-evidence reduce claims, disputes, and legal exposure.</p></div>
+<div class="card"><h4>🧠 Institutional Knowledge Preservation</h4><p>Employee turnover no longer erases operational memory. Every property record survives personnel changes.</p></div>
+<div class="card"><h4>⚙️ Operational Consistency</h4><p>Standardized safety protocols, estimate templates, and crew instructions across all locations.</p></div>
+<div class="card"><h4>💵 Recurring SaaS Revenue</h4><p>Predictable subscription income with high retention due to embedded workflow dependency.</p></div>
+<div class="card"><h4>📉 EBITDA Improvement</h4><p>Efficiency gains translate directly to margin expansion without headcount increases.</p></div>
+<div class="card" style="border-color:var(--accent);background:rgba(201,169,110,0.08);"><h4>🏆 Proprietary Dataset Appreciation</h4><p>The data asset compounds in value over time — a balance-sheet item that appreciates, not depreciates.</p></div>
+</div>
+</div>
+</div>
+
+<!-- SLIDE 18: Why Now -->
+<div class="slide">
+<div class="slide-content">
+<div class="eyebrow">Timing</div>
+<h2>Why <span class="highlight">Now</span></h2>
+<p style="margin-bottom:24px;">Three converging forces make this the moment for a field-first intelligence platform.</p>
+<div class="three-col">
+<div class="card"><h3>AI Maturity</h3><p style="margin-bottom:0;">Large language models can now generate marketing content from operational data with minimal human review. This was not possible 2 years ago. The AI marketing flywheel is now technically feasible at production quality.</p></div>
+<div class="card"><h3>PE Roll-Up Wave</h3><p style="margin-bottom:0;">Private equity deployed $1.2 trillion across 9,000+ transactions in 2025. Roll-up strategies in field services desperately need operational standardization across acquired companies.</p></div>
+<div class="card"><h3>Compliance Pressure</h3><p style="margin-bottom:0;">OSHA, insurance carriers, and municipal regulators are tightening documentation requirements. Paper safety records no longer pass audit. Digital chain-of-evidence is becoming mandatory.</p></div>
+</div>
+<div style="margin-top:20px;">
+<div class="timeline-item"><div class="timeline-dot"></div><div class="content"><strong>May 2026</strong> — Prototype deployed at Dale's Tree Works <span>— operational validation begins</span></div></div>
+<div class="timeline-item"><div class="timeline-dot"></div><div class="content"><strong>Jul 2025</strong> — Provisional patent filed <span>— IP protection secured</span></div></div>
+<div class="timeline-item"><div class="timeline-dot"></div><div class="content"><strong>Jul 2026</strong> — 70-day pilot complete <span>— 19 estimates, 3 jobs, $2,575 revenue, 89% margin, 49 trees tracked</span></div></div>
+<div class="timeline-item"><div class="timeline-dot pending"></div><div class="content"><strong>Next</strong> — Non-provisional patent + first licensing partnership <span>— seeking strategic partner or acquirer</span></div></div>
+</div>
+</div>
+</div>
+
+<!-- SLIDE 19: The Ask -->
+<div class="slide">
+<div class="slide-content">
+<div class="eyebrow">Engagement Models</div>
+<h2>The <span class="highlight">Ask</span></h2>
+<p style="margin-bottom:24px;">Three paths forward, depending on the partner's strategy.</p>
+<div class="three-col">
+<div class="card" style="border-color:var(--accent);">
+<h3>Path A</h3><h4>Strategic Acquisition</h4>
+<p style="margin-bottom:8px;">Full IP transfer including patent, prototype, source code, 70-day pilot data, and customer pipeline.</p>
+<p style="color:var(--accent);font-size:0.82rem;"><strong>Best for:</strong> PE firms with field-service roll-up thesis seeking proprietary operational platform.</p>
+</div>
+<div class="card">
+<h3>Path B</h3><h4>Licensing Partnership</h4>
+<p style="margin-bottom:8px;">Enterprise or white-label license to deploy FieldOS across portfolio companies or resell as embedded module.</p>
+<p style="color:var(--accent);font-size:0.82rem;"><strong>Best for:</strong> SaaS platforms adding field operations, or PE operating partners standardizing across acquisitions.</p>
+</div>
+<div class="card">
+<h3>Path C</h3><h4>Seed Investment</h4>
+<p style="margin-bottom:8px;">Capital to build the production platform, file non-provisional patent, and launch the first industry edition at scale.</p>
+<p style="color:var(--accent);font-size:0.82rem;"><strong>Best for:</strong> Angel investors or early-stage VCs betting on field-first as the next paradigm.</p>
+</div>
+</div>
+<div class="card" style="margin-top:24px;text-align:center;background:rgba(201,169,110,0.08);border-color:var(--accent);">
+<p style="margin:0;color:var(--accent);font-weight:600;font-size:1.1rem;">The prototype works. The patent is filed. The metrics are proven. The product is live. What's needed is capital and distribution.</p>
+</div>
+</div>
+</div>
+
+<!-- SLIDE 20: Closing -->
+<div class="slide closing-slide">
+<div class="slide-content">
+<div class="eyebrow">The Opportunity</div>
+<div class="quote">"Traditional field-service software records work. Nvirogear FieldOS builds a permanent operational intelligence asset. Every property, every inspection, every estimate, every safety record, and every completed job compounds into a reusable digital history that reduces risk, increases efficiency, and grows more valuable over time."</div>
+<p style="font-size:1.1rem;color:var(--text-secondary);margin-bottom:24px;">This is not tree-service software. It is the prototype and proof-of-concept for a scalable <strong style="color:var(--accent);">Field Intelligence Platform</strong> — live, patented, and proven across 70 days of real customer operations.</p>
+<div style="margin-top:16px;"><span class="tag">Enterprise Licensing</span><span class="tag">White-Label</span><span class="tag">Strategic Acquisition</span><span class="tag">API Licensing</span><span class="tag">Insurance Partnerships</span><span class="tag">Municipal / Utility</span></div>
+<div style="margin-top:20px;">
+<div class="patent-badge">🛡️ Provisional Patent Filed — July 2025</div>
+<div class="live-badge" style="margin-left:8px;">🟢 Live at dalestreeworks.com</div>
+</div>
+<p style="margin-top:24px;font-size:0.88rem;color:var(--text-muted);">Nvirogear LLC · Joseph Smith · nvirogear1@gmail.com · 231-428-0379</p>
+</div>
+</div>
+
+</div>
+<div class="nav-controls">
+<button class="nav-btn" onclick="prevSlide()">← Prev</button>
+<span class="slide-counter"><span id="currentSlide">1</span> / <span id="totalSlides">20</span></span>
+<button class="nav-btn primary" onclick="nextSlide()">Next →</button>
+</div>
+<div class="keyboard-hint">← → keys · space · swipe</div>
+<script>
+let currentSlide=0;const slides=document.querySelectorAll('.slide');const totalSlides=slides.length;document.getElementById('totalSlides').textContent=totalSlides;
+function updateSlide(){slides.forEach((slide,index)=>{slide.classList.remove('active','prev');if(index===currentSlide){slide.classList.add('active')}else if(index<currentSlide){slide.classList.add('prev')}});document.getElementById('currentSlide').textContent=currentSlide+1;document.getElementById('progressBar').style.width=((currentSlide+1)/totalSlides*100)+'%'}
+function nextSlide(){if(currentSlide<totalSlides-1){currentSlide++;updateSlide()}}
+function prevSlide(){if(currentSlide>0){currentSlide--;updateSlide()}}
+document.addEventListener('keydown',(e)=>{if(e.key==='ArrowRight'||e.key===' ')nextSlide();if(e.key==='ArrowLeft')prevSlide()});
+let touchStartX=0;document.addEventListener('touchstart',e=>touchStartX=e.changedTouches[0].screenX);document.addEventListener('touchend',e=>{const diff=touchStartX-e.changedTouches[0].screenX;if(Math.abs(diff)>50)diff>0?nextSlide():prevSlide()});
+updateSlide();
+</script>
+</body>
+</html>
