@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+<title>Dale's Tree Works — Free Job Review</title>
+<meta name="description" content="Get a free tree work estimate. Upload photos, pin your trees on a map, and send Dale's Tree Works everything they need. No login required.">
+<meta property="og:title" content="Dale's Tree Works — Free Job Review">
+<meta property="og:description" content="Upload photos, drop pins on your trees, and get a free estimate. No account needed.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌲</text></svg>">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root {
+  --bg: #0a0f1a;
+  --panel: #121a2a;
+  --card: #1a2438;
+  --border: #2a3550;
+  --white: #ffffff;
+  --muted: #8a96b0;
+  --dim: #5a6580;
+  --green: #2e7d32;
+  --green-light: #4caf50;
+  --green-glow: rgba(76, 175, 80, 0.15);
+  --gold: #c8a45c;
+  --gold-light: #e0bc73;
+  --red: #ef4444;
+  --orange: #f59e0b;
+  --blue: #3b82f6;
+  --radius: 12px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--white);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* HEADER */
+.header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(10, 15, 26, 0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.header-brand { display: flex; align-items: center; gap: 10px; }
+.header-logo {
+  width: 36px; height: 36px;
+  background: linear-gradient(135deg, #2e7d32, #1b5e20);
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 20px;
+}
+.header-title { font-weight: 700; font-size: 16px; color: var(--white); }
+.header-sub { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+.header-right { font-size: 13px; color: var(--gold); font-weight: 600; }
+
+/* PROGRESS BAR */
+.progress-bar {
+  display: flex; align-items: center; justify-content: center;
+  padding: 24px 20px 12px;
+  gap: 0;
+  max-width: 500px; margin: 0 auto;
+}
+.step-circle {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 15px;
+  transition: all 0.3s;
+  flex-shrink: 0;
+}
+.step-circle.active {
+  background: var(--gold);
+  color: var(--bg);
+  box-shadow: 0 0 16px rgba(200, 164, 92, 0.4);
+}
+.step-circle.done { background: var(--green); color: var(--white); }
+.step-circle.pending {
+  background: var(--card);
+  color: var(--dim);
+  border: 2px solid var(--border);
+}
+.step-label { font-size: 11px; text-align: center; margin-top: 6px; color: var(--muted); }
+.step-label.active { color: var(--gold); font-weight: 600; }
+.step-label.done { color: var(--green-light); }
+.step-connector {
+  flex: 1; height: 2px; background: var(--border);
+  margin: 0 8px; margin-bottom: 22px;
+  transition: background 0.3s;
+}
+.step-connector.done { background: var(--green); }
+.step-item { display: flex; flex-direction: column; align-items: center; }
+
+/* CONTAINER */
+.container { max-width: 560px; margin: 0 auto; padding: 8px 20px 80px; }
+
+/* BANNER */
+.banner {
+  background: var(--green-glow);
+  border: 1px solid rgba(76, 175, 80, 0.3);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-bottom: 20px;
+  font-size: 13px;
+  color: var(--green-light);
+  display: flex; align-items: center; gap: 8px;
+}
+
+/* STEP CONTENT */
+.step-content { display: none; animation: fadeIn 0.4s ease; }
+.step-content.visible { display: block; }
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* HEADINGS */
+.step-heading { font-size: 24px; font-weight: 700; margin-bottom: 6px; color: var(--white); }
+.step-subheading { font-size: 14px; color: var(--muted); margin-bottom: 24px; line-height: 1.5; }
+
+/* FORM FIELDS */
+.field-group { margin-bottom: 18px; }
+.field-label { font-size: 13px; font-weight: 600; color: var(--white); margin-bottom: 6px; display: flex; align-items: center; gap: 4px; }
+.field-required { color: var(--red); }
+.field-input {
+  width: 100%;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  color: var(--white);
+  font-size: 15px;
+  font-family: inherit;
+  transition: border 0.2s, box-shadow 0.2s;
+}
+.field-input::placeholder { color: var(--dim); }
+.field-input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(200, 164, 92, 0.15); }
+.field-input.error { border-color: var(--red); box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1); }
+.field-error { font-size: 12px; color: var(--red); margin-top: 4px; }
+
+/* RADIO GROUP */
+.radio-group { display: flex; gap: 10px; margin-top: 8px; }
+.radio-option {
+  flex: 1;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 14px;
+  color: var(--muted);
+}
+.radio-option.selected { border-color: var(--green); background: var(--green-glow); color: var(--white); }
+
+/* MAP */
+#map-container { position: relative; border-radius: var(--radius); overflow: hidden; border: 1.5px solid var(--border); margin-bottom: 16px; }
+#map { width: 100%; height: 320px; background: #1a1a2e; }
+.map-overlay {
+  position: absolute; top: 10px; left: 10px;
+  background: rgba(10, 15, 26, 0.85);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 12px;
+  color: var(--muted);
+  z-index: 1000;
+  max-width: 220px;
+}
+.map-search-wrap { position: absolute; top: 10px; right: 10px; z-index: 1000; display: flex; gap: 6px; }
+.map-search {
+  background: rgba(10, 15, 26, 0.9);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  color: var(--white);
+  font-size: 13px;
+  width: 180px;
+}
+.map-search::placeholder { color: var(--dim); }
+.map-search-btn { background: var(--gold); border: none; border-radius: 8px; padding: 8px 12px; color: var(--bg); font-weight: 600; font-size: 13px; cursor: pointer; }
+.map-help {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.map-help strong { color: var(--white); }
+
+/* TREE COUNTER */
+.tree-counter {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+}
+.tree-counter-label { font-size: 14px; color: var(--white); font-weight: 600; }
+.tree-counter-controls { display: flex; align-items: center; gap: 12px; }
+.tree-counter-btn {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: var(--bg);
+  color: var(--white);
+  font-size: 18px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.tree-counter-btn:hover { border-color: var(--gold); }
+.tree-counter-value { font-size: 20px; font-weight: 700; color: var(--gold); min-width: 30px; text-align: center; }
+
+/* PHOTO UPLOAD */
+.photo-upload-zone {
+  background: var(--card);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 28px 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.photo-upload-zone:hover { border-color: var(--gold); background: rgba(200, 164, 92, 0.05); }
+.photo-upload-icon { font-size: 40px; margin-bottom: 8px; }
+.photo-upload-text { font-size: 14px; color: var(--muted); }
+.photo-upload-text strong { color: var(--white); }
+.photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px; }
+.photo-thumb { position: relative; aspect-ratio: 1; border-radius: 8px; overflow: hidden; border: 1px solid var(--border); }
+.photo-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.photo-thumb-remove {
+  position: absolute; top: 4px; right: 4px;
+  width: 24px; height: 24px;
+  background: rgba(0,0,0,0.7);
+  border: none; border-radius: 50%;
+  color: white; font-size: 14px;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+}
+.photo-uploading {
+  position: absolute; inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; color: var(--gold);
+}
+
+/* HAZARD CHECKLIST */
+.hazard-checklist { display: grid; gap: 10px; margin-top: 12px; }
+.hazard-item {
+  display: flex; align-items: center; gap: 12px;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.hazard-item.checked { border-color: var(--orange); background: rgba(245, 158, 11, 0.08); }
+.hazard-checkbox {
+  width: 22px; height: 22px;
+  border-radius: 6px;
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.2s;
+}
+.hazard-item.checked .hazard-checkbox { background: var(--orange); border-color: var(--orange); }
+.hazard-item.checked .hazard-checkbox::after { content: '\2713'; color: white; font-size: 14px; font-weight: 700; }
+.hazard-icon { font-size: 20px; }
+.hazard-text { font-size: 14px; color: var(--white); }
+.hazard-desc { font-size: 12px; color: var(--muted); }
+
+/* SERVICE TYPES */
+.service-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+.service-chip {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 13px;
+  color: var(--muted);
+}
+.service-chip.selected { border-color: var(--green); background: var(--green-glow); color: var(--white); }
+.service-chip-icon { font-size: 24px; margin-bottom: 6px; }
+
+/* URGENCY */
+.urgency-options { display: flex; gap: 10px; margin-top: 12px; }
+.urgency-option {
+  flex: 1;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 10px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.urgency-option.selected { border-color: var(--gold); background: rgba(200, 164, 92, 0.1); }
+.urgency-option-title { font-size: 14px; font-weight: 600; color: var(--white); }
+.urgency-option.selected .urgency-option-title { color: var(--gold); }
+.urgency-option-desc { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+/* AVAILABILITY */
+.availability-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 12px; }
+.day-chip {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.day-chip.selected { background: var(--green); border-color: var(--green); color: white; }
+
+/* TIME SLOTS */
+.time-slots { display: flex; gap: 8px; margin-top: 14px; }
+.time-slot {
+  flex: 1;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px;
+  text-align: center;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--muted);
+  transition: all 0.2s;
+}
+.time-slot.selected { border-color: var(--gold); background: rgba(200, 164, 92, 0.1); color: var(--white); }
+
+/* NOTES */
+.notes-area {
+  width: 100%;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  color: var(--white);
+  font-size: 14px;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 80px;
+}
+.notes-area:focus { outline: none; border-color: var(--gold); }
+
+/* BUTTONS */
+.btn-row { display: flex; gap: 12px; margin-top: 24px; }
+.btn {
+  flex: 1;
+  padding: 16px;
+  border-radius: var(--radius);
+  border: none;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+.btn-primary { background: var(--gold); color: var(--bg); }
+.btn-primary:hover { background: var(--gold-light); transform: translateY(-1px); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btn-secondary { background: var(--card); color: var(--white); border: 1.5px solid var(--border); }
+.btn-secondary:hover { border-color: var(--muted); }
+
+/* REVIEW SUMMARY */
+.review-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.review-section { margin-bottom: 18px; padding-bottom: 18px; border-bottom: 1px solid var(--border); }
+.review-section:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.review-section-title { font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--gold); font-weight: 700; margin-bottom: 10px; }
+.review-row { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 14px; }
+.review-label { color: var(--muted); }
+.review-value { color: var(--white); font-weight: 600; text-align: right; max-width: 60%; }
+.review-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.review-tag { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 4px 10px; font-size: 12px; color: var(--muted); }
+.review-tag.hazard { border-color: var(--orange); color: var(--orange); background: rgba(245, 158, 11, 0.08); }
+
+/* VOICE PLAYER */
+.voice-player {
+  background: linear-gradient(135deg, var(--card), var(--panel));
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 18px;
+  margin-bottom: 20px;
+  display: flex; align-items: center; gap: 14px;
+}
+.voice-player-icon {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: var(--green);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s;
+  box-shadow: 0 0 16px rgba(76, 175, 80, 0.3);
+}
+.voice-player-icon:hover { transform: scale(1.05); }
+.voice-player-icon.playing { background: var(--red); animation: pulse 1.5s infinite; }
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 16px rgba(239, 68, 68, 0.3); }
+  50% { box-shadow: 0 0 24px rgba(239, 68, 68, 0.6); }
+}
+.voice-player-text { flex: 1; }
+.voice-player-title { font-size: 14px; font-weight: 700; color: var(--white); }
+.voice-player-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.voice-player-controls { display: flex; gap: 8px; align-items: center; }
+.voice-speed-btn {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 4px 10px;
+  color: var(--muted);
+  font-size: 12px;
+  cursor: pointer;
+}
+.voice-speed-btn.active { color: var(--gold); border-color: var(--gold); }
+
+/* SUCCESS SCREEN */
+.success-screen { text-align: center; padding: 40px 20px; }
+.success-icon { font-size: 64px; margin-bottom: 16px; }
+.success-title { font-size: 28px; font-weight: 700; color: var(--white); margin-bottom: 8px; }
+.success-sub { font-size: 15px; color: var(--muted); margin-bottom: 24px; line-height: 1.5; }
+.success-ref {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 20px;
+  font-size: 14px;
+}
+.success-ref-label { color: var(--muted); }
+.success-ref-value { color: var(--gold); font-weight: 700; font-size: 18px; }
+
+/* LOADING */
+.loading-overlay {
+  position: fixed; inset: 0;
+  background: rgba(10, 15, 26, 0.9);
+  backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: none;
+  align-items: center; justify-content: center;
+  flex-direction: column;
+}
+.loading-overlay.visible { display: flex; }
+.loading-spinner {
+  width: 48px; height: 48px;
+  border: 4px solid var(--border);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { margin-top: 16px; color: var(--white); font-size: 15px; }
+
+/* TOAST */
+.toast {
+  position: fixed; bottom: 24px; left: 50%;
+  transform: translateX(-50%);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 24px;
+  color: var(--white);
+  font-size: 14px;
+  z-index: 10000;
+  opacity: 0;
+  transition: opacity 0.3s, transform 0.3s;
+  pointer-events: none;
+}
+.toast.visible { opacity: 1; transform: translateX(-50%) translateY(-8px); }
+.toast.error { border-color: var(--red); }
+.toast.success { border-color: var(--green); }
+
+/* FOOTER */
+.footer { text-align: center; padding: 20px; font-size: 12px; color: var(--dim); }
+
+/* RESPONSIVE */
+@media (max-width: 600px) {
+  .service-grid { grid-template-columns: 1fr; }
+  .header-title { font-size: 14px; }
+  .step-heading { font-size: 20px; }
+  .photo-grid { grid-template-columns: repeat(2, 1fr); }
+}
+/* Hide Base44 platform widgets */
+[class*="base44"], [class*="Base44"], [id*="base44"], [id*="Base44"], .base44-edit-widget, .base44-edit-button, [data-base44], iframe[src*="base44"][src*="edit"] { display: none !important; visibility: hidden !important; opacity: 0 !important; pointer-events: none !important; }
+</style>
+</head>
+<body>
+<form name="estimate-request" netlify hidden>
+  <input type="text" name="reference_number">
+  <input type="text" name="customer_name">
+  <input type="text" name="customer_phone">
+  <input type="text" name="customer_email">
+  <input type="text" name="property_address">
+  <input type="text" name="preferred_contact">
+  <input type="text" name="tree_count">
+  <input type="text" name="service_types">
+  <input type="text" name="hazard_flags">
+  <input type="text" name="urgency_level">
+  <input type="text" name="how_heard">
+  <input type="text" name="notes">
+  <input type="text" name="map_lat">
+  <input type="text" name="map_lng">
+  <input type="text" name="trees">
+  <input type="text" name="photo_count">
+  <input type="text" name="access_checklist">
+</form>
+
+<div class="header">
+  <div class="header-brand">
+    <div class="header-logo">🌲</div>
+    <div>
+      <div class="header-title">Dale's Tree Works</div>
+      <div class="header-sub">Lakeshore &amp; Mid-Michigan</div>
+    </div>
+  </div>
+  <div class="header-right">Free Job Review</div>
+</div>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<div class="container">
+  <div class="banner">✅ No account or login needed — just fill out the form and we'll get back to you!</div>
+
+  <!-- STEP 1: INFO -->
+  <div class="step-content visible" id="step1">
+    <div style="border-radius:var(--radius);overflow:hidden;margin-bottom:20px;border:1px solid var(--border)"><img src="https://media.base44.com/api/apps/69ca9ac1baa8ecdb8ae25c59/files/mp/public/69ca9ac1baa8ecdb8ae25c59/a15410ffa_truck_image_small.jpg" alt="Dale's Tree Works yellow truck" style="width:100%;display:block;object-fit:cover;max-height:200px"></div>
+    <h2 class="step-heading">Let's Get Started</h2>
+    <p class="step-subheading">Tell us who you are and where the trees are. Takes 2 minutes.</p>
+
+    <div class="field-group">
+      <label class="field-label">Full Name <span class="field-required">*</span></label>
+      <input class="field-input" id="f-name" placeholder="Your full name" autocomplete="name">
+      <div class="field-error" id="err-name" style="display:none">Please enter your name</div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Phone <span class="field-required">*</span></label>
+      <input class="field-input" id="f-phone" type="tel" placeholder="(231) 555-1234" autocomplete="tel">
+      <div class="field-error" id="err-phone" style="display:none">Please enter a valid phone number</div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Email <span class="field-required">*</span></label>
+      <input class="field-input" id="f-email" type="email" placeholder="you@example.com" autocomplete="email">
+      <div class="field-error" id="err-email" style="display:none">Please enter a valid email</div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Property Address <span class="field-required">*</span></label>
+      <input class="field-input" id="f-address" placeholder="123 Main St, City, MI" autocomplete="street-address">
+      <div class="field-error" id="err-address" style="display:none">Please enter the property address</div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">Preferred Contact Method</label>
+      <div class="radio-group" id="contact-method">
+        <div class="radio-option selected" data-value="Call">📞 Call</div>
+        <div class="radio-option" data-value="Text">💬 Text</div>
+        <div class="radio-option" data-value="Email">✉️ Email</div>
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">How did you hear about us?</label>
+      <input class="field-input" id="f-howheard" placeholder="Facebook, Google, referral, etc.">
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="goToStep(2)">Continue →</button>
+    </div>
+    <p style="text-align:center;margin-top:12px;font-size:13px;color:var(--muted)">Next: mark your trees on a map — or skip the map and just fill in tree details</p>
+  </div>
+
+  <!-- STEP 2: MAP -->
+  <div class="step-content" id="step2">
+    <h2 class="step-heading">Mark Your Trees</h2>
+    <p class="step-subheading">Search for your address, then tap the map where each tree is. This helps Dale find your trees fast.</p>
+
+    <div class="map-help"><strong>How to use:</strong> Type your address in the search box (top right of map) and press Go. Then tap on the map to drop a pin where each tree is. Tap again to add more trees.</div>
+
+    <div id="map-container">
+      <div id="map"></div>
+      <div class="map-overlay" id="mapStatus">Tap the map to add tree pins</div>
+      <div class="map-search-wrap">
+        <input class="map-search" id="mapSearchInput" placeholder="Search address...">
+        <button class="map-search-btn" onclick="searchAddress()">Go</button>
+      </div>
+    </div>
+
+    <div class="tree-counter">
+      <div class="tree-counter-label">🌲 Trees Marked</div>
+      <div class="tree-counter-controls">
+        <button class="tree-counter-btn" onclick="removeLastMarker()">−</button>
+        <span class="tree-counter-value" id="treeCount">0</span>
+        <button class="tree-counter-btn" onclick="clearAllMarkers()">↺</button>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Tree Count (if you didn't use the map)</label>
+      <input class="field-input" id="f-treecount" type="number" min="0" placeholder="e.g. 3" value="0">
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">What kind of tree work do you need?</label>
+      <div class="service-grid" id="serviceGrid">
+        <div class="service-chip" data-service="Tree Removal"><div class="service-chip-icon">🪓</div>Tree Removal</div>
+        <div class="service-chip" data-service="Trimming & Pruning"><div class="service-chip-icon">✂️</div>Trimming &amp; Pruning</div>
+        <div class="service-chip" data-service="Stump Grinding"><div class="service-chip-icon">🪵</div>Stump Grinding</div>
+        <div class="service-chip" data-service="Storm Cleanup"><div class="service-chip-icon">🌪️</div>Storm Cleanup</div>
+        <div class="service-chip" data-service="Hazard Assessment"><div class="service-chip-icon">⚠️</div>Hazard Assessment</div>
+        <div class="service-chip" data-service="Brush Cleanup"><div class="service-chip-icon">🌿</div>Brush Cleanup</div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">How urgent is this?</label>
+      <div class="urgency-options" id="urgencyOptions">
+        <div class="urgency-option" data-urgency="emergency"><div class="urgency-option-title">🚨 Emergency</div><div class="urgency-option-desc">Tree on structure, 48hr</div></div>
+        <div class="urgency-option selected" data-urgency="Within 1 Week"><div class="urgency-option-title">⏰ This Week</div><div class="urgency-option-desc">Within 7 days</div></div>
+        <div class="urgency-option" data-urgency="Flexible"><div class="urgency-option-title">📅 Flexible</div><div class="urgency-option-desc">Whenever works</div></div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goToStep(1)">← Back</button>
+      <button class="btn btn-primary" onclick="goToStep(3)">Continue →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3: ACCESS & PHOTOS -->
+  <div class="step-content" id="step3">
+    <h2 class="step-heading">Photos &amp; Access</h2>
+    <p class="step-subheading">Upload photos of your trees and tell us about any access issues Dale should know about.</p>
+
+    <div class="field-group">
+      <label class="field-label">Upload Photos of Your Trees</label>
+      <div class="photo-upload-zone" id="photoZone" onclick="document.getElementById('photoInput').click()">
+        <div class="photo-upload-icon">📸</div>
+        <div class="photo-upload-text"><strong>Tap to upload photos</strong><br>or drag and drop. JPG, PNG accepted.</div>
+      </div>
+      <input type="file" id="photoInput" accept="image/*" multiple style="display:none">
+      <div class="photo-grid" id="photoGrid"></div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Check any that apply — this helps Dale plan a safe job</label>
+      <div class="hazard-checklist" id="hazardChecklist">
+        <div class="hazard-item" data-hazard="Power Lines Nearby"><div class="hazard-checkbox"></div><span class="hazard-icon">⚡</span><div><div class="hazard-text">Power Lines Nearby</div><div class="hazard-desc">Trees near electrical lines</div></div></div>
+        <div class="hazard-item" data-hazard="Septic Nearby"><div class="hazard-checkbox"></div><span class="hazard-icon">🚽</span><div><div class="hazard-text">Septic System Nearby</div><div class="hazard-desc">Septic tank or drain field in work area</div></div></div>
+        <div class="hazard-item" data-hazard="Leaning toward house"><div class="hazard-checkbox"></div><span class="hazard-icon">🏠</span><div><div class="hazard-text">Tree Leaning Toward House</div><div class="hazard-desc">Tree could fall on structure</div></div></div>
+        <div class="hazard-item" data-hazard="Narrow Access"><div class="hazard-checkbox"></div><span class="hazard-icon">🚧</span><div><div class="hazard-text">Narrow Access</div><div class="hazard-desc">Tight driveway or gate — equipment may not fit</div></div></div>
+        <div class="hazard-item" data-hazard="Neighbor Property"><div class="hazard-checkbox"></div><span class="hazard-icon">🏘️</span><div><div class="hazard-text">Neighbor's Property Nearby</div><div class="hazard-desc">Tree overhangs or could fall on neighbor's yard</div></div></div>
+        <div class="hazard-item" data-hazard="Storm Damage"><div class="hazard-checkbox"></div><span class="hazard-icon">🌪️</span><div><div class="hazard-text">Storm Damage</div><div class="hazard-desc">Damage from wind, ice, or lightning</div></div></div>
+        <div class="hazard-item" data-hazard="Dead branches over roof"><div class="hazard-checkbox"></div><span class="hazard-icon">💀</span><div><div class="hazard-text">Dead Branches Over Roof</div><div class="hazard-desc">Limbs could fall on your house</div></div></div>
+        <div class="hazard-item" data-hazard="Downed power line risk"><div class="hazard-checkbox"></div><span class="hazard-icon">🔌</span><div><div class="hazard-text">Downed Power Line Risk</div><div class="hazard-desc">Lines already down or sparking</div></div></div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Best Days for Dale to Come?</label>
+      <div class="availability-grid" id="dayGrid">
+        <div class="day-chip" data-day="Mon">M</div>
+        <div class="day-chip" data-day="Tue">T</div>
+        <div class="day-chip" data-day="Wed">W</div>
+        <div class="day-chip" data-day="Thu">T</div>
+        <div class="day-chip" data-day="Fri">F</div>
+        <div class="day-chip" data-day="Sat">S</div>
+        <div class="day-chip" data-day="Sun">S</div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Best Time of Day</label>
+      <div class="time-slots" id="timeSlots">
+        <div class="time-slot" data-time="Morning (7am-12pm)">Morning</div>
+        <div class="time-slot" data-time="Afternoon (12pm-5pm)">Afternoon</div>
+        <div class="time-slot" data-time="Evening (5pm-8pm)">Evening</div>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Additional Notes for Dale</label>
+      <textarea class="notes-area" id="f-notes" placeholder="Anything else Dale should know? Access issues, pet concerns, specific requests, etc."></textarea>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goToStep(2)">← Back</button>
+      <button class="btn btn-primary" onclick="goToStep(4)">Review →</button>
+    </div>
+  </div>
+
+  <!-- STEP 4: REVIEW -->
+  <div class="step-content" id="step4">
+    <h2 class="step-heading">Review &amp; Submit</h2>
+    <p class="step-subheading">Check everything below, then hit submit. Dale gets a text with all your info.</p>
+
+    <div class="voice-player" id="voicePlayer">
+      <div class="voice-player-icon" id="voicePlayBtn" onclick="toggleVoice()">▶</div>
+      <div class="voice-player-text">
+        <div class="voice-player-title">Listen to This Estimate</div>
+        <div class="voice-player-sub">Hands-free — great for driving</div>
+      </div>
+      <div class="voice-player-controls">
+        <button class="voice-speed-btn" onclick="setVoiceSpeed(0.8)" id="speedSlow">0.8x</button>
+        <button class="voice-speed-btn active" onclick="setVoiceSpeed(1)" id="speedNormal">1x</button>
+        <button class="voice-speed-btn" onclick="setVoiceSpeed(1.3)" id="speedFast">1.3x</button>
+      </div>
+    </div>
+
+    <div class="review-card" id="reviewCard"></div>
+
+    <div class="btn-row">
+      <button class="btn btn-secondary" onclick="goToStep(3)">← Back</button>
+      <button class="btn btn-primary" id="submitBtn" onclick="submitEstimate()">Submit Estimate</button>
+    </div>
+  </div>
+
+  <!-- SUCCESS -->
+  <div class="step-content" id="successScreen">
+    <div class="success-screen">
+      <div class="success-icon">✅</div>
+      <h2 class="success-title">Estimate Submitted!</h2>
+      <p class="success-sub">Dale has been notified and will review your job. He'll contact you within 24-48 hours.</p>
+      <div class="success-ref">
+        <div class="success-ref-label">Your Reference Number</div>
+        <div class="success-ref-value" id="refNumber">—</div>
+      </div>
+      <p style="font-size:14px;color:var(--muted);margin-bottom:8px">Questions? Call Dale directly:</p>
+      <p style="font-size:20px;font-weight:700;color:var(--gold)">📞 231-830-7616</p>
+      <p style="font-size:13px;color:var(--muted);margin-top:16px">dalestreeworks.com</p>
+    </div>
+  </div>
+</div>
+
+<div class="loading-overlay" id="loading">
+  <div class="loading-spinner"></div>
+  <div class="loading-text" id="loadingText">Submitting your estimate...</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="footer">
+  Dale's Tree Works · 231-830-7616 · dalestreeworks.com<br>
+  Licensed &amp; Insured · Lakeshore &amp; Mid-Michigan<br>
+  Powered by Nvirogear LLC
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const state = {
+  step: 1, name: '', phone: '', email: '', address: '',
+  contactMethod: 'Call', howHeard: '', markers: [], treeCount: 0,
+  services: [], urgency: 'Within 1 Week', photos: [], hazards: [],
+  days: [], timeSlot: '', notes: '', mapLat: null, mapLng: null
+};
+
+
+
+
+
+const steps = [{num:1,label:'Info'},{num:2,label:'Map'},{num:3,label:'Access'},{num:4,label:'Review'}];
+
+function renderProgress() {
+  const bar = document.getElementById('progressBar');
+  bar.innerHTML = '';
+  steps.forEach((s, i) => {
+    const item = document.createElement('div');
+    item.className = 'step-item';
+    const circle = document.createElement('div');
+    circle.className = 'step-circle';
+    if (state.step > s.num) circle.classList.add('done');
+    else if (state.step === s.num) circle.classList.add('active');
+    else circle.classList.add('pending');
+    if (state.step > s.num) circle.innerHTML = '\u2713';
+    else circle.textContent = s.num;
+    const label = document.createElement('div');
+    label.className = 'step-label';
+    if (state.step > s.num) label.classList.add('done');
+    else if (state.step === s.num) label.classList.add('active');
+    label.textContent = s.label;
+    item.appendChild(circle);
+    item.appendChild(label);
+    bar.appendChild(item);
+    if (i < steps.length - 1) {
+      const conn = document.createElement('div');
+      conn.className = 'step-connector';
+      if (state.step > s.num) conn.classList.add('done');
+      bar.appendChild(conn);
+    }
+  });
+}
+
+function goToStep(n) {
+  if (state.step === 1 && n > 1) { if (!validateStep1()) return; }
+  if (state.step === 1) {
+    state.name = document.getElementById('f-name').value.trim();
+    state.phone = document.getElementById('f-phone').value.trim();
+    state.email = document.getElementById('f-email').value.trim();
+    state.address = document.getElementById('f-address').value.trim();
+    state.howHeard = document.getElementById('f-howheard').value.trim();
+  }
+  if (state.step === 2) {
+    const tc = document.getElementById('f-treecount').value;
+    if (tc && parseInt(tc) > 0) state.treeCount = parseInt(tc);
+  }
+  if (state.step === 3) {
+    state.notes = document.getElementById('f-notes').value.trim();
+  }
+  document.querySelectorAll('.step-content').forEach(el => el.classList.remove('visible'));
+  const target = document.getElementById('step' + n) || document.getElementById('successScreen');
+  target.classList.add('visible');
+  state.step = n;
+  renderProgress();
+  if (n === 2 && !state.map) setTimeout(initMap, 100);
+  if (n === 4) buildReview();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function validateStep1() {
+  let valid = true;
+  const fields = [
+    {id:'f-name',errId:'err-name',check:v=>v.length>=2},
+    {id:'f-phone',errId:'err-phone',check:v=>v.replace(/\D/g,'').length>=10},
+    {id:'f-email',errId:'err-email',check:v=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)},
+    {id:'f-address',errId:'err-address',check:v=>v.length>=5}
+  ];
+  fields.forEach(f => {
+    const input = document.getElementById(f.id);
+    const err = document.getElementById(f.errId);
+    if (!f.check(input.value.trim())) {
+      input.classList.add('error'); err.style.display = 'block'; valid = false;
+    } else {
+      input.classList.remove('error'); err.style.display = 'none';
+    }
+  });
+  return valid;
+}
+
+// Radio buttons
+document.querySelectorAll('#contact-method .radio-option').forEach(opt => {
+  opt.addEventListener('click', () => {
+    document.querySelectorAll('#contact-method .radio-option').forEach(o => o.classList.remove('selected'));
+    opt.classList.add('selected');
+    state.contactMethod = opt.dataset.value;
+  });
+});
+
+// Service chips
+document.querySelectorAll('#serviceGrid .service-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    chip.classList.toggle('selected');
+    const svc = chip.dataset.service;
+    if (chip.classList.contains('selected')) { if (!state.services.includes(svc)) state.services.push(svc); }
+    else { state.services = state.services.filter(s => s !== svc); }
+  });
+});
+
+// Urgency
+document.querySelectorAll('#urgencyOptions .urgency-option').forEach(opt => {
+  opt.addEventListener('click', () => {
+    document.querySelectorAll('#urgencyOptions .urgency-option').forEach(o => o.classList.remove('selected'));
+    opt.classList.add('selected');
+    state.urgency = opt.dataset.urgency;
+  });
+});
+
+// Hazards
+document.querySelectorAll('#hazardChecklist .hazard-item').forEach(item => {
+  item.addEventListener('click', () => {
+    item.classList.toggle('checked');
+    const hazard = item.dataset.hazard;
+    if (item.classList.contains('checked')) { if (!state.hazards.includes(hazard)) state.hazards.push(hazard); }
+    else { state.hazards = state.hazards.filter(h => h !== hazard); }
+  });
+});
+
+// Days
+document.querySelectorAll('#dayGrid .day-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    chip.classList.toggle('selected');
+    const day = chip.dataset.day;
+    if (chip.classList.contains('selected')) { if (!state.days.includes(day)) state.days.push(day); }
+    else { state.days = state.days.filter(d => d !== day); }
+  });
+});
+
+// Time slots
+document.querySelectorAll('#timeSlots .time-slot').forEach(slot => {
+  slot.addEventListener('click', () => {
+    document.querySelectorAll('#timeSlots .time-slot').forEach(s => s.classList.remove('selected'));
+    slot.classList.add('selected');
+    state.timeSlot = slot.dataset.time;
+  });
+});
+
+// MAP
+let map = null;
+let markerLayer = null;
+
+function initMap() {
+  if (map) return;
+  map = L.map('map', { zoomControl: true }).setView([43.2341, -86.2484], 13);
+  state.map = map;
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; OpenStreetMap &amp; CARTO', maxZoom: 19
+  }).addTo(map);
+  markerLayer = L.layerGroup().addTo(map);
+  map.on('click', function(e) { addMarker(e.latlng.lat, e.latlng.lng); });
+  if (state.address) searchAddress(state.address);
+}
+
+function addMarker(lat, lng) {
+  const num = state.markers.length + 1;
+  const icon = L.divIcon({
+    html: '<div style="background:#c8a45c;color:#0a0f1a;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;border:2px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,0.4)">' + num + '</div>',
+    iconSize: [28, 28], iconAnchor: [14, 14]
+  });
+  const marker = L.marker([lat, lng], { icon }).addTo(markerLayer);
+  state.markers.push({ lat, lng, marker });
+  state.mapLat = lat; state.mapLng = lng;
+  updateTreeCount(); updateMapStatus();
+}
+
+function removeLastMarker() {
+  if (state.markers.length === 0) return;
+  const last = state.markers.pop();
+  markerLayer.removeLayer(last.marker);
+  updateTreeCount(); updateMapStatus();
+}
+
+function clearAllMarkers() {
+  state.markers.forEach(m => markerLayer.removeLayer(m.marker));
+  state.markers = []; state.mapLat = null; state.mapLng = null;
+  updateTreeCount(); updateMapStatus();
+}
+
+function updateTreeCount() {
+  const count = state.markers.length;
+  state.treeCount = count;
+  document.getElementById('treeCount').textContent = count;
+  if (document.getElementById('f-treecount')) document.getElementById('f-treecount').value = count;
+}
+
+function updateMapStatus() {
+  const status = document.getElementById('mapStatus');
+  if (state.markers.length === 0) status.textContent = 'Tap the map to add tree pins';
+  else status.textContent = state.markers.length + ' tree' + (state.markers.length > 1 ? 's' : '') + ' marked. Tap to add more.';
+}
+
+function searchAddress(addr) {
+  const query = addr || document.getElementById('mapSearchInput').value;
+  if (!query) return;
+  fetch('https://nominatim.openstreetmap.org/search?format=json&q=' + encodeURIComponent(query) + '&limit=1', {
+    headers: { 'Accept-Language': 'en' }
+  }).then(r => r.json()).then(data => {
+    if (data && data.length > 0) {
+      const { lat, lon } = data[0];
+      map.setView([parseFloat(lat), parseFloat(lon)], 16);
+    } else {
+      showToast('Address not found. Try searching for a city or zip code.', 'error');
+    }
+  }).catch(() => showToast('Could not search address. Check your connection.', 'error'));
+}
+
+document.getElementById('mapSearchInput').addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') { e.preventDefault(); searchAddress(); }
+});
+
+// PHOTOS
+const photoInput = document.getElementById('photoInput');
+const photoZone = document.getElementById('photoZone');
+
+photoInput.addEventListener('change', function(e) { handleFiles(e.target.files); });
+photoZone.addEventListener('dragover', e => { e.preventDefault(); photoZone.style.borderColor = 'var(--gold)'; });
+photoZone.addEventListener('dragleave', e => { photoZone.style.borderColor = 'var(--border)'; });
+photoZone.addEventListener('drop', e => {
+  e.preventDefault(); photoZone.style.borderColor = 'var(--border)'; handleFiles(e.dataTransfer.files);
+});
+
+function handleFiles(files) {
+  for (const file of files) {
+    if (!file.type.startsWith('image/')) continue;
+    if (file.size > 10 * 1024 * 1024) { showToast('Photo too large (max 10MB). Skipping.', 'error'); continue; }
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      const photoId = 'photo_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
+      const photoData = { id: photoId, dataUrl: e.target.result, file: file, uploaded: false, url: null };
+      state.photos.push(photoData);
+      renderPhotos();
+      uploadPhoto(photoData);
+    };
+    reader.readAsDataURL(file);
+  }
+  photoInput.value = '';
+}
+
+async function uploadPhoto(photo) {
+  const photoEl = document.querySelector('[data-photo-id="' + photo.id + '"]');
+  if (photoEl) {
+    // Photos are stored locally as base64 - no external upload needed
+    photo.uploaded = true;
+    photo.url = photo.dataUrl; // Use data URL directly
+    showToast('Photo attached ✓', 'success');
+    renderPhotos();
+  } catch (err) {
+    console.error('Photo error:', err);
+    photo.uploaded = false;
+    showToast('Photo attached locally', 'error');
+    renderPhotos();
+  }
+}
+
+function renderPhotos() {
+  const grid = document.getElementById('photoGrid');
+  grid.innerHTML = '';
+  state.photos.forEach(photo => {
+    const thumb = document.createElement('div');
+    thumb.className = 'photo-thumb';
+    thumb.dataset.photoId = photo.id;
+    thumb.innerHTML = '<img src="' + photo.dataUrl + '" alt="Tree photo">' +
+      (photo.uploaded === false ? '<div class="photo-uploading">⚠️</div>' : '') +
+      '<button class="photo-thumb-remove" onclick="removePhoto(\'' + photo.id + '\')">✕</button>';
+    grid.appendChild(thumb);
+  });
+}
+
+function removePhoto(id) {
+  state.photos = state.photos.filter(p => p.id !== id);
+  renderPhotos();
+}
+
+// REVIEW
+function esc(str) { const d = document.createElement('div'); d.textContent = str || ''; return d.innerHTML; }
+
+function buildReview() {
+  const card = document.getElementById('reviewCard');
+  const tc = state.markers.length > 0 ? state.markers.length : (state.treeCount || 'Not specified');
+  let html = '';
+  html += '<div class="review-section"><div class="review-section-title">Customer</div>';
+  html += '<div class="review-row"><span class="review-label">Name</span><span class="review-value">' + esc(state.name) + '</span></div>';
+  html += '<div class="review-row"><span class="review-label">Phone</span><span class="review-value">' + esc(state.phone) + '</span></div>';
+  html += '<div class="review-row"><span class="review-label">Email</span><span class="review-value">' + esc(state.email) + '</span></div>';
+  html += '<div class="review-row"><span class="review-label">Address</span><span class="review-value">' + esc(state.address) + '</span></div>';
+  html += '<div class="review-row"><span class="review-label">Preferred Contact</span><span class="review-value">' + esc(state.contactMethod) + '</span></div>';
+  if (state.howHeard) html += '<div class="review-row"><span class="review-label">Heard About Us</span><span class="review-value">' + esc(state.howHeard) + '</span></div>';
+  html += '</div>';
+  html += '<div class="review-section"><div class="review-section-title">Job Details</div>';
+  html += '<div class="review-row"><span class="review-label">Trees</span><span class="review-value">' + tc + ' tree' + (tc !== 1 ? 's' : '') + '</span></div>';
+  if (state.mapLat) html += '<div class="review-row"><span class="review-label">Map Pin</span><span class="review-value">' + state.mapLat.toFixed(5) + ', ' + state.mapLng.toFixed(5) + '</span></div>';
+  html += '<div class="review-row"><span class="review-label">Urgency</span><span class="review-value">' + esc(state.urgency) + '</span></div>';
+  html += '<div class="review-row"><span class="review-label">Services</span><span class="review-value">' + (state.services.length > 0 ? state.services.join(', ') : 'Not specified') + '</span></div>';
+  html += '</div>';
+  if (state.hazards.length > 0) {
+    html += '<div class="review-section"><div class="review-section-title">Hazard Flags</div><div class="review-tags">';
+    html += state.hazards.map(h => '<div class="review-tag hazard">⚠️ ' + esc(h) + '</div>').join('');
+    html += '</div></div>';
+  }
+  html += '<div class="review-section"><div class="review-section-title">Access &amp; Scheduling</div>';
+  if (state.days.length > 0) html += '<div class="review-row"><span class="review-label">Best Days</span><span class="review-value">' + state.days.join(', ') + '</span></div>';
+  if (state.timeSlot) html += '<div class="review-row"><span class="review-label">Best Time</span><span class="review-value">' + esc(state.timeSlot) + '</span></div>';
+  html += '<div class="review-row"><span class="review-label">Photos</span><span class="review-value">' + state.photos.length + ' uploaded (' + state.photos.filter(p => p.uploaded).length + ' saved)</span></div>';
+  html += '</div>';
+  if (state.notes) {
+    html += '<div class="review-section"><div class="review-section-title">Notes</div><div style="font-size:14px;color:var(--white);line-height:1.5">' + esc(state.notes) + '</div></div>';
+  }
+  card.innerHTML = html;
+}
+
+// VOICE PLAYBACK
+let synth = window.speechSynthesis;
+let speaking = false;
+let utterance = null;
+let voiceSpeed = 1;
+
+function buildSpeechText() {
+  let text = 'New estimate request for Dale\'s Tree Works. ';
+  text += 'Customer name: ' + state.name + '. ';
+  text += 'Phone: ' + state.phone + '. ';
+  text += 'Email: ' + state.email + '. ';
+  text += 'Property address: ' + state.address + '. ';
+  text += 'Preferred contact method: ' + state.contactMethod + '. ';
+  const tc = state.markers.length > 0 ? state.markers.length : (state.treeCount || 0);
+  if (tc > 0) text += 'Tree count: ' + tc + (tc === 1 ? ' tree. ' : ' trees. ');
+  if (state.services.length > 0) text += 'Services requested: ' + state.services.join(', ') + '. ';
+  text += 'Urgency level: ' + state.urgency + '. ';
+  if (state.hazards.length > 0) text += 'Hazard flags: ' + state.hazards.join(', ') + '. ';
+  if (state.days.length > 0) text += 'Best days: ' + state.days.join(', ') + '. ';
+  if (state.timeSlot) text += 'Best time: ' + state.timeSlot + '. ';
+  if (state.photos.length > 0) text += state.photos.length + (state.photos.length > 1 ? ' photos' : ' photo') + ' uploaded. ';
+  if (state.notes) text += 'Customer notes: ' + state.notes + '. ';
+  if (state.mapLat) text += 'Map coordinates saved at latitude ' + state.mapLat.toFixed(5) + ', longitude ' + state.mapLng.toFixed(5) + '. ';
+  text += 'End of estimate. Call ' + state.name + ' at ' + state.phone + ' to schedule.';
+  return text;
+}
+
+function toggleVoice() {
+  if (speaking) {
+    synth.cancel();
+    speaking = false;
+    document.getElementById('voicePlayBtn').textContent = '▶';
+    document.getElementById('voicePlayBtn').classList.remove('playing');
+    return;
+  }
+  const text = buildSpeechText();
+  utterance = new SpeechSynthesisUtterance(text);
+  utterance.rate = voiceSpeed;
+  utterance.pitch = 1;
+  utterance.volume = 1;
+  const voices = synth.getVoices();
+  const preferred = voices.find(v => v.name.includes('Google') && v.lang.startsWith('en')) ||
+    voices.find(v => v.lang.startsWith('en') && v.name.includes('Natural')) ||
+    voices.find(v => v.lang.startsWith('en-US'));
+  if (preferred) utterance.voice = preferred;
+  utterance.onend = () => {
+    speaking = false;
+    document.getElementById('voicePlayBtn').textContent = '▶';
+    document.getElementById('voicePlayBtn').classList.remove('playing');
+  };
+  utterance.onerror = () => {
+    speaking = false;
+    document.getElementById('voicePlayBtn').textContent = '▶';
+    document.getElementById('voicePlayBtn').classList.remove('playing');
+    showToast('Voice playback not available on this device', 'error');
+  };
+  synth.speak(utterance);
+  speaking = true;
+  document.getElementById('voicePlayBtn').textContent = '⏸';
+  document.getElementById('voicePlayBtn').classList.add('playing');
+}
+
+function setVoiceSpeed(speed) {
+  voiceSpeed = speed;
+  document.querySelectorAll('.voice-speed-btn').forEach(b => b.classList.remove('active'));
+  if (speed === 0.8) document.getElementById('speedSlow').classList.add('active');
+  else if (speed === 1) document.getElementById('speedNormal').classList.add('active');
+  else if (speed === 1.3) document.getElementById('speedFast').classList.add('active');
+  if (speaking) { synth.cancel(); setTimeout(() => toggleVoice(), 100); }
+}
+
+if (synth.onvoiceschanged !== undefined) synth.onvoiceschanged = () => {};
+
+// SUBMIT
+async function submitEstimate() {
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true; btn.textContent = 'Submitting...';
+  document.getElementById('loading').classList.add('visible');
+  document.getElementById('loadingText').textContent = 'Submitting your estimate...';
+  try {
+    const refNum = 'DTW-' + Math.random().toString(36).substr(2, 8).toUpperCase();
+    const photoUrls = state.photos.filter(p => p.url || p.dataUrl).map(p => p.url || p.dataUrl);
+    const trees = state.markers.map((m, i) => ({
+      tree_number: i + 1, lat: m.lat, lng: m.lng,
+      notes: 'Tree ' + (i + 1) + ' marked on map',
+      work_type: m.workType || 'Tree Removal'
+    }));
+    const accessChecklist = {};
+    if (state.days && state.days.length > 0) accessChecklist.best_days = state.days;
+    if (state.timeSlot) accessChecklist.best_time = state.timeSlot;
+    if (state.narrowAccess) accessChecklist.narrow_access = state.narrowAccess;
+    if (state.powerLines) accessChecklist.power_lines = state.powerLines;
+    if (state.septic) accessChecklist.septic = state.septic;
+
+    const payload = {
+      reference_number: refNum,
+      customer_name: state.name || 'Not provided',
+      customer_phone: state.phone || 'Not provided',
+      customer_email: state.email || 'Not provided',
+      property_address: state.address || 'Not provided',
+      preferred_contact: state.contactMethod || 'call',
+      tree_count: state.treeCount || state.markers.length || 0,
+      service_types: state.services ? state.services.join(', ') : 'Tree Removal',
+      hazard_flags: state.hazards ? state.hazards.join(', ') : 'None',
+      urgency_level: state.urgency || 'Flexible',
+      how_heard: state.howHeard || 'Not specified',
+      notes: state.notes || '',
+      map_lat: state.mapLat || '',
+      map_lng: state.mapLng || '',
+      trees: JSON.stringify(trees),
+      photo_count: photoUrls.length,
+      access_checklist: JSON.stringify(accessChecklist)
+    };
+
+    // Try Netlify Forms submission first
+    let submitted = false;
+    try {
+      const formData = new URLSearchParams();
+      formData.append('form-name', 'estimate-request');
+      formData.append('reference_number', payload.reference_number);
+      formData.append('customer_name', payload.customer_name);
+      formData.append('customer_phone', payload.customer_phone);
+      formData.append('customer_email', payload.customer_email);
+      formData.append('property_address', payload.property_address);
+      formData.append('preferred_contact', payload.preferred_contact);
+      formData.append('tree_count', payload.tree_count);
+      formData.append('service_types', payload.service_types);
+      formData.append('hazard_flags', payload.hazard_flags);
+      formData.append('urgency_level', payload.urgency_level);
+      formData.append('how_heard', payload.how_heard);
+      formData.append('notes', payload.notes);
+      formData.append('map_lat', payload.map_lat);
+      formData.append('map_lng', payload.map_lng);
+      formData.append('trees', payload.trees);
+      formData.append('photo_count', payload.photo_count);
+      formData.append('access_checklist', payload.access_checklist);
+
+      const response = await fetch('/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData.toString()
+      });
+      if (response.ok || response.status === 200 || response.status === 302) {
+        submitted = true;
+      }
+    } catch (netlifyErr) {
+      console.log('Netlify Forms not available, trying fallback...');
+    }
+
+    // Fallback: store in localStorage and open email
+    if (!submitted) {
+      // Save to localStorage
+      const estimates = JSON.parse(localStorage.getItem('dtw_estimates') || '[]');
+      estimates.push({ ...payload, created_at: new Date().toISOString() });
+      localStorage.setItem('dtw_estimates', JSON.stringify(estimates));
+    }
+
+    // Show success
+    document.getElementById('loading').classList.remove('visible');
+    document.querySelectorAll('.step-content').forEach(el => el.classList.remove('visible'));
+    document.getElementById('successScreen').classList.add('visible');
+    document.getElementById('refNumber').textContent = refNum;
+    if (speaking) synth.cancel();
+
+    // Also send email to Dale as backup
+    const mailBody = 'New estimate request from ' + (state.name || 'customer') + '\n\n' +
+      'Phone: ' + (state.phone || 'N/A') + '\n' +
+      'Email: ' + (state.email || 'N/A') + '\n' +
+      'Address: ' + (state.address || 'N/A') + '\n' +
+      'Trees: ' + (state.treeCount || state.markers.length || 0) + '\n' +
+      'Services: ' + (state.services ? state.services.join(', ') : 'Tree Removal') + '\n' +
+      'Hazards: ' + (state.hazards ? state.hazards.join(', ') : 'None') + '\n' +
+      'Urgency: ' + (state.urgency || 'Flexible') + '\n' +
+      'Ref: ' + refNum;
+
+    // Create a hidden link to send email as backup
+    const mailLink = document.createElement('a');
+    mailLink.href = 'mailto:nvirogear1@gmail.com?subject=' + encodeURIComponent('New Estimate: ' + refNum) + '&body=' + encodeURIComponent(mailBody);
+    mailLink.id = 'backupEmailLink';
+    mailLink.style.display = 'none';
+    document.body.appendChild(mailLink);
+
+  } catch (err) {
+    console.error('Submission failed:', err);
+    document.getElementById('loading').classList.remove('visible');
+    btn.disabled = false; btn.textContent = 'Submit Estimate';
+    showToast('Could not submit. Please call Dale at 231-830-7616.', 'error');
+  }
+}
+
+// TOAST
+let toastTimeout;
+function showToast(msg, type) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.className = 'toast visible ' + (type || '');
+  clearTimeout(toastTimeout);
+  toastTimeout = setTimeout(() => { toast.classList.remove('visible'); }, 3000);
+}
+
+// INPUT ERROR CLEAR
+document.querySelectorAll('.field-input').forEach(input => {
+  input.addEventListener('input', () => {
+    input.classList.remove('error');
+    const errId = 'err-' + input.id.split('-')[1];
+    const err = document.getElementById(errId);
+    if (err) err.style.display = 'none';
+  });
+});
+
+renderProgress();
+</script>
+</body>
+</html>

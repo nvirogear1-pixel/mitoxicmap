@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dale's Tree Works — Admin Dashboard</title>
+<style>
+:root{--navy:#0D1421;--navy-light:#1a253a;--green:#1a5c3a;--green-light:#2d8659;--gold:#E6A53B;--gold-light:#f5c87a;--white:#f8fafc;--muted:#94a3b8;--border:#2a3a52;--danger:#ef4444;--success:#22c55e;--radius:12px}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--navy);color:var(--white);line-height:1.6}
+.header{position:sticky;top:0;z-index:100;background:var(--navy-light);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;justify-content:space-between}
+.header-left{display:flex;align-items:center;gap:12px}
+.header-logo{width:36px;height:36px;background:var(--green);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.header-title{font-size:18px;font-weight:700}
+.header-title span{color:var(--gold)}
+.header-right{display:flex;gap:8px;align-items:center}
+.login-btn{background:transparent;border:1px solid var(--border);color:var(--white);padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;transition:all .2s}
+.login-btn:hover{border-color:var(--gold)}
+.login-btn.active{background:var(--gold);color:var(--navy);border-color:var(--gold)}
+.container{max-width:1100px;margin:0 auto;padding:20px}
+.stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:16px;margin-bottom:24px}
+.stat-card{background:var(--navy-light);border:1px solid var(--border);border-radius:var(--radius);padding:20px;text-align:center}
+.stat-num{font-size:32px;font-weight:800;color:var(--gold)}
+.stat-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:4px}
+.tabs{display:flex;gap:4px;margin-bottom:20px;border-bottom:1px solid var(--border)}
+.tab{padding:12px 20px;cursor:pointer;color:var(--muted);font-size:14px;font-weight:600;border-bottom:2px solid transparent;transition:all .2s}
+.tab.active{color:var(--gold);border-bottom-color:var(--gold)}
+.tab:hover{color:var(--white)}
+.tab-badge{background:var(--green);color:white;font-size:11px;padding:2px 8px;border-radius:10px;margin-left:6px}
+.card{background:var(--navy-light);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px}
+.card-header{display:flex;justify-content:space-between;align-items:start;margin-bottom:12px}
+.card-ref{font-size:13px;color:var(--gold);font-weight:700;font-family:monospace}
+.card-status{font-size:11px;padding:4px 10px;border-radius:12px;text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.status-new{background:rgba(34,197,94,0.15);color:var(--success);border:1px solid rgba(34,197,94,0.3)}
+.status-scheduled{background:rgba(230,165,59,0.15);color:var(--gold);border:1px solid rgba(230,165,59,0.3)}
+.status-completed{background:rgba(45,134,89,0.15);color:var(--green-light);border:1px solid rgba(45,134,89,0.3)}
+.status-cancelled{background:rgba(239,68,68,0.15);color:var(--danger);border:1px solid rgba(239,68,68,0.3)}
+.status-archived{background:rgba(148,163,184,0.15);color:var(--muted);border:1px solid rgba(148,163,184,0.3)}
+.card-name{font-size:16px;font-weight:700;margin-bottom:4px}
+.card-info{font-size:14px;color:var(--muted);margin:2px 0}
+.card-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.tag{font-size:11px;padding:3px 10px;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--muted)}
+.tag-hazard{background:rgba(239,68,68,0.1);border-color:rgba(239,68,68,0.3);color:var(--danger)}
+.tag-service{background:rgba(45,134,89,0.1);border-color:rgba(45,134,89,0.3);color:var(--green-light)}
+.card-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.btn-sm{padding:6px 14px;border-radius:8px;font-size:12px;cursor:pointer;border:none;text-decoration:none;display:inline-block;transition:all .2s}
+.btn-sm-green{background:var(--green);color:white}
+.btn-sm-green:hover{background:var(--green-light)}
+.btn-sm-outline{background:transparent;border:1px solid var(--border);color:var(--white)}
+.btn-sm-outline:hover{border-color:var(--gold)}
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty-icon{font-size:48px;margin-bottom:12px;opacity:0.4}
+.login-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(13,20,33,0.95);display:flex;align-items:center;justify-content:center;z-index:200}
+.login-box{background:var(--navy-light);border:1px solid var(--border);border-radius:16px;padding:40px;max-width:380px;width:90%}
+.login-box h2{font-size:24px;margin-bottom:8px;color:var(--gold)}
+.login-box p{color:var(--muted);font-size:14px;margin-bottom:24px}
+.login-input{width:100%;padding:14px 16px;background:var(--navy);border:1px solid var(--border);border-radius:10px;color:var(--white);font-size:15px;margin-bottom:16px}
+.login-input:focus{outline:none;border-color:var(--gold)}
+.login-submit{width:100%;padding:14px;background:var(--gold);color:var(--navy);border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer}
+.login-submit:hover{background:var(--gold-light)}
+.login-hint{font-size:12px;color:var(--muted);margin-top:12px;text-align:center}
+.detail-modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);display:none;align-items:center;justify-content:center;z-index:150;padding:20px}
+.detail-modal.active{display:flex}
+.detail-content{background:var(--navy-light);border:1px solid var(--border);border-radius:16px;max-width:600px;width:100%;max-height:85vh;overflow-y:auto;padding:30px}
+.detail-close{float:right;cursor:pointer;font-size:24px;color:var(--muted)}
+.detail-close:hover{color:var(--white)}
+.detail-section{margin-bottom:20px}
+.detail-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px}
+.detail-value{font-size:15px}
+.detail-photo{width:100%;border-radius:8px;margin:8px 0;max-width:300px}
+.tree-list-item{background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:8px;padding:12px;margin:8px 0;font-size:14px}
+.migrate-btn{background:var(--green);color:white;padding:10px 20px;border-radius:10px;border:none;cursor:pointer;font-size:14px;font-weight:600;margin-bottom:16px}
+.migrate-btn:hover{background:var(--green-light)}
+.export-btn{background:transparent;border:1px solid var(--gold);color:var(--gold);padding:8px 16px;border-radius:8px;cursor:pointer;font-size:13px;margin-left:auto}
+.export-btn:hover{background:rgba(230,165,59,0.1)}
+@media(max-width:600px){.stats-row{grid-template-columns:repeat(2,1fr)}.container{padding:12px}}
+</style>
+</head>
+<body>
+
+<div class="header">
+<div class="header-left">
+<div class="header-logo">🌲</div>
+<div class="header-title">Dale's <span>Tree Works</span> — Admin</div>
+</div>
+<div class="header-right">
+<button class="export-btn" onclick="exportData()">📊 Export CSV</button>
+<button class="login-btn" id="loginToggle" onclick="toggleLogin()">Admin Login</button>
+</div>
+</div>
+
+<div class="login-overlay" id="loginOverlay">
+<div class="login-box">
+<h2>Admin Access</h2>
+<p>Enter your passcode to view estimates and jobs.</p>
+<input type="password" class="login-input" id="passcodeInput" placeholder="Enter passcode" onkeypress="if(event.key==='Enter')checkPasscode()">
+<button class="login-submit" onclick="checkPasscode()">Log In</button>
+<div class="login-hint">Hint: Ask Dale for the passcode</div>
+</div>
+</div>
+
+<div class="container" id="dashboard" style="display:none">
+<div class="stats-row">
+<div class="stat-card"><div class="stat-num" id="statEstimates">0</div><div class="stat-label">Estimates</div></div>
+<div class="stat-card"><div class="stat-num" id="statNew">0</div><div class="stat-label">New</div></div>
+<div class="stat-card"><div class="stat-num" id="statJobs">0</div><div class="stat-label">Jobs</div></div>
+<div class="stat-card"><div class="stat-num" id="statRevenue">0</div><div class="stat-label">Revenue</div></div>
+<div class="stat-card"><div class="stat-num" id="statTrees">0</div><div class="stat-label">Trees</div></div>
+</div>
+
+<div class="tabs">
+<div class="tab active" onclick="switchTab('estimates')">Estimates <span class="tab-badge" id="estBadge">0</span></div>
+<div class="tab" onclick="switchTab('jobs')">Jobs <span class="tab-badge" id="jobBadge">0</span></div>
+<div class="tab" onclick="switchTab('local')">Local Submissions <span class="tab-badge" id="localBadge">0</span></div>
+</div>
+
+<div id="estimatesList"></div>
+<div id="jobsList" style="display:none"></div>
+<div id="localList" style="display:none"></div>
+</div>
+
+<div class="detail-modal" id="detailModal" onclick="if(event.target===this)closeDetail()">
+<div class="detail-content" id="detailContent"></div>
+</div>
+
+<script>
+// MIGRATED DATA FROM BASE44 APP
+const MIGRATED_ESTIMATES = [
+{ref:"DTW-MS7YSCLW",name:"Joseph Smith",phone:"2314280379",email:"nvirogear1@gmail.com",address:"13520 Apple Dr",contact:"call",trees:2,services:["Trimming & Pruning","Tree Removal"],hazards:["Septic Nearby"],urgency:"Flexible",source:"customer_portal",status:"archived",date:"2026-07-30",map_lat:43.1012435,map_lng:-86.1228637,photos:1},
+{ref:"DTW-MS7XTZJJ",name:"Marsy",phone:"2316701962",email:"marsyhier@gmail.com",address:"13520 Apple Dr",contact:"email",trees:0,services:[],hazards:["Neighbor Property"],urgency:"Flexible",source:"customer_portal",status:"archived",date:"2026-07-30",access:{structures:["House","Shed","Neighbor's property"],preferred_date:"2026-08-11"}},
+{ref:"DTW-MS4RXMIE",name:"Not provided",phone:null,email:null,address:null,contact:"call",trees:1,services:["Tree Removal"],hazards:[],urgency:"Flexible",source:"customer_portal",status:"new",date:"2026-07-28",photos:1,how_heard:"Facebook"},
+{ref:"DTW-MRYM68AN",name:"Joseph Smith",phone:"2314280379",email:"nvirogear1@gmail.com",address:"13520 Apple Dr",contact:"call",trees:1,services:["Tree Removal"],hazards:[],urgency:"Flexible",source:"customer_portal",status:"new",date:"2026-07-24"},
+{ref:"DTW-MRY8670P",name:"Joseph Smith",phone:"2314280379",email:"nvirogear1@gmail.com",address:"13520 Apple Dr",contact:"call",trees:2,services:["Tree Removal"],hazards:["Power Lines","Septic Nearby"],urgency:"Flexible",source:"customer_portal",status:"new",date:"2026-07-24",how_heard:"Facebook",trees_detail:[{type:"Birch",height:75,diameter:60,condition:"Fair",concerns:["Dead branches","Over fence"],lean:"West",stump:"full_removal"}]}
+];
+
+const MIGRATED_JOBS = [
+{job:"JOB-1001",name:"Randy Voss",phone:"231-555-0701",email:"rvoss@email.com",address:"3388 Harvey St, Muskegon, MI 49444",services:["Tree Removal","Stump Grinding"],trees:4,crew:"Dale + Jake",quoted:1600,invoice:1600,paid:true,expenses:180,completed:"2026-05-08",status:"completed",notes:"4 trees removed, stumps ground. Clean job, customer happy."},
+{job:"JOB-1002",name:"Carol Nyenhuis",phone:"231-555-0702",email:"cnyenhuis@gmail.com",address:"776 Porter Ave, Muskegon, MI 49441",services:["Tree Trimming","Crown Reduction"],trees:6,crew:"Dale + Mike",quoted:975,invoice:975,paid:false,expenses:95,completed:"2026-05-12",status:"completed",notes:"6 trees trimmed and cleaned up. Invoice sent, awaiting payment."},
+{job:"JOB-691133",name:"Joseph Smith",phone:"2314280379",email:"nvirogear1@gmail.com",address:"13520 Apple Dr",services:["Tree Removal"],trees:1,crew:null,quoted:null,invoice:null,paid:false,expenses:null,completed:null,status:"scheduled",hazards:["Septic Nearby","Narrow Access"],notes:"Pine tree, leaning, diameter 135in",map:{lat:36.1573115,lng:-115.3028799}},
+{job:"JOB-301121",name:"Joseph Smith",phone:"2312205463",email:"joseph.smith945@yahoo.com",address:"13520 apple dr",services:["Tree Removal"],trees:1,crew:null,quoted:null,invoice:null,paid:false,expenses:null,completed:null,status:"cancelled",hazards:["Power Lines","Septic Nearby","Neighbor Property"],notes:"Over house, diameter 90in"}
+];
+
+let currentTab = 'estimates';
+let isLoggedIn = false;
+
+const PASSCODE = 'dale2026';
+
+function checkPasscode() {
+  const input = document.getElementById('passcodeInput').value;
+  if (input === PASSCODE) {
+    isLoggedIn = true;
+    document.getElementById('loginOverlay').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    document.getElementById('loginToggle').textContent = 'Logout';
+    document.getElementById('loginToggle').classList.add('active');
+    renderAll();
+  } else {
+    alert('Wrong passcode. Call Dale at 231-830-7616 if you need access.');
+  }
+}
+
+function toggleLogin() {
+  if (isLoggedIn) {
+    isLoggedIn = false;
+    document.getElementById('dashboard').style.display = 'none';
+    document.getElementById('loginToggle').textContent = 'Admin Login';
+    document.getElementById('loginToggle').classList.remove('active');
+    document.getElementById('loginOverlay').style.display = 'flex';
+    document.getElementById('passcodeInput').value = '';
+  } else {
+    document.getElementById('loginOverlay').style.display = 'flex';
+    document.getElementById('passcodeInput').focus();
+  }
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  event.target.closest('.tab').classList.add('active');
+  document.getElementById('estimatesList').style.display = tab === 'estimates' ? 'block' : 'none';
+  document.getElementById('jobsList').style.display = tab === 'jobs' ? 'block' : 'none';
+  document.getElementById('localList').style.display = tab === 'local' ? 'block' : 'none';
+}
+
+function getLocalSubmissions() {
+  return JSON.parse(localStorage.getItem('dtw_estimates') || '[]');
+}
+
+function renderAll() {
+  renderEstimates();
+  renderJobs();
+  renderLocal();
+  renderStats();
+}
+
+function renderStats() {
+  const estimates = MIGRATED_ESTIMATES;
+  const newCount = estimates.filter(e => e.status === 'new').length;
+  const revenue = MIGRATED_JOBS.filter(j => j.paid).reduce((s, j) => s + (j.invoice || 0), 0);
+  const treeCount = MIGRATED_JOBS.reduce((s, j) => s + (j.trees || 0), 0);
+  
+  document.getElementById('statEstimates').textContent = estimates.length;
+  document.getElementById('statNew').textContent = newCount;
+  document.getElementById('statJobs').textContent = MIGRATED_JOBS.length;
+  document.getElementById('statRevenue').textContent = '$' + revenue.toLocaleString();
+  document.getElementById('statTrees').textContent = treeCount;
+  document.getElementById('estBadge').textContent = estimates.length;
+  document.getElementById('jobBadge').textContent = MIGRATED_JOBS.length;
+  document.getElementById('localBadge').textContent = getLocalSubmissions().length;
+}
+
+function statusClass(s) {
+  return 'status-' + (s || 'new');
+}
+
+function renderEstimates() {
+  const list = document.getElementById('estimatesList');
+  if (MIGRATED_ESTIMATES.length === 0) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">📝</div><p>No estimates yet</p></div>';
+    return;
+  }
+  list.innerHTML = MIGRATED_ESTIMATES.map((e, i) => `
+    <div class="card" onclick="showEstimateDetail(${i})" style="cursor:pointer">
+      <div class="card-header">
+        <div>
+          <div class="card-ref">${e.ref}</div>
+          <div class="card-name">${e.name || 'Unknown'}</div>
+        </div>
+        <div class="card-status ${statusClass(e.status)}">${e.status}</div>
+      </div>
+      <div class="card-info">📍 ${e.address || 'No address'}</div>
+      <div class="card-info">📞 ${e.phone || 'No phone'} · ✉️ ${e.email || 'No email'}</div>
+      <div class="card-info">🌳 ${e.trees || 0} trees · ${e.services ? e.services.join(', ') : 'Tree Removal'}</div>
+      <div class="card-tags">
+        ${e.hazards ? e.hazards.map(h => `<span class="tag tag-hazard">⚠️ ${h}</span>`).join('') : ''}
+        ${e.services ? e.services.map(s => `<span class="tag tag-service">${s}</span>`).join('') : ''}
+        <span class="tag">${e.date}</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderJobs() {
+  const list = document.getElementById('jobsList');
+  if (MIGRATED_JOBS.length === 0) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p>No jobs yet</p></div>';
+    return;
+  }
+  list.innerHTML = MIGRATED_JOBS.map((j, i) => `
+    <div class="card" onclick="showJobDetail(${i})" style="cursor:pointer">
+      <div class="card-header">
+        <div>
+          <div class="card-ref">${j.job}</div>
+          <div class="card-name">${j.name}</div>
+        </div>
+        <div class="card-status ${statusClass(j.status)}">${j.status}</div>
+      </div>
+      <div class="card-info">📍 ${j.address}</div>
+      <div class="card-info">🌳 ${j.trees} trees · ${j.services.join(', ')}</div>
+      ${j.crew ? `<div class="card-info">👷 Crew: ${j.crew}</div>` : ''}
+      ${j.invoice ? `<div class="card-info">💰 Invoice: $${j.invoice.toLocaleString()} ${j.paid ? '✅ Paid' : '⏳ Unpaid'}</div>` : ''}
+      <div class="card-tags">
+        ${j.hazards ? j.hazards.map(h => `<span class="tag tag-hazard">⚠️ ${h}</span>`).join('') : ''}
+        ${j.completed ? `<span class="tag">Completed: ${j.completed}</span>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+function renderLocal() {
+  const list = document.getElementById('localList');
+  const local = getLocalSubmissions();
+  if (local.length === 0) {
+    list.innerHTML = '<div class="empty"><div class="empty-icon">💾</div><p>No local submissions yet. New estimates submitted from the portal will appear here.</p><p style="margin-top:12px;font-size:13px">These are stored in your browser. Export CSV to keep them.</p></div>';
+    return;
+  }
+  list.innerHTML = local.map((e, i) => `
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-ref">${e.reference_number || 'No ref'}</div>
+          <div class="card-name">${e.customer_name || 'Unknown'}</div>
+        </div>
+        <div class="card-status status-new">NEW</div>
+      </div>
+      <div class="card-info">📍 ${e.property_address || 'No address'}</div>
+      <div class="card-info">📞 ${e.customer_phone || 'No phone'}</div>
+      <div class="card-info">🌳 ${e.tree_count || 0} trees · ${e.service_types || ''}</div>
+      ${e.hazard_flags ? `<div class="card-tags"><span class="tag tag-hazard">⚠️ ${e.hazard_flags}</span></div>` : ''}
+      <div class="card-info" style="font-size:12px;color:var(--muted)">${e.created_at || ''}</div>
+    </div>
+  `).join('');
+}
+
+function showEstimateDetail(i) {
+  const e = MIGRATED_ESTIMATES[i];
+  let html = '<span class="detail-close" onclick="closeDetail()">×</span>';
+  html += `<h2 style="margin-bottom:4px">${e.name || 'Unknown'}</h2>`;
+  html += `<div class="card-ref" style="margin-bottom:16px">${e.ref} · ${e.status}</div>`;
+  html += `<div class="detail-section"><div class="detail-label">Phone</div><div class="detail-value">📞 <a href="tel:${e.phone}">${e.phone || 'N/A'}</a></div></div>`;
+  html += `<div class="detail-section"><div class="detail-label">Email</div><div class="detail-value">✉️ ${e.email || 'N/A'}</div></div>`;
+  html += `<div class="detail-section"><div class="detail-label">Property Address</div><div class="detail-value">📍 ${e.address || 'N/A'}</div></div>`;
+  html += `<div class="detail-section"><div class="detail-label">Preferred Contact</div><div class="detail-value">${e.contact || 'call'}</div></div>`;
+  html += `<div class="detail-section"><div class="detail-label">Trees</div><div class="detail-value">${e.trees || 0} trees</div></div>`;
+  if (e.services && e.services.length) html += `<div class="detail-section"><div class="detail-label">Services</div><div class="detail-value">${e.services.join(', ')}</div></div>`;
+  if (e.hazards && e.hazards.length) html += `<div class="detail-section"><div class="detail-label">Hazards</div><div class="detail-value">⚠️ ${e.hazards.join(', ')}</div></div>`;
+  if (e.urgency) html += `<div class="detail-section"><div class="detail-label">Urgency</div><div class="detail-value">${e.urgency}</div></div>`;
+  if (e.how_heard) html += `<div class="detail-section"><div class="detail-label">How They Heard</div><div class="detail-value">${e.how_heard}</div></div>`;
+  if (e.date) html += `<div class="detail-section"><div class="detail-label">Date Submitted</div><div class="detail-value">${e.date}</div></div>`;
+  if (e.map_lat) html += `<div class="detail-section"><div class="detail-label">Map Coordinates</div><div class="detail-value">${e.map_lat}, ${e.map_lng} — <a href="https://www.google.com/maps?q=${e.map_lat},${e.map_lng}" target="_blank">View on Map</a></div></div>`;
+  if (e.trees_detail) {
+    html += `<div class="detail-section"><div class="detail-label">Tree Details</div>`;
+    e.trees_detail.forEach((t, ti) => {
+      html += `<div class="tree-list-item"><strong>Tree ${ti+1}</strong> — ${t.type || 'Unknown'}<br>`;
+      if (t.height) html += `Height: ${t.height}ft · `;
+      if (t.diameter) html += `Diameter: ${t.diameter}in · `;
+      if (t.condition) html += `Condition: ${t.condition}`;
+      if (t.concerns && t.concerns.length) html += `<br>Concerns: ${t.concerns.join(', ')}`;
+      if (t.lean) html += `<br>Leaning: ${t.lean}`;
+      if (t.stump) html += `<br>Stump: ${t.stump}`;
+      html += `</div>`;
+    });
+    html += `</div>`;
+  }
+  if (e.access) {
+    html += `<div class="detail-section"><div class="detail-label">Access Info</div>`;
+    if (e.access.structures) html += `<div class="detail-value">Structures nearby: ${e.access.structures.join(', ')}</div>`;
+    if (e.access.preferred_date) html += `<div class="detail-value">Preferred date: ${e.access.preferred_date}</div>`;
+    html += `</div>`;
+  }
+  html += `<div class="card-actions" style="margin-top:20px">
+    <a href="tel:${e.phone}" class="btn-sm btn-sm-green">📞 Call Customer</a>
+    <a href="sms:${e.phone}" class="btn-sm btn-sm-outline">💬 Text</a>
+    <a href="mailto:${e.email}" class="btn-sm btn-sm-outline">✉️ Email</a>
+  </div>`;
+  document.getElementById('detailContent').innerHTML = html;
+  document.getElementById('detailModal').classList.add('active');
+}
+
+function showJobDetail(i) {
+  const j = MIGRATED_JOBS[i];
+  let html = '<span class="detail-close" onclick="closeDetail()">×</span>';
+  html += `<h2 style="margin-bottom:4px">${j.name}</h2>`;
+  html += `<div class="card-ref" style="margin-bottom:16px">${j.job} · ${j.status}</div>`;
+  html += `<div class="detail-section"><div class="detail-label">Phone</div><div class="detail-value">📞 <a href="tel:${j.phone}">${j.phone}</a></div></div>`;
+  html += `<div class="detail-section"><div class="detail-label">Address</div><div class="detail-value">📍 ${j.address}</div></div>`;
+  html += `<div class="detail-section"><div class="detail-label">Services</div><div class="detail-value">${j.services.join(', ')}</div></div>`;
+  html += `<div class="detail-section"><div class="detail-label">Trees</div><div class="detail-value">${j.trees} trees</div></div>`;
+  if (j.crew) html += `<div class="detail-section"><div class="detail-label">Crew</div><div class="detail-value">👷 ${j.crew}</div></div>`;
+  if (j.quoted) html += `<div class="detail-section"><div class="detail-label">Quoted Amount</div><div class="detail-value">$${j.quoted.toLocaleString()}</div></div>`;
+  if (j.invoice) html += `<div class="detail-section"><div class="detail-label">Invoice Amount</div><div class="detail-value">$${j.invoice.toLocaleString()} — ${j.paid ? '✅ Paid' : '⏳ Unpaid'}</div></div>`;
+  if (j.expenses) html += `<div class="detail-section"><div class="detail-label">Expenses</div><div class="detail-value">$${j.expenses}</div></div>`;
+  if (j.completed) html += `<div class="detail-section"><div class="detail-label">Completed Date</div><div class="detail-value">${j.completed}</div></div>`;
+  if (j.hazards && j.hazards.length) html += `<div class="detail-section"><div class="detail-label">Hazards</div><div class="detail-value">⚠️ ${j.hazards.join(', ')}</div></div>`;
+  if (j.notes) html += `<div class="detail-section"><div class="detail-label">Notes</div><div class="detail-value">${j.notes}</div></div>`;
+  html += `<div class="card-actions" style="margin-top:20px">
+    <a href="tel:${j.phone}" class="btn-sm btn-sm-green">📞 Call Customer</a>
+    <a href="sms:${j.phone}" class="btn-sm btn-sm-outline">💬 Text</a>
+  </div>`;
+  document.getElementById('detailContent').innerHTML = html;
+  document.getElementById('detailModal').classList.add('active');
+}
+
+function closeDetail() {
+  document.getElementById('detailModal').classList.remove('active');
+}
+
+function exportData() {
+  // Export all estimates as CSV
+  let csv = 'Reference,Name,Phone,Email,Address,Trees,Services,Hazards,Urgency,Status,Date\n';
+  MIGRATED_ESTIMATES.forEach(e => {
+    csv += `"${e.ref}","${e.name || ''}","${e.phone || ''}","${e.email || ''}","${e.address || ''}","${e.trees || 0}","${(e.services||[]).join('; ')}","${(e.hazards||[]).join('; ')}","${e.urgency || ''}","${e.status}","${e.date || ''}"\n`;
+  });
+  csv += '\n\nJobs:\n';
+  csv += 'Job#,Name,Phone,Address,Services,Trees,Crew,Quoted,Invoice,Paid,Expenses,Completed,Status,Notes\n';
+  MIGRATED_JOBS.forEach(j => {
+    csv += `"${j.job}","${j.name}","${j.phone}","${j.address}","${j.services.join('; ')}","${j.trees}","${j.crew || ''}","${j.quoted || ''}","${j.invoice || ''}","${j.paid}","${j.expenses || ''}","${j.completed || ''}","${j.status}","${j.notes || ''}"\n`;
+  });
+  
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'dalestree_works_export_' + new Date().toISOString().split('T')[0] + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// Auto-login if already logged in this session
+if (sessionStorage.getItem('dtw_admin') === '1') {
+  isLoggedIn = true;
+  document.getElementById('loginOverlay').style.display = 'none';
+  document.getElementById('dashboard').style.display = 'block';
+  document.getElementById('loginToggle').textContent = 'Logout';
+  document.getElementById('loginToggle').classList.add('active');
+  renderAll();
+}
+
+// Store login in session
+const originalCheck = checkPasscode;
+checkPasscode = function() {
+  originalCheck();
+  if (isLoggedIn) sessionStorage.setItem('dtw_admin', '1');
+};
+</script>
+</body>
+</html>
