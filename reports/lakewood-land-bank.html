@@ -59,16 +59,17 @@ setTimeout(()=>map.invalidateSize(), 50); setTimeout(()=>map.invalidateSize(), 5
 window.addEventListener('load', ()=>map.invalidateSize());
 L.marker(c, {icon: L.divIcon({className:'', html:'<div style="background:#7c3aed;color:#fff;font-weight:700;font-size:12px;padding:6px 12px;border-radius:8px;border:2px solid #fff;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.5)">&#11088; W Lakewood Rd - Land Bank Parcel</div>', iconAnchor:[-14,14]})})
  .addTo(map).bindPopup('<b>W Lakewood Rd (Land Bank Parcel)</b><br>Whitehall, MI 49461<br>0.34 acres · PIN 61-06-404-067-0009-00');
-let tErr=0;
-const baseTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {maxZoom:19, attribution:'© OpenStreetMap © CARTO'}).addTo(map);
-baseTiles.on('tileerror', ()=>{ tErr++;
-  if(tErr===25){ map.removeLayer(baseTiles);
-    const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:19, attribution:'© OpenStreetMap contributors'});
-    osm.addTo(map);
-    const st=document.createElement('style'); st.textContent='.leaflet-tile{filter:invert(1) hue-rotate(180deg) brightness(.85) saturate(.7)}';
-    document.head.appendChild(st);
-  }
-});
+// Basemap: Esri World Imagery — keyless aerial tiles. CARTO removed: it serves "API key required" error tiles.
+const bmChip = document.createElement('div');
+bmChip.style.cssText='position:fixed;left:12px;bottom:12px;z-index:20;background:rgba(11,18,32,.82);color:#94a3b8;font:11px sans-serif;padding:5px 10px;border-radius:8px;border:1px solid rgba(148,163,184,.25)';
+bmChip.textContent='Basemap: Esri World Imagery';
+document.body.appendChild(bmChip);
+const bmCfg=[['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}','Esri, Maxar, Earthstar Geographics'],['https://tile.openstreetmap.org/{z}/{x}/{y}.png','© OpenStreetMap contributors']];
+let bmIdx=0,bmErr=0;
+function loadBM(){bmErr=0;const bm=L.tileLayer(bmCfg[bmIdx][0],{maxZoom:19,attribution:bmCfg[bmIdx][1]}).addTo(map);
+  bm.on('tileerror',()=>{bmErr++;if(bmErr>=10&&bmIdx<bmCfg.length-1){map.removeLayer(bm);bmIdx++;loadBM();bmChip.textContent='Basemap: OpenStreetMap';}});
+  return bm;}
+loadBM();
 L.control.zoom({position:'bottomleft'}).addTo(map);
 
 const Lp = {}, lgr = L.layerGroup();
