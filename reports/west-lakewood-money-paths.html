@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>W Lakewood Bundle - Every Way This Land Pays</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{--bg:#0b111a;--panel:#121a26;--line:#223047;--txt:#e8eef7;--mut:#94a3b8;--acc:#00f5a3;--amber:#f59e0b;--red:#e53e3e;--blue:#60a5fa}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:var(--bg);color:var(--txt);font:15px/1.6 system-ui,sans-serif;overflow:hidden}
+#map{position:fixed;inset:0;z-index:1}
+#top{position:fixed;top:0;left:0;right:0;z-index:30;display:flex;justify-content:space-between;align-items:flex-start;padding:10px 18px;background:linear-gradient(180deg,rgba(7,11,18,.95),rgba(7,11,18,.6));border-bottom:1px solid var(--line)}
+#top .brand{font-size:12px;letter-spacing:.16em;color:var(--acc);font-weight:800}
+#top h1{font-size:17px;margin-top:2px}
+#top .meta{font-size:11.5px;color:var(--mut);margin-top:3px}
+.playbtn{background:var(--acc);color:#04131d;font-weight:800;border:none;border-radius:24px;padding:10px 18px;font-size:13px;cursor:pointer;box-shadow:0 0 24px rgba(0,245,163,.35);z-index:40}
+#panel{position:fixed;top:0;bottom:0;right:0;width:min(640px,100%);z-index:20;background:linear-gradient(90deg,rgba(11,17,26,0) 0%,rgba(11,17,26,.5) 14px,rgba(11,17,26,.97) 40px)}
+#panel .inner{position:absolute;top:78px;bottom:12px;left:44px;right:12px;overflow-y:auto;padding-right:6px}
+#panel .inner::-webkit-scrollbar{width:8px}#panel .inner::-webkit-scrollbar-thumb{background:#2a3a55;border-radius:4px}
+.sec{margin:26px 0 12px;scroll-margin-top:70px}
+.sec .kicker{font-size:11px;letter-spacing:.18em;color:var(--acc);font-weight:800}
+.sec h2{font-size:19px;margin:4px 0 8px}
+.sec .narr{font-size:14.5px;color:#cbd5e1;background:rgba(18,26,38,.72);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.card{background:rgba(18,26,38,.85);border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+.card .lbl{font-size:10.5px;letter-spacing:.1em;color:var(--mut);font-weight:700}
+.card .val{font-size:16.5px;font-weight:800;margin:3px 0}
+.card .sub{font-size:12px;color:var(--mut)}
+.ev{font-size:10px;font-weight:800;border:1px solid;border-radius:5px;padding:2px 7px;cursor:pointer;margin-top:7px;display:inline-block}
+.eV{color:var(--acc);border-color:var(--acc)}.eM{color:var(--amber);border-color:var(--amber)}.eP{color:#a5b4fc;border-color:#a5b4fc}.eA{color:var(--blue);border-color:var(--blue)}.eD{color:var(--red);border-color:var(--red)}
+.veclist{margin-top:12px}
+.vec{background:rgba(18,26,38,.85);border:1px solid var(--line);border-left:3px solid var(--red);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.vec .n{font-size:11px;color:var(--red);font-weight:800;letter-spacing:.1em}
+.vec .t{font-weight:800;font-size:14.5px;margin:2px 0 6px}
+.vec .s{font-size:13px;color:#cbd5e1}
+.vec .fx{font-size:13px;margin-top:7px;color:#a7f3d0}
+.vec .fx b{color:var(--acc);font-size:11.5px;letter-spacing:.08em}
+.vec .sc{font-size:11.5px;color:var(--mut);margin-top:6px;border-top:1px dashed #223047;padding-top:5px}
+.chain{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+.chrow{display:flex;align-items:center;gap:10px;background:rgba(18,26,38,.85);border:1px solid var(--line);border-radius:10px;padding:10px 13px;flex-wrap:wrap}
+.chrow .nm{font-weight:700;font-size:13.5px;flex:1;min-width:150px}
+.chrow .was{color:var(--red);font-weight:800;text-decoration:line-through;text-decoration-color:rgba(229,62,62,.55);font-size:14px}
+.chrow .arrow{color:var(--mut)}
+.chrow .now{color:var(--acc);font-weight:800;font-size:14px}
+.chrow .ratio{font-size:11px;color:var(--amber);border:1px solid var(--amber);border-radius:5px;padding:1px 6px}
+table{width:100%;border-collapse:collapse;margin-top:12px;font-size:12.5px}
+th{color:var(--acc);text-align:left;font-size:10.5px;letter-spacing:.1em;border-bottom:1px solid var(--line);padding:6px 8px}
+td{border-bottom:1px solid #1a2740;padding:7px 8px;vertical-align:top;color:#cbd5e1}
+td b{color:var(--txt)}
+.clean{background:rgba(18,26,38,.72);border:1px solid var(--line);border-radius:12px;padding:13px 16px;margin-top:12px}
+.clean li{list-style:none;font-size:13px;color:#a7f3d0;margin:5px 0}
+.srclist{margin-top:12px}
+.src{display:flex;gap:8px;align-items:baseline;font-size:12.5px;margin:7px 0;flex-wrap:wrap}
+.src .cls{font-size:9.5px;font-weight:800;border:1px solid;border-radius:4px;padding:1px 5px}
+#drawer{position:fixed;left:12px;bottom:12px;max-width:340px;background:rgba(13,21,34,.95);border:1px solid var(--line);border-radius:12px;padding:12px 15px;z-index:45;font-size:12.5px;color:#cbd5e1;opacity:0;pointer-events:none;transition:opacity .3s}
+#drawer.open{opacity:1}
+.legend{position:fixed;left:12px;bottom:12px;z-index:25;background:rgba(11,18,32,.85);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:11.5px}
+.legend .row{display:flex;align-items:center;gap:7px;margin:3px 0}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+@media (max-width:700px){#panel .inner{left:12px;top:120px}.cards{grid-template-columns:1fr}.legend{display:none}}
+</style></head><body>
+<div id="map"></div>
+<div id="top">
+  <div><div class="brand">NVIROGEAR PROPERTY INTELLIGENCE</div>
+  <h1>Land Investor Risk Audit — Homestead Extravaganza</h1>
+  <div class="meta">15 targets · Mid & Northern Michigan · 0.34 acres, six platted lots, seven money paths - every one run against verified evidence · 2026-10-15</div></div>
+  <button class="playbtn" onclick="playReport()">▶ Read This Report</button>
+</div>
+<div class="legend" id="legendbox">
+  <div class="row"><span class="dot" style="background:#f59e0b"></span>Oct 30 auction lot</div>
+  <div class="row"><span class="dot" style="background:#60a5fa"></span>Land bank offer</div>
+  <div class="row"><span class="dot" style="background:#34d399"></span>Buy now OTC</div>
+  <div class="row"><span class="dot" style="background:#e53e3e;border:2px solid #fff"></span>Part 201 site (EGLE)</div>
+</div>
+<div id="panel"><div class="inner" id="list"></div></div>
+<div id="drawer"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const R = {"brand": "NVIROGEAR PROPERTY INTELLIGENCE", "title": "The W Lakewood Bundle \u2014 Every Way This Land Pays", "subtitle": "0.34 acres \u00b7 six platted lots \u00b7 Fruitland Township, Muskegon County \u00b7 acquisition $1,000 \u00b7 all seven money paths run against verified evidence \u00b7 2026-10-17", "cards": [{"id": "acq", "label": "THE ASK", "value": "$1,000 offer \u00b7 $1,500 ceiling", "sub": "Land Bank direct offer, no auction, board approval required", "evidence": {"label": "VERIFIED", "source": "Muskegon County Land Bank, 231-724-6170", "url": ""}}, {"id": "land", "label": "THE LAND", "value": "0.34 ac \u00b7 6 platted lots", "sub": "156 ft x 101 ft, Lakewood Addition No 4, Lots 9-14, Blk 67 \u00b7 single-family and two-family by right", "evidence": {"label": "VERIFIED", "source": "Muskegon County GIS + Fruitland Twp ordinance Art VIII", "url": ""}}, {"id": "neighbor", "label": "NEIGHBOR POCKETBOOK", "value": "+51% land for one owner", "sub": "1461 W Lakewood (0.67 ac) absorbs the bundle; +33% for Whitehall Rd (1.02 ac); homes assessed $143K-$183K", "evidence": {"label": "VERIFIED MATH \u00b7 interest unknown", "source": "County assessor records, 2026-10-15", "url": ""}}, {"id": "comp", "label": "COMPLETED SALE SIGNAL", "value": "$3,100 per-acre screen", "sub": "2.42-ac bundle in the same plat sold $22,000, Jan 2025 - screening reference only, not a price prediction", "evidence": {"label": "VERIFIED SALE \u00b7 screen only", "source": "Muskegon County records", "url": ""}}], "sections": [{"kicker": "1 - THE PARCEL", "title": "Six Lots, One Bundle, One Owner", "narration": "This is the report we would hand any client: everything known about this parcel, every claim sourced, every gap named. The W Lakewood bundle is parcel 61-06-404-067-0009-00 - six platted lots (9 through 14, Block 67, Lakewood Addition No 4) held in one 0.34-acre parcel record, roughly 156 by 101 feet, in Fruitland Township, Muskegon County. The owner of record is the Muskegon County Land Bank Authority, which is why the county's own assessment reads $0 - county-exempt - and why it can be bought with a direct offer instead of an auction. Zoning is verified High Density Residential: single-family and two-family homes by right, accessory buildings by right, bed-and-breakfast by special use permit. The environmental screen came back clean: zero wetland polygons on the boundary, nearest EGLE Part 201 site 0.60 miles away with risk undetermined. Mature tree cover has been observed on the ground by the operator; species and volume are NOT yet inventoried, and no timber value is claimed in this report until a professional cruise says so."}, {"kicker": "2 - PATH ONE", "title": "The Neighbor First-Dibs Sale", "narration": "The strongest documented case on this parcel. Three neighboring homes are verified at $143,100 to $182,900 assessed value, and the pocketbook math is county-record arithmetic: the owner of 1461 W Lakewood (0.67 acres) absorbs this bundle for a 51 percent increase in their land; the Whitehall Road owner gains 33 percent. The deeper incentive is control, not privacy: this parcel is buildable by right, which means the house next door is the alternative to owning it. A neighbor weighing those two futures is the classic premium buyer for a small infill lot. What is NOT verified: whether either neighbor would actually pay. That converts to evidence with one first-dibs letter after ownership - never before. Grade: the incentive structure is real; the demand is a test, not a fact."}, {"kicker": "3 - PATH TWO", "title": "The Building-Lot Resale", "narration": "One completed market transaction exists in this plat: a 2.42-acre Lakewood bundle sold for $22,000 in January 2025. Normalized per acre, that is $9,091 - a screening signal of roughly $3,100 on 0.34 acres, and nothing more than a screen. It establishes that buyers exist for Lakewood land and that the market cleared above our acquisition cost, but location, access, and parcel differences mean it does not set this parcel's price. The resale case runs on two legs: the buyer pool a village-adjacent building lot attracts in the White Lake corridor, and the willingness of a neighbor to outbid strangers. Recommended discipline: if the first-dibs letters return silence, list at evidence-supported pricing from the current market, never from the assessment roll."}, {"kicker": "4 - PATH THREE", "title": "The Selective Wood Harvest", "narration": "The operator has observed substantial mature tree cover. The volume, species, and condition are unverified, so this report claims zero dollars of timber value. What is settled is the doctrine: on a platted residential lot, wood revenue and land value only coexist through selective harvesting - remove damaged, dying, and overstocked trees, keep the healthy canopy standing. A clear-cut converts a building lot into a stump field and destroys every other path in this report. The verification path is cheap: Jet's cover estimate on the boundary geometry, then a county forester walk-through before any cutting plan. And the honest timing note: hardwood cut this winter seasons into next winter's premium product - this path is a 2027 cash event, not a January paycheck."}, {"kicker": "5 - PATH FOUR", "title": "Build, Hold, or Lease", "narration": "Single-family and two-family by right means the parcel itself can carry a structure - IF septic works on 0.34 acres. That is the single gate: Fruitland Township and District Health Department #10 must confirm septic feasibility and setbacks for this lot size before any build math means anything. If septic fails, the build path dies but the neighbor and resale paths survive untouched - which is exactly why this bundle is a resilient buy: no single verification kills every path. Accessory buildings are also by right, which opens a smaller play - a storage building or workshop serving the neighboring market - with the same zoning verification and never built speculatively."}, {"kicker": "6 - PATH FIVE", "title": "The Six-Lot Question (And the Honest Answer)", "narration": "Six platted lots in one parcel record invites a tempting thought: buy for $1,000, re-split, sell six lots. Here is the discipline: 0.34 acres is roughly 14,800 square feet - about 2,400 per lot if split six ways. A 1920s-era plat can carry lot sizes that modern zoning no longer permits, and the Michigan Land Division Act plus Fruitland's current minimum lot size almost certainly block a six-way re-split of this footprint. Treat this path as unlikely upside pending one township question - never as the thesis. If the answer surprises us, the math changes. Until then, the bundle sells as one parcel."}, {"kicker": "7 - PATH SIX", "title": "Seller Financing and the Long Hold", "narration": "Two quieter paths complete the set. Land-contract seller financing - selling at a markup with monthly payments instead of cash - widens the buyer pool for small lots and converts one sale into an income stream; it is a legal mechanism, not a number, and it carries its own foreclosure and servicing rules that get priced in before it is ever offered. The long hold is the patient version: west Michigan lakes-corridor land bought at county-exempt pricing, held with carrying costs that must be verified post-purchase (the $0 assessment changes when a private owner records). Neither path is the reason to buy. Both are reasons the downside is shallow - the parcel can wait."}, {"kicker": "8 - THE VERDICT", "title": "Yellow, Leaning Green", "narration": "Every path scores honestly: the neighbor sale is the lead case - verified incentive, untested demand. The building-lot resale rests on one real comp used as a screen. The wood harvest is doctrine without a number. The build path lives or dies on one septic answer. The re-split is probably dead on modern minimums, and the financing and hold paths are cushions, not theses. The acquisition asks $1,000 against a $1,500 ceiling, and the at-risk capital is deliberately small. The two verifications that move this parcel from leaning-green to green are the timber-rights and boundary confirmation in title review, and the ground-truth tree count. Both are scheduled. Both are cheap. And the first-dibs letter only ever goes out after the deed - that is the standing rule."}], "vectors": [{"name": "1. Neighbor first-dibs sale", "description": "+51% / +33% land absorption for verified adjacent owners; buildable-by-right makes control the incentive", "fail_safe": "Only after ownership + title review; letter template staged", "source": "VERIFIED math \u00b7 UNKNOWN interest"}, {"name": "2. Building-lot resale", "description": "$22,000 completed sale (2.42 ac, Jan 2025) = $9,091/ac screen; buyer pool exists in the plat", "fail_safe": "Screen only - never list from the assessment roll", "source": "VERIFIED sale"}, {"name": "3. Selective wood harvest", "description": "Mature cover observed; volume, species, condition unverified - zero dollars claimed", "fail_safe": "Selective only; clear-cut banned; forester cruise before any cut", "source": "OPERATOR-REPORTED"}, {"name": "4. Build / hold / lease", "description": "SF and 2F by right, accessory buildings by right", "fail_safe": "Septic feasibility on 0.34 ac is THE gate - confirm before any build math", "source": "ZONING VERIFIED \u00b7 septic TO VERIFY"}, {"name": "5. Six-lot re-split", "description": "~2,400 sq ft per lot if split six ways - modern minimums likely block it", "fail_safe": "One township question; assume NO until confirmed", "source": "TO VERIFY - unlikely"}, {"name": "6. Seller financing", "description": "Land contract at markup converts one sale into an income stream; widens small-lot buyer pool", "fail_safe": "Foreclosure/servicing rules priced in first", "source": "ADVISORY mechanism"}, {"name": "7. Long hold", "description": "Lakes-corridor land at county-exempt pricing; carrying costs change post-purchase", "fail_safe": "Verify new tax assessment after recording", "source": "ADVISORY"}], "chain": [{"lot": "1920s", "before": "Lakewood Addition No 4 platted", "now": "Six lots created at 1920s lot sizes", "note": "Pre-dates modern zoning minimums - PUBLIC REFERENCE"}, {"lot": "Foreclosure cycle", "before": "Lots go tax-delinquent", "now": "County forecloses; Land Bank assembles all six", "note": "One parcel record: 61-06-404-067-0009-00 - VERIFIED"}, {"lot": "Jan 2025", "before": "2.42-ac bundle offered", "now": "Sold - $22,000", "note": "The one completed sale in this plat - VERIFIED"}, {"lot": "Today", "before": "Land Bank ownership, $0 exempt assessment", "now": "$1,000 offer pending, $1,500 ceiling", "note": "No auction, board approval - VERIFIED"}, {"lot": "Next", "before": "Approval + deed + title review", "now": "First-dibs letter to two neighbors", "note": "Only after ownership - STANDING RULE"}], "identity": [{"pin": "61-06-404-067-0009-00", "county": "Muskegon", "legal": "Lakewood Addition No 4, Lots 9-14, Block 67 - Fruitland Township", "verified": "Parcel ID, legal description: VERIFIED - county GIS, 2026-10-15"}, {"pin": "0.34 acres (156 ft x 101 ft)", "county": "Centroid 43.369102, -86.280804", "legal": "Boundary approximate pending Jet geometry return", "verified": "Size: VERIFIED - county GIS \u00b7 polygon: APPROXIMATE"}, {"pin": "Muskegon County Land Bank Authority", "county": "Owner of record", "legal": "$0 county-exempt assessment", "verified": "VERIFIED - county GIS owner field, 2026-10-15"}, {"pin": "HDR - High Density Residential", "county": "Fruitland Township", "legal": "SF + 2F by right; accessory by right; B&B special use; camping not listed", "verified": "VERIFIED - ordinance Art VIII, 2026-10-15"}, {"pin": "1461 W Lakewood \u00b7 0.67 ac \u00b7 $182,900 SEV", "county": "Adjacent owner", "legal": "+51% land absorption", "verified": "VERIFIED records \u00b7 interest UNKNOWN"}, {"pin": "6194 Whitehall Rd \u00b7 1.02 ac \u00b7 $158,200 SEV", "county": "Adjacent owner", "legal": "+33% land absorption", "verified": "VERIFIED records \u00b7 interest UNKNOWN"}, {"pin": "2.42-ac bundle \u00b7 $22,000 \u00b7 Jan 2025", "county": "Completed sale comp", "legal": "$9,091/acre - screening reference only", "verified": "VERIFIED sale \u00b7 screen use only"}, {"pin": "Mature tree cover", "county": "Operator observation", "legal": "Species, volume, condition UNKNOWN", "verified": "OPERATOR-REPORTED - forester cruise required"}], "portfolio": [{"id": "bundle", "county": "Muskegon", "name": "W Lakewood 6-Lot Bundle - subject", "channel": "OFFER", "price": 1000, "lat": 43.369102, "lng": -86.280804, "loc": "W Lakewood Rd, Fruitland Twp", "pin": "61-06-404-067-0009-00", "legal": "Lots 9-14 Blk 67", "why": "The subject parcel", "use": "land-bank", "rank": 1}, {"id": "n1", "county": "Muskegon", "name": "1461 W Lakewood (neighbor)", "channel": "", "price": 0, "lat": 43.36935, "lng": -86.28045, "loc": "Adjacent", "pin": "", "legal": "", "why": "+51% land absorption if purchased", "use": "neighbor", "rank": 2}, {"id": "n2", "county": "Muskegon", "name": "6194 Whitehall Rd (neighbor)", "channel": "", "price": 0, "lat": 43.36885, "lng": -86.28115, "loc": "Adjacent", "pin": "", "legal": "", "why": "+33% land absorption if purchased", "use": "neighbor", "rank": 3}, {"id": "n3", "county": "Muskegon", "name": "1433 W Lakewood (neighbor)", "channel": "", "price": 0, "lat": 43.3697, "lng": -86.2807, "loc": "Adjacent", "pin": "", "legal": "", "why": "Third verified neighbor home $143,100 SEV", "use": "neighbor", "rank": 4}, {"id": "p201", "county": "Muskegon", "name": "Nearest EGLE Part 201 site", "channel": "", "price": 0, "lat": 43.3605, "lng": -86.27, "loc": "0.60 mi", "pin": "", "legal": "", "why": "Risk undetermined - flagged not fatal", "use": "environmental", "rank": 5}], "layers": {"portfolio": [[43.369102, -86.280804, "W Lakewood Bundle - SUBJECT (0.34 ac)", "Muskegon", 1000, "OFFER"], [43.36935, -86.28045, "1461 W Lakewood - neighbor (0.67 ac, $182,900 SEV)", "Muskegon", 0, "NOW"], [43.36885, -86.28115, "6194 Whitehall Rd - neighbor (1.02 ac, $158,200 SEV)", "Muskegon", 0, "NOW"], [43.3697, -86.2807, "1433 W Lakewood - neighbor ($143,100 SEV)", "Muskegon", 0, "NOW"]], "part201_map": {"Nearest EGLE Part 201 site (0.60 mi, risk undetermined)": {"part201": [{"site": "Part 201 site", "dist_mi": 0.6, "risk": "Inadequate Data to Assign Risk"}], "ust": [], "brownfield": []}}}, "sources": [{"name": "Muskegon County GIS", "role": "Parcel identity, geometry, ownership, neighbor records", "url": "https://maps.muskegoncountygis.com", "class": "VERIFIED 2026-10-15"}, {"name": "Fruitland Twp Zoning Ordinance Art VIII (HDR)", "role": "Permitted uses by right / special use", "url": "https://fruitlandmi.gov/wp-content/uploads/2021/11/ARTICLE-VIII-HIGH-DENSITY-RESIDENTIAL-DISTRICT.pdf", "class": "VERIFIED 2026-10-15"}, {"name": "EGLE RRD OpenData", "role": "Part 201 site proximity (0.60 mi, risk undetermined)", "url": "https://gisagoegle.state.mi.us", "class": "VERIFIED 2026-10-15"}, {"name": "USFWS National Wetlands Inventory", "role": "Zero on-parcel wetland polygons", "url": "https://www.fws.gov/program/national-wetlands-inventory", "class": "VERIFIED 2026-10-15"}, {"name": "Muskegon County Land Bank", "role": "Offer process, 231-724-6170", "url": "https://www.muskegoncountymi.gov", "class": "VERIFIED contact"}, {"name": "Completed sale, Lakewood plat (Jan 2025)", "role": "$22,000 / 2.42 ac - screening reference", "url": "", "class": "VERIFIED \u00b7 screen only"}, {"name": "Tree cover observation", "role": "Mature cover on parcel; volume UNKNOWN", "url": "", "class": "OPERATOR-REPORTED"}, {"name": "Timber rights / title", "role": "MI Treasury surviving-interests review", "url": "https://www.michigan.gov/treasury", "class": "TO VERIFY at title review"}], "what_we_didnt_find": ["Timber volume or species - forester cruise required before any wood revenue is claimed", "Septic feasibility on 0.34 acres - the build-path gate", "Whether either neighbor would actually buy - untested until the first-dibs letter", "Whether a six-lot re-split is legal under modern minimums - assume no until the township says otherwise", "Post-purchase tax assessment - $0 exempt changes when a private owner records"]};
+const map = L.map('map',{zoomControl:true}).setView([43.369102, -86.280804], 17);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+ {maxZoom:19, attribution:'Esri, Maxar, Earthstar Geographics'}).addTo(map);
+const colors={NOW:'#34d399',OFFER:'#60a5fa',AUCTION:'#f59e0b'};
+R.layers.portfolio.forEach(p=>{
+  L.circleMarker([p[0],p[1]],{radius:8,color:'#0b111a',weight:2,fillColor:colors[p[5]]||'#f59e0b',fillOpacity:.95})
+   .addTo(map).bindPopup(`<b>${p[2]}</b><br>${p[3]} County · ${p[5]==='AUCTION'?'opens $'+p[4]:'$'+p[4]}`);
+});
+const p201g = L.layerGroup().addTo(map);
+Object.entries(R.layers.part201_map).forEach(([name,h])=>{
+  (h.part201||[]).forEach(s=>{
+    if(s.dist_mi!==undefined && s.lat===undefined){
+      // scan results carry dist only; skip plotting individual sites without coords
+    }
+  });
+});
+function evBadge(e,srcName,url){const cls=e.label[0]==='V'?'eV':(e.label[0]==='M'?'eM':(e.label==='PUBLIC REFERENCE'?'eP':(e.label==='PENDING'?'eD':'eA')));
+  return `<button class="ev ${cls}" data-src="${srcName}" data-url="${url||''}" onclick="showDrawer(this)">${e.label}</button>`;}
+let html='';
+R.sections.forEach((s,i)=>{
+  html+=`<div class="sec" id="sec${i}"><div class="kicker">${s.kicker}</div><h2>${s.title}</h2><div class="narr">${s.narration}</div>`;
+  if(i===0){
+    html+=`<div class="cards">`+R.cards.map(c=>`<div class="card"><div class="lbl">${c.label}</div><div class="val">${c.value}</div><div class="sub">${c.sub}</div>${evBadge(c.evidence,c.evidence.source,c.evidence.url)}</div>`).join('')+`</div>`;
+  }
+  if(i===1){
+    html+=`<div class="veclist">`+R.vectors.map(v=>`<div class="vec"><div class="n">VECTOR ${v.n} OF 12</div><div class="t">${v.risk}</div><div class="s">${v.story}</div><div class="fx"><b>FAIL-SAFE</b> — ${v.fix}</div><div class="sc">SOURCE: ${v.src}<br><b>Flagged in portfolio:</b> ${v.flagged}</div></div>`).join('')+`</div>`;
+  }
+  if(i===2){
+    html+=`<div class="chain">`+R.chain.map(c=>`<div class="chrow"><span class="nm">${c.name}</span><span class="was">${c.prior_bid}</span><span class="arrow">→</span><span class="now">${c.now}</span><span class="ratio">${c.ratio} drop</span></div>`).join('')+`</div>
+    <div class="clean" style="margin-top:12px"><ul>`+R.what_we_didnt_find.map(x=>`<li>✓ ${x}</li>`).join('')+`</ul></div>`;
+  }
+  if(i===3){
+    html+=`<table><tr><th>Parcel</th><th>PIN (verified)</th><th>County</th><th>Legal</th><th>SEV</th></tr>`+
+      R.identity.map(x=>`<tr><td><b>${x.name}</b></td><td>${x.pin}</td><td>${x.county}</td><td>${x.legal}</td><td>${x.sev?'$'+x.sev.toLocaleString():'$0'}</td></tr>`).join('')+`</table>`;
+  }
+  if(i===7){
+    html+=`<div class="srclist">`+R.sources.map(s=>{const cls=s.class==='VERIFIED'?'eV':(s.class==='MODELED'?'eM':(s.class==='PENDING'?'eD':'eP'));
+      return `<div class="src"><span class="cls ${cls}">${s.class}</span><span>${s.name}${s.url?` — <a style="color:#60a5fa" href="${s.url}" target="_blank">source</a>`:''}</span></div>`;}).join('')+`</div>`;
+  }
+  html+=`</div>`;
+});
+document.getElementById('list').innerHTML=html;
+let idx=0;
+function playReport(){
+  const secs=document.querySelectorAll('.sec');
+  if(idx>=secs.length){idx=0;return;}
+  secs[idx].scrollIntoView({behavior:'smooth',block:'start'});
+  const text=secs[idx].innerText.replace(/\s+/g,' ').slice(0,900);
+  if(window.speechSynthesis){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.rate=1.02;speechSynthesis.speak(u);}
+  idx++;
+}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight')playReport();if(e.key==='ArrowLeft'){idx=Math.max(0,idx-2);playReport();}});
+function showDrawer(b){
+  const d=document.getElementById('drawer');
+  d.innerHTML=`<b style="color:var(--acc)">${b.textContent}</b><br><span style="color:var(--mut)">Source:</span> ${b.dataset.src}`+
+    (b.dataset.url?`<br><a style="color:#60a5fa" href="${b.dataset.url}" target="_blank">Open source documentation →</a>`:'')+
+    `<br><span style="color:var(--mut);font-size:11px">Every claim in this report carries its evidence class. Click any badge to see its source.</span>`;
+  d.classList.add('open');
+  setTimeout(()=>d.classList.remove('open'),7000);
+}
+</script></body></html>
