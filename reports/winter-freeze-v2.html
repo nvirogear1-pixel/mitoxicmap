@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>WINTER FREEZE V2 - The Deep Dives</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{--bg:#0b111a;--panel:#121a26;--line:#223047;--txt:#e8eef7;--mut:#94a3b8;--acc:#00f5a3;--amber:#f59e0b;--red:#e53e3e;--blue:#60a5fa}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:var(--bg);color:var(--txt);font:15px/1.6 system-ui,sans-serif;overflow:hidden}
+#map{position:fixed;inset:0;z-index:1}
+#top{position:fixed;top:0;left:0;right:0;z-index:30;display:flex;justify-content:space-between;align-items:flex-start;padding:10px 18px;background:linear-gradient(180deg,rgba(7,11,18,.95),rgba(7,11,18,.6));border-bottom:1px solid var(--line)}
+#top .brand{font-size:12px;letter-spacing:.16em;color:var(--acc);font-weight:800}
+#top h1{font-size:17px;margin-top:2px}
+#top .meta{font-size:11.5px;color:var(--mut);margin-top:3px}
+.playbtn{background:var(--acc);color:#04131d;font-weight:800;border:none;border-radius:24px;padding:10px 18px;font-size:13px;cursor:pointer;box-shadow:0 0 24px rgba(0,245,163,.35);z-index:40}
+#panel{position:fixed;top:0;bottom:0;right:0;width:min(640px,100%);z-index:20;background:linear-gradient(90deg,rgba(11,17,26,0) 0%,rgba(11,17,26,.5) 14px,rgba(11,17,26,.97) 40px)}
+#panel .inner{position:absolute;top:78px;bottom:12px;left:44px;right:12px;overflow-y:auto;padding-right:6px}
+#panel .inner::-webkit-scrollbar{width:8px}#panel .inner::-webkit-scrollbar-thumb{background:#2a3a55;border-radius:4px}
+.sec{margin:26px 0 12px;scroll-margin-top:70px}
+.sec .kicker{font-size:11px;letter-spacing:.18em;color:var(--acc);font-weight:800}
+.sec h2{font-size:19px;margin:4px 0 8px}
+.sec .narr{font-size:14.5px;color:#cbd5e1;background:rgba(18,26,38,.72);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.card{background:rgba(18,26,38,.85);border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+.card .lbl{font-size:10.5px;letter-spacing:.1em;color:var(--mut);font-weight:700}
+.card .val{font-size:16.5px;font-weight:800;margin:3px 0}
+.card .sub{font-size:12px;color:var(--mut)}
+.ev{font-size:10px;font-weight:800;border:1px solid;border-radius:5px;padding:2px 7px;cursor:pointer;margin-top:7px;display:inline-block}
+.eV{color:var(--acc);border-color:var(--acc)}.eM{color:var(--amber);border-color:var(--amber)}.eP{color:#a5b4fc;border-color:#a5b4fc}.eA{color:var(--blue);border-color:var(--blue)}.eD{color:var(--red);border-color:var(--red)}
+.veclist{margin-top:12px}
+.vec{background:rgba(18,26,38,.85);border:1px solid var(--line);border-left:3px solid var(--red);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.vec .n{font-size:11px;color:var(--red);font-weight:800;letter-spacing:.1em}
+.vec .t{font-weight:800;font-size:14.5px;margin:2px 0 6px}
+.vec .s{font-size:13px;color:#cbd5e1}
+.vec .fx{font-size:13px;margin-top:7px;color:#a7f3d0}
+.vec .fx b{color:var(--acc);font-size:11.5px;letter-spacing:.08em}
+.vec .sc{font-size:11.5px;color:var(--mut);margin-top:6px;border-top:1px dashed #223047;padding-top:5px}
+.chain{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+.chrow{display:flex;align-items:center;gap:10px;background:rgba(18,26,38,.85);border:1px solid var(--line);border-radius:10px;padding:10px 13px;flex-wrap:wrap}
+.chrow .nm{font-weight:700;font-size:13.5px;flex:1;min-width:150px}
+.chrow .was{color:var(--red);font-weight:800;text-decoration:line-through;text-decoration-color:rgba(229,62,62,.55);font-size:14px}
+.chrow .arrow{color:var(--mut)}
+.chrow .now{color:var(--acc);font-weight:800;font-size:14px}
+.chrow .ratio{font-size:11px;color:var(--amber);border:1px solid var(--amber);border-radius:5px;padding:1px 6px}
+table{width:100%;border-collapse:collapse;margin-top:12px;font-size:12.5px}
+th{color:var(--acc);text-align:left;font-size:10.5px;letter-spacing:.1em;border-bottom:1px solid var(--line);padding:6px 8px}
+td{border-bottom:1px solid #1a2740;padding:7px 8px;vertical-align:top;color:#cbd5e1}
+td b{color:var(--txt)}
+.clean{background:rgba(18,26,38,.72);border:1px solid var(--line);border-radius:12px;padding:13px 16px;margin-top:12px}
+.clean li{list-style:none;font-size:13px;color:#a7f3d0;margin:5px 0}
+.srclist{margin-top:12px}
+.src{display:flex;gap:8px;align-items:baseline;font-size:12.5px;margin:7px 0;flex-wrap:wrap}
+.src .cls{font-size:9.5px;font-weight:800;border:1px solid;border-radius:4px;padding:1px 5px}
+#drawer{position:fixed;left:12px;bottom:12px;max-width:340px;background:rgba(13,21,34,.95);border:1px solid var(--line);border-radius:12px;padding:12px 15px;z-index:45;font-size:12.5px;color:#cbd5e1;opacity:0;pointer-events:none;transition:opacity .3s}
+#drawer.open{opacity:1}
+.legend{position:fixed;left:12px;bottom:12px;z-index:25;background:rgba(11,18,32,.85);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:11.5px}
+.legend .row{display:flex;align-items:center;gap:7px;margin:3px 0}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+@media (max-width:700px){#panel .inner{left:12px;top:120px}.cards{grid-template-columns:1fr}.legend{display:none}}
+</style></head><body>
+<div id="map"></div>
+<div id="top">
+  <div><div class="brand">NVIROGEAR PROPERTY INTELLIGENCE</div>
+  <h1>The Winter Freeze V2 — The Deep Dives</h1>
+  <div class="meta">15 targets · Mid & Northern Michigan · The 12 ways investors get screwed, the fail-safe for each, and what actually happened to these lots · 2026-10-15</div></div>
+  <button class="playbtn" onclick="playReport()">▶ Read This Report</button>
+</div>
+<div class="legend" id="legendbox">
+  <div class="row"><span class="dot" style="background:#f59e0b"></span>Oct 30 auction lot</div>
+  <div class="row"><span class="dot" style="background:#60a5fa"></span>Land bank offer</div>
+  <div class="row"><span class="dot" style="background:#34d399"></span>Buy now OTC</div>
+  <div class="row"><span class="dot" style="background:#e53e3e;border:2px solid #fff"></span>Part 201 site (EGLE)</div>
+</div>
+<div id="panel"><div class="inner" id="list"></div></div>
+<div id="drawer"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const R = {"brand": "NVIROGEAR PROPERTY INTELLIGENCE", "title": "The Winter Freeze V2 \u2014 The Deep Dives", "subtitle": "Five properties, every money path, fleet dispatched on all of them \u00b7 locations approximate pending Jet geometry \u00b7 2026-10-17", "cards": [{"id": "fleet", "label": "FLEET DISPATCHED", "value": "6 tasks, 5 counties", "sub": "Jet: Michaywe x3, Sugar Springs x9, Miramichi x6, Mason + Pentwater identity. Historian: Michaywe history + POA dues sweep", "evidence": {"label": "RUNNING", "source": "Jet tasks bsger7/w3g134/npgxlm/9iri6p + Historian inboxes 6ad350bc/6ad350bc", "url": ""}}, {"id": "board", "label": "THE EXPANDED BOARD", "value": "23 lots under $500", "sub": "Michaywe 3 lots x $100 \u00b7 Sugar Springs 9 x $100 \u00b7 Miramichi 6 x $100 \u00b7 Mason $100 \u00b7 Pentwater $500", "evidence": {"label": "VERIFIED", "source": "tax-sale.info catalog + surplus lists, checked 2026-10-15", "url": "https://www.tax-sale.info"}}, {"id": "assembly", "label": "THE NEW THESIS", "value": "Assembly beats singles", "sub": "Same-street pairs found in every sub: Highlanders Way x2, Armchester Ct x2, Sarsi Cove x2, Shoshone Trl x2 - the county's own catalog structures our clusters", "evidence": {"label": "VERIFIED catalog", "source": "Gladwin + Osceola catalog pages", "url": "https://www.tax-sale.info"}}, {"id": "bidsheet", "label": "TOTAL COMMITMENT", "value": "Under $2,100 at ceilings", "sub": "Every max bid computed from documented anchors; losing any bid costs $0", "evidence": {"label": "DISCIPLINE", "source": "Sealed-bid rules, one submission per lot", "url": ""}}], "sections": [{"kicker": "1 - THE BOARD", "title": "Everything But The First Two", "narration": "Lakewood and Copemish are done - their packets stand. This round deep-dives everything else: Pentwater at $500 over the counter, the three-lot Michaywe block in Otsego County, the nine-lot Sugar Springs field in Gladwin, the six-lot Miramichi cluster in Osceola, and the half-acre Benson Road parcel in Mason. The catalog itself just upgraded the game: every one of these subs is selling MULTIPLE lots at $100 in the same sale - Highlanders Way twice, Armchester Court twice, Sarsi Cove twice, Shoshone Trail twice. Where the county structures same-street pairs, assembly is the default play, not the exception. And the county's own honesty flags are doing our risk work: the access-issue lots and the 0.19-acre Ludington scrap are flagged in the listings themselves and stay off our bid sheet."}, {"kicker": "2 - PENTWATER", "title": "$500, Village Lot, First Come", "narration": "Oceana County surplus lot 640200: vacant land in the Village of Pentwater, $500 flat, no auction, no defects flagged in the county's own listing. The village context is the value: water and sewer infrastructure, walkable downtown, Lake Michigan ten minutes west. Assessed at $16,400 - the widest verified value gap on the board. What is NOT yet verified: the parcel ID, the lot dimensions, utilities at the street, and short-term-rental rules. None of those require money - they require one phone call to the Oceana County Treasurer (get the PIN and process) and one to the village office (get zoning and utilities). Because this is first-come, the real risk is not price - it is another buyer arriving first. Grade: BUY CANDIDATE, green pending the PIN confirm. Move: treasurer call this week, $500 cashier's check ready."}, {"kicker": "3 - MICHAYWE ASSEMBLY", "title": "Three Lots, $100 Each, Gaylord Corridor", "narration": "Three Michaywe lots at $100 in one auction: 6101 (0.48 acre, Opal Lake Road, PIN 011-510-000-033-00, SEV $900), 6102 (0.41, Navajo Trail), 6139 (0.37, Porcupine Path). Michaywe is the strongest sub on this board - a year-round community with golf and lakes in the Gaylord corridor, and completed lots there have retail depth. The three streets do not suggest adjacency, so Jet is pulling the geometry to say whether any pair touches. If none do, this is three independent resale lots at $150 ceilings - still a triple-your-money class play if dues behave. The dues are the gate: Historian is sweeping the POA records now. Grade: INVESTIGATE, yellow pending dues and adjacency. Max: $150 per lot."}, {"kicker": "4 - SUGAR SPRINGS", "title": "Nine Lots, One Field, Pick The Pairs", "narration": "Gladwin County is liquidating nine Sugar Springs lots at $100 each, and we already hold two verified PINs: Highlander Realm Lot 485 (SEV $3,300) and Queens Realm Lot 38 (SEV $4,300) - both failed earlier at $1,932 and $1,750 minimums, an 18-19x collapse with no fraud, just forced liquidation. The pairs sit on the same streets: Highlanders Way (7218, 7219), Armchester Court (7229, 7230). Jet is mapping which lots physically touch; the discipline stands regardless: bids go on ADJACENT pairs or triples only, never scattered singles. Dues are the standing risk in every POA sub - Historian's dues sweep covers it. Grade: INVESTIGATE, yellow pending adjacency + dues. Max: $150 per lot, adjacent clusters only."}, {"kicker": "5 - MIRAMICHI CLUSTER", "title": "Own The Whole Pocket", "narration": "Six Lake Miramichi POA lots at $100 each: Pawnee Trail, Sarsi Cove twice, Cayuga Trail (Lot 685, PIN 03-384-685-00, 0.43 acre, SEV $700), and Shoshone Trail twice - roughly 2.3 acres combined for $600 in bids. Single-lot resale here is dead on arrival: the county is the competition at the same $100. The play is supply control - own every county lot in the pocket and the resale math inverts: privacy-hungry lake-area owners and expansion buyers negotiate with the only seller left. Two gates decide it: the POA dues statement (a $400/year dues bill kills the cluster carry) and the FEMA flood check on a lake sub. Jet is pulling all six boundaries plus the county's total Miramichi inventory count. Grade: yellow pending dues + flood. Max: $100 per lot - never outbid a government liquidation."}, {"kicker": "6 - MASON", "title": "Half An Acre On A Named Road", "narration": "Mason Lot 4614: one-half acre on Benson Road, Tallman Township, $100 sealed bid. The named road is the signal - this is platted frontage class, the buildable-lot profile the board needs, in west-side Mason County. Not yet verified: actual frontage width, zoning, septic feasibility, and the PIN - Jet's Mason task covers all four. The Ludington lot 4620 next to it in the catalog (0.19 acre) is rejected on size alone. Grade: yellow pending frontage and zoning. Max: $150 - and if frontage confirms at a half acre in a west-side township, this becomes a green the same day."}, {"kicker": "7 - THE BID SHEET", "title": "One Number Per Lot, Locked", "narration": "The Oct 30 bid sheet as of today: Pentwater $500 OTC (not an auction lot - buy it this week, do not wait). Michaywe: $150 x 3 lots. Sugar Springs: $150 per lot on confirmed-adjacent clusters only. Miramichi: $100 x 6. Mason 4614: $150. Copemish: $300. Total at every ceiling including fees: under $2,600 - inside even the $3,000 scenario with room for the Lakewood offer beside it. Every max traces to a documented anchor; every loss is a walk-away that costs zero. The sheet locks October 29 and does not move on auction-day adrenaline."}, {"kicker": "8 - THE VERIFICATIONS", "title": "Who Is Checking What, And When", "narration": "Jet: Michaywe three-lot geometry and road status (npgxlm), Sugar Springs nine-lot adjacency map (9iri6p), Miramichi six-lot boundaries plus total county inventory (w3g134), Mason frontage and PIN plus the Pentwater parcel identity (bsger7). Historian: Michaywe Lot 33 full history - prior sales, STR rules, dues - and a Gladwin/Osceola dues sweep covering Sugar Springs and Lake Miramichi POAs. Human calls that no bot can make: Oceana County Treasurer for the Pentwater PIN and process, both POA offices for written dues statements, and FEMA map checks on the lake subs. When the fleet returns, every yellow grade re-scores, the bid sheet re-locks, and V3 is the final pre-auction cut. No purchases, bids, or owner contact without the operator's green light."}], "vectors": [{"name": "Pentwater - village resale", "description": "$16.4K SEV lot at $500 OTC - widest verified gap on the board", "fail_safe": "PIN + utilities confirm before cashier's check; first-come risk = move fast", "source": "VERIFIED listing \u00b7 PIN TO VERIFY"}, {"name": "Michaywe - 3-lot assembly", "description": "$100 x 3 lots, Gaylord corridor sub with retail depth", "fail_safe": "Dues statement first; adjacency determines assembly vs 3 singles", "source": "CATALOG VERIFIED \u00b7 dues/adjacency TO VERIFY"}, {"name": "Sugar Springs - pair assembly", "description": "9 lots at $100; verified PINs carry $3.3K-$4.3K SEVs", "fail_safe": "Bid ADJACENT clusters only; never scattered singles", "source": "VERIFIED prior 18-19x collapse"}, {"name": "Miramichi - supply control", "description": "All 6 county lots = ~2.3 acres; own the pocket, invert resale math", "fail_safe": "$100/lot flat - never outbid the liquidation; dues + FEMA first", "source": "VERIFIED catalog \u00b7 dues/flood TO VERIFY"}, {"name": "Mason - rural building site", "description": "0.5 acre on named road, west-side county", "fail_safe": "Frontage width + zoning confirm before bid day", "source": "CATALOG VERIFIED \u00b7 frontage TO VERIFY"}, {"name": "Standing rule - POA dues", "description": "Dues attach as liens and create the foreclosure cycles we buy from", "fail_safe": "Written dues statement before ANY POA-sub bid; factor 10 years into max", "source": "DOCTRINE"}, {"name": "Standing rule - access flags", "description": "County listings flag 'access issues' honestly - Gladwin 7204 and 7232", "fail_safe": "Any flagged lot stays off the bid sheet, period", "source": "CATALOG VERIFIED"}, {"name": "Standing rule - flood lakes", "description": "Lake subs carry FEMA exposure: Miramichi flagged under the flood vector", "fail_safe": "Two-minute FEMA MSC check per lake-sub lot before bidding", "source": "RISK REGISTER"}], "chain": [{"lot": "Sugar Springs Lot 485", "before": "$1,932.53 minimum", "now": "$100", "note": "19x collapse, no sale at old price - VERIFIED prior catalog"}, {"lot": "Sugar Springs Lot 38", "before": "$1,750.58 minimum", "now": "$100", "note": "18x collapse - VERIFIED prior catalog"}, {"lot": "Michaywe Lot 33", "before": "$900 SEV, retail sub", "now": "$100 min", "note": "First verified observation this cycle - prior result TO VERIFY"}, {"lot": "Miramichi Lot 685", "before": "$700 SEV, 0.43 ac POA lot", "now": "$100 min", "note": "Five sibling lots at same price - VERIFIED catalog"}, {"lot": "Pentwater village lot", "before": "$16,400 SEV", "now": "$500 flat OTC", "note": "Widest gap on the board - VERIFIED surplus list"}], "identity": [{"pin": "Oceana surplus lot 640200", "county": "Oceana", "legal": "Vacant Land In The Village Of Pentwater - PIN TO VERIFY", "verified": "VERIFIED listing \u00b7 PIN unknown"}, {"pin": "011-510-000-033-00", "county": "Otsego", "legal": "Michaywe No 1, Lot 33, Opal Lake Rd, 0.48 ac, SEV $900", "verified": "VERIFIED from lot page"}, {"pin": "060-091-000-485-00", "county": "Gladwin", "legal": "Highlander Realm No 2, Lot 485, SEV $3,300", "verified": "VERIFIED from lot page"}, {"pin": "060-160-000-038-00", "county": "Gladwin", "legal": "Queens Realm Sub, Lot 38, Princess Ct, SEV $4,300", "verified": "VERIFIED from lot page"}, {"pin": "03-384-685-00", "county": "Osceola", "legal": "Lake Miramichi Subd No 4, Lot 685, Cayuga Trl, 0.43 ac, SEV $700", "verified": "VERIFIED from lot page"}, {"pin": "Mason lot 4614", "county": "Mason", "legal": "1/2 Acre Parcel On Benson Rd - Tallman - PIN TO VERIFY", "verified": "VERIFIED listing \u00b7 PIN unknown"}], "portfolio": [], "layers": {"portfolio": [[43.7745, -86.4378, "Pentwater village lot - $500 OTC (approx loc)", "Oceana", 500, "NOW"], [45.03, -84.68, "Michaywe 3-lot block - $100 each (approx loc)", "Otsego", 100, "AUCTION"], [43.94, -84.39, "Sugar Springs 9-lot field - $100 each (approx loc)", "Gladwin", 100, "AUCTION"], [43.87, -85.22, "Miramichi 6-lot cluster - $100 each (approx loc)", "Osceola", 100, "AUCTION"], [43.95, -86.25, "Mason Benson Rd 0.5 ac - $100 (approx loc)", "Mason", 100, "AUCTION"], [43.369102, -86.280804, "W Lakewood bundle - DONE (deep dive stands)", "Muskegon", 1000, "OFFER"], [44.24, -85.85, "Copemish 4.17 ac - DONE (deep dive stands)", "Manistee", 100, "AUCTION"]], "part201_map": {}}, "sources": [{"name": "tax-sale.info catalogs - Osceola, Gladwin, Otsego, Mason lot pages", "role": "Lot numbers, streets, sizes, min bids, PINs, SEVs", "url": "https://www.tax-sale.info", "class": "VERIFIED 2026-10-15"}, {"name": "Oceana County 2026 surplus list", "role": "Pentwater lot 640200, $500", "url": "https://www.tax-sale.info", "class": "VERIFIED 2026-10-14"}, {"name": "Jet fleet dispatches (4 tasks, 5 counties)", "role": "Geometry, adjacency, frontage, identity - RUNNING", "url": "", "class": "IN PROGRESS 2026-10-17"}, {"name": "Historian sweeps (2 tasks)", "role": "Michaywe history, POA dues for Sugar Springs + Lake Miramichi", "url": "", "class": "IN PROGRESS 2026-10-17"}, {"name": "POA dues statements", "role": "Written dues + special assessments per sub", "url": "", "class": "TO VERIFY before bids"}, {"name": "FEMA Map Service Center", "role": "Flood zone check on lake-sub lots", "url": "https://msc.fema.gov", "class": "TO VERIFY before bids"}, {"name": "Oceana County Treasurer", "role": "Pentwater PIN + purchase process", "url": "", "class": "TO VERIFY this week"}], "what_we_didnt_find": ["POA dues for Michaywe, Sugar Springs, and Lake Miramichi - Historian sweeping, written statements still required", "Adjacency between the Michaywe, Sugar Springs, and Miramichi lots - Jet pulling geometry now", "FEMA flood status for the lake-sub lots - two-minute checks owed before any bid", "Pentwater parcel ID and dimensions - treasurer call", "Mason frontage width, zoning, and PIN - Jet task running", "Any prior-cycle auction results for Michaywe and Miramichi lots"]};
+const map = L.map('map',{zoomControl:true}).setView([44.4,-85.2],7);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+ {maxZoom:19, attribution:'Esri, Maxar, Earthstar Geographics'}).addTo(map);
+const colors={NOW:'#34d399',OFFER:'#60a5fa',AUCTION:'#f59e0b'};
+R.layers.portfolio.forEach(p=>{
+  L.circleMarker([p[0],p[1]],{radius:8,color:'#0b111a',weight:2,fillColor:colors[p[5]]||'#f59e0b',fillOpacity:.95})
+   .addTo(map).bindPopup(`<b>${p[2]}</b><br>${p[3]} County · ${p[5]==='AUCTION'?'opens $'+p[4]:'$'+p[4]}`);
+});
+const p201g = L.layerGroup().addTo(map);
+Object.entries(R.layers.part201_map).forEach(([name,h])=>{
+  (h.part201||[]).forEach(s=>{
+    if(s.dist_mi!==undefined && s.lat===undefined){
+      // scan results carry dist only; skip plotting individual sites without coords
+    }
+  });
+});
+function evBadge(e,srcName,url){const cls=e.label[0]==='V'?'eV':(e.label[0]==='M'?'eM':(e.label==='PUBLIC REFERENCE'?'eP':(e.label==='PENDING'?'eD':'eA')));
+  return `<button class="ev ${cls}" data-src="${srcName}" data-url="${url||''}" onclick="showDrawer(this)">${e.label}</button>`;}
+let html='';
+R.sections.forEach((s,i)=>{
+  html+=`<div class="sec" id="sec${i}"><div class="kicker">${s.kicker}</div><h2>${s.title}</h2><div class="narr">${s.narration}</div>`;
+  if(i===0){
+    html+=`<div class="cards">`+R.cards.map(c=>`<div class="card"><div class="lbl">${c.label}</div><div class="val">${c.value}</div><div class="sub">${c.sub}</div>${evBadge(c.evidence,c.evidence.source,c.evidence.url)}</div>`).join('')+`</div>`;
+  }
+  if(i===1){
+    html+=`<div class="veclist">`+R.vectors.map(v=>`<div class="vec"><div class="n">VECTOR ${v.n} OF 12</div><div class="t">${v.risk}</div><div class="s">${v.story}</div><div class="fx"><b>FAIL-SAFE</b> — ${v.fix}</div><div class="sc">SOURCE: ${v.src}<br><b>Flagged in portfolio:</b> ${v.flagged}</div></div>`).join('')+`</div>`;
+  }
+  if(i===2){
+    html+=`<div class="chain">`+R.chain.map(c=>`<div class="chrow"><span class="nm">${c.name}</span><span class="was">${c.prior_bid}</span><span class="arrow">→</span><span class="now">${c.now}</span><span class="ratio">${c.ratio} drop</span></div>`).join('')+`</div>
+    <div class="clean" style="margin-top:12px"><ul>`+R.what_we_didnt_find.map(x=>`<li>✓ ${x}</li>`).join('')+`</ul></div>`;
+  }
+  if(i===3){
+    html+=`<table><tr><th>Parcel</th><th>PIN (verified)</th><th>County</th><th>Legal</th><th>SEV</th></tr>`+
+      R.identity.map(x=>`<tr><td><b>${x.name}</b></td><td>${x.pin}</td><td>${x.county}</td><td>${x.legal}</td><td>${x.sev?'$'+x.sev.toLocaleString():'$0'}</td></tr>`).join('')+`</table>`;
+  }
+  if(i===7){
+    html+=`<div class="srclist">`+R.sources.map(s=>{const cls=s.class==='VERIFIED'?'eV':(s.class==='MODELED'?'eM':(s.class==='PENDING'?'eD':'eP'));
+      return `<div class="src"><span class="cls ${cls}">${s.class}</span><span>${s.name}${s.url?` — <a style="color:#60a5fa" href="${s.url}" target="_blank">source</a>`:''}</span></div>`;}).join('')+`</div>`;
+  }
+  html+=`</div>`;
+});
+document.getElementById('list').innerHTML=html;
+let idx=0;
+function playReport(){
+  const secs=document.querySelectorAll('.sec');
+  if(idx>=secs.length){idx=0;return;}
+  secs[idx].scrollIntoView({behavior:'smooth',block:'start'});
+  const text=secs[idx].innerText.replace(/\s+/g,' ').slice(0,900);
+  if(window.speechSynthesis){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.rate=1.02;speechSynthesis.speak(u);}
+  idx++;
+}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight')playReport();if(e.key==='ArrowLeft'){idx=Math.max(0,idx-2);playReport();}});
+function showDrawer(b){
+  const d=document.getElementById('drawer');
+  d.innerHTML=`<b style="color:var(--acc)">${b.textContent}</b><br><span style="color:var(--mut)">Source:</span> ${b.dataset.src}`+
+    (b.dataset.url?`<br><a style="color:#60a5fa" href="${b.dataset.url}" target="_blank">Open source documentation →</a>`:'')+
+    `<br><span style="color:var(--mut);font-size:11px">Every claim in this report carries its evidence class. Click any badge to see its source.</span>`;
+  d.classList.add('open');
+  setTimeout(()=>d.classList.remove('open'),7000);
+}
+</script></body></html>
