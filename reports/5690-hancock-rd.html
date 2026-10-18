@@ -164,13 +164,18 @@ function loadVoices(){
   }
 }
 function speakNext(){
-  if(qi>=queue.length){ setPlaying(false); return; }
+  if(qi>=queue.length){
+    if(idx<SECS.length){ setTimeout(()=>playReport(), 900); }
+    else { setPlaying(false); }
+    return;
+  }
   const u=new SpeechSynthesisUtterance(queue[qi]);
   if(VOICE) u.voice=VOICE;
   u.rate=RATE; u.pitch=0.96;
   u.onend=()=>{ qi++; setTimeout(speakNext, qi<queue.length?430:250); };
   u.onerror=()=>{ qi++; setTimeout(speakNext, 150); };
   speechSynthesis.speak(u);
+  if(speechSynthesis.paused) speechSynthesis.resume();
 }
 let queue=[], qi=0;
 function buildQueue(sec){
@@ -183,17 +188,22 @@ function buildQueue(sec){
   const st = speakable(text);
   return (st.match(/[^.!?…]+[.!?…]+/g)||[st]).map(s=>s.trim()).filter(Boolean);
 }
+let SECS=[];
 function playReport(){
-  const secs=document.querySelectorAll(".sec");
-  if(!secs.length) return;
-  if(idx>=secs.length){idx=0; setPlaying(false); return;}
-  secs[idx].scrollIntoView({behavior:"smooth",block:"start"});
+  if(window.speechSynthesis && (speechSynthesis.speaking||speechSynthesis.pending)){
+    speechSynthesis.cancel(); setPlaying(false); idx=Math.max(0,idx-1); return;
+  }
+  SECS=document.querySelectorAll(".sec");
+  if(!SECS.length) return;
+  if(idx>=SECS.length){idx=0; setPlaying(false); return;}
+  SECS[idx].scrollIntoView({behavior:"smooth",block:"start"});
   if(window.speechSynthesis){
-    speechSynthesis.cancel(); queue=buildQueue(secs[idx]); qi=0;
-    if(queue.length) setTimeout(speakNext, 350);
+    if(speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
+    queue=buildQueue(SECS[idx]); qi=0;
+    setPlaying(true);
+    if(queue.length) speakNext();
   }
   idx++;
-  if(idx>=secs.length) setTimeout(()=>setPlaying(false), 1000);
 }
 function setPlaying(on){
   const b=document.getElementById("play");
