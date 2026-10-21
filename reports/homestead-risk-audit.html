@@ -62,7 +62,7 @@ td b{color:var(--txt)}
   <div><div class="brand">NVIROGEAR PROPERTY INTELLIGENCE</div>
   <h1>Land Investor Risk Audit — Homestead Extravaganza</h1>
   <div class="meta">15 targets · Mid & Northern Michigan · The 12 ways investors get screwed, the fail-safe for each, and what actually happened to these lots · 2026-10-15</div></div>
-  <button class="playbtn" onclick="playReport()">▶ Read This Report</button>
+  <button class="playbtn" id="play" onclick="playReport()">▶ Read This Report</button>
 </div>
 <div class="legend" id="legendbox">
   <div class="row"><span class="dot" style="background:#f59e0b"></span>Oct 30 auction lot</div>
@@ -188,29 +188,53 @@ function buildQueue(sec){
   const st = speakable(text);
   return (st.match(/[^.!?…]+[.!?…]+/g)||[st]).map(s=>s.trim()).filter(Boolean);
 }
-let SECS=[];
-function playReport(){
-  if(window.speechSynthesis && (speechSynthesis.speaking||speechSynthesis.pending)){
-    speechSynthesis.cancel(); setPlaying(false); idx=Math.max(0,idx-1); return;
-  }
-  SECS=document.querySelectorAll(".sec");
-  if(!SECS.length) return;
-  if(idx>=SECS.length){idx=0; setPlaying(false); return;}
-  SECS[idx].scrollIntoView({behavior:"smooth",block:"start"});
-  if(window.speechSynthesis){
-    if(speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
-    queue=buildQueue(SECS[idx]); qi=0;
-    setPlaying(true);
-    if(queue.length) speakNext();
-  }
-  idx++;
-}
+let idx=0;
+let SECS=[]; let READING=false; let GEN=0;
 function setPlaying(on){
   const b=document.getElementById("play");
   if(b) b.innerHTML = on? "❚❚ Reading…" : "▶ Read This Report";
 }
-
-document.addEventListener('keydown',e=>{if(e.key==='ArrowRight')playReport();if(e.key==='ArrowLeft'){idx=Math.max(0,idx-2);playReport();}});
+function stopSpeech(){
+  READING=false; GEN++;
+  if(window.speechSynthesis) speechSynthesis.cancel();
+  setPlaying(false);
+}
+function playReport(){
+  if(READING){ stopSpeech(); return; }
+  if(!window.speechSynthesis) return;
+  SECS=document.querySelectorAll(".sec");
+  if(!SECS.length) return;
+  if(idx>=SECS.length) idx=0;
+  speechSynthesis.cancel();
+  const gen=++GEN;
+  READING=true;
+  setPlaying(true);
+  playSection(gen, idx);
+}
+function playSection(gen, i){
+  if(gen!==GEN || !READING) return;
+  if(SECS[i].scrollIntoView) SECS[i].scrollIntoView({behavior:"smooth",block:"start"});
+  queue=buildQueue(SECS[i]); qi=0;
+  if(queue.length) speakNext(gen); else sectionDone(gen);
+}
+function speakNext(gen){
+  if(gen!==GEN || !READING) return;
+  if(qi>=queue.length){ sectionDone(gen); return; }
+  const u=new SpeechSynthesisUtterance(queue[qi]);
+  if(VOICE) u.voice=VOICE;
+  u.rate=RATE; u.pitch=0.96;
+  u.onend=()=>{ if(gen!==GEN||!READING) return; qi++; setTimeout(()=>speakNext(gen), 420); };
+  u.onerror=()=>{ if(gen!==GEN||!READING) return; qi++; setTimeout(()=>speakNext(gen), 150); };
+  speechSynthesis.speak(u);
+  if(speechSynthesis.paused) speechSynthesis.resume();
+}
+function sectionDone(gen){
+  if(gen!==GEN || !READING) return;
+  idx++;
+  if(idx<SECS.length) setTimeout(()=>playSection(gen, idx), 900);
+  else stopSpeech();
+}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'){idx=Math.min(idx+1,Math.max(0,SECS.length-1)); if(READING) playSection(++GEN,idx);}if(e.key==='ArrowLeft'){idx=Math.max(0,idx-1); if(READING) playSection(++GEN,idx);}});
 function showDrawer(b){
   const d=document.getElementById('drawer');
   d.innerHTML=`<b style="color:var(--acc)">${b.textContent}</b><br><span style="color:var(--mut)">Source:</span> ${b.dataset.src}`+
