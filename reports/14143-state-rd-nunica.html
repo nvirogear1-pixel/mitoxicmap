@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>14143 State Road Nunica - Full Parcel Intelligence Report</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{--bg:#0b111a;--panel:#121a26;--line:#223047;--txt:#e8eef7;--mut:#94a3b8;--acc:#00f5a3;--amber:#f59e0b;--red:#e53e3e;--blue:#60a5fa}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:var(--bg);color:var(--txt);font:15px/1.6 system-ui,sans-serif;overflow:hidden}
+#map{position:fixed;inset:0;z-index:1}
+#top{position:fixed;top:0;left:0;right:0;z-index:30;display:flex;justify-content:space-between;align-items:flex-start;padding:10px 18px;background:linear-gradient(180deg,rgba(7,11,18,.95),rgba(7,11,18,.6));border-bottom:1px solid var(--line)}
+#top .brand{font-size:12px;letter-spacing:.16em;color:var(--acc);font-weight:800}
+#top h1{font-size:17px;margin-top:2px}
+#top .meta{font-size:11.5px;color:var(--mut);margin-top:3px}
+.playbtn{background:var(--acc);color:#04131d;font-weight:800;border:none;border-radius:24px;padding:10px 18px;font-size:13px;cursor:pointer;box-shadow:0 0 24px rgba(0,245,163,.35);z-index:40}
+#panel{position:fixed;top:0;bottom:0;right:0;width:min(640px,100%);z-index:20;background:linear-gradient(90deg,rgba(11,17,26,0) 0%,rgba(11,17,26,.5) 14px,rgba(11,17,26,.97) 40px)}
+#panel .inner{position:absolute;top:78px;bottom:12px;left:44px;right:12px;overflow-y:auto;padding-right:6px}
+#panel .inner::-webkit-scrollbar{width:8px}#panel .inner::-webkit-scrollbar-thumb{background:#2a3a55;border-radius:4px}
+.sec{margin:26px 0 12px;scroll-margin-top:70px}
+.sec .kicker{font-size:11px;letter-spacing:.18em;color:var(--acc);font-weight:800}
+.sec h2{font-size:19px;margin:4px 0 8px}
+.sec .narr{font-size:14.5px;color:#cbd5e1;background:rgba(18,26,38,.72);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.card{background:rgba(18,26,38,.85);border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+.card .lbl{font-size:10.5px;letter-spacing:.1em;color:var(--mut);font-weight:700}
+.card .val{font-size:16.5px;font-weight:800;margin:3px 0}
+.card .sub{font-size:12px;color:var(--mut)}
+.ev{font-size:10px;font-weight:800;border:1px solid;border-radius:5px;padding:2px 7px;cursor:pointer;margin-top:7px;display:inline-block}
+.eV{color:var(--acc);border-color:var(--acc)}.eM{color:var(--amber);border-color:var(--amber)}.eP{color:#a5b4fc;border-color:#a5b4fc}.eA{color:var(--blue);border-color:var(--blue)}.eD{color:var(--red);border-color:var(--red)}
+.veclist{margin-top:12px}
+.vec{background:rgba(18,26,38,.85);border:1px solid var(--line);border-left:3px solid var(--red);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.vec .n{font-size:11px;color:var(--red);font-weight:800;letter-spacing:.1em}
+.vec .t{font-weight:800;font-size:14.5px;margin:2px 0 6px}
+.vec .s{font-size:13px;color:#cbd5e1}
+.vec .fx{font-size:13px;margin-top:7px;color:#a7f3d0}
+.vec .fx b{color:var(--acc);font-size:11.5px;letter-spacing:.08em}
+.vec .sc{font-size:11.5px;color:var(--mut);margin-top:6px;border-top:1px dashed #223047;padding-top:5px}
+.chain{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+.chrow{display:flex;align-items:center;gap:10px;background:rgba(18,26,38,.85);border:1px solid var(--line);border-radius:10px;padding:10px 13px;flex-wrap:wrap}
+.chrow .nm{font-weight:700;font-size:13.5px;flex:1;min-width:150px}
+.chrow .was{color:var(--red);font-weight:800;text-decoration:line-through;text-decoration-color:rgba(229,62,62,.55);font-size:14px}
+.chrow .arrow{color:var(--mut)}
+.chrow .now{color:var(--acc);font-weight:800;font-size:14px}
+.chrow .ratio{font-size:11px;color:var(--amber);border:1px solid var(--amber);border-radius:5px;padding:1px 6px}
+table{width:100%;border-collapse:collapse;margin-top:12px;font-size:12.5px}
+th{color:var(--acc);text-align:left;font-size:10.5px;letter-spacing:.1em;border-bottom:1px solid var(--line);padding:6px 8px}
+td{border-bottom:1px solid #1a2740;padding:7px 8px;vertical-align:top;color:#cbd5e1}
+td b{color:var(--txt)}
+.clean{background:rgba(18,26,38,.72);border:1px solid var(--line);border-radius:12px;padding:13px 16px;margin-top:12px}
+.clean li{list-style:none;font-size:13px;color:#a7f3d0;margin:5px 0}
+.srclist{margin-top:12px}
+.src{display:flex;gap:8px;align-items:baseline;font-size:12.5px;margin:7px 0;flex-wrap:wrap}
+.src .cls{font-size:9.5px;font-weight:800;border:1px solid;border-radius:4px;padding:1px 5px}
+#drawer{position:fixed;left:12px;bottom:12px;max-width:340px;background:rgba(13,21,34,.95);border:1px solid var(--line);border-radius:12px;padding:12px 15px;z-index:45;font-size:12.5px;color:#cbd5e1;opacity:0;pointer-events:none;transition:opacity .3s}
+#drawer.open{opacity:1}
+.legend{position:fixed;left:12px;bottom:12px;z-index:25;background:rgba(11,18,32,.85);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:11.5px}
+.legend .row{display:flex;align-items:center;gap:7px;margin:3px 0}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+@media (max-width:700px){#panel .inner{left:12px;top:120px}.cards{grid-template-columns:1fr}.legend{display:none}}
+</style></head><body>
+<div id="map"></div>
+<div id="top">
+  <div><div class="brand">NVIROGEAR PROPERTY INTELLIGENCE</div>
+  <h1>14143 State Road - Full Parcel Intelligence Report</h1>
+  <div class="meta">15 targets · Mid & Northern Michigan · 3.25 acres, Nunica - the parcel, the neighbors, the environmental radius, the money paths · 2026-10-15</div></div>
+  <button class="playbtn" onclick="playReport()">▶ Read This Report</button>
+</div>
+<div class="legend" id="legendbox">
+  <div class="row"><span class="dot" style="background:#f59e0b"></span>Oct 30 auction lot</div>
+  <div class="row"><span class="dot" style="background:#60a5fa"></span>Land bank offer</div>
+  <div class="row"><span class="dot" style="background:#34d399"></span>Buy now OTC</div>
+  <div class="row"><span class="dot" style="background:#e53e3e;border:2px solid #fff"></span>Part 201 site (EGLE)</div>
+</div>
+<div id="panel"><div class="inner" id="list"></div></div>
+<div id="drawer"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const R = {"brand": "NVIROGEAR PROPERTY INTELLIGENCE", "title": "14143 State Road - Full Parcel Intelligence Report", "subtitle": "3.25 acres - Nunica, Crockery Township, Ottawa County - the parcel, the neighbors, the environmental radius, the money paths", "cards": [{"label": "THE LAND", "value": "3.25 acres, Sec 7 T8N R15W", "sub": "North 425 ft strip, State Rd frontage, Crockery Township, Ottawa County. Class 401 residential-improved. Source: Ottawa County GIS, pulled 2026-10-21", "evidence": {"label": "VERIFIED", "source": "Ottawa County ParcelsPublic", "url": "https://gis.miottawa.org"}}, {"label": "THE OWNER", "value": "Jacob M. Boles - owner-occupied", "sub": "Mailing address matches the property: an owner-occupant homestead, not an absentee. Long enough in ownership for a real Proposal A cap", "evidence": {"label": "VERIFIED", "source": "Ottawa County GIS", "url": "https://gis.miottawa.org"}}, {"label": "THE CAP", "value": "$57,434 taxable on $106,000 SEV", "sub": "Cap ratio 0.54. At sale the cap dies: taxes reset toward the full SEV - roughly a doubling. Budget it before the offer", "evidence": {"label": "VERIFIED", "source": "Ottawa County GIS", "url": "https://gis.miottawa.org"}}, {"label": "ENVIRONMENT", "value": "28 Part 201 sites within 3 mi", "sub": "Nearest 0.56 mi - on State Road itself. Sanico North Landfill 0.97 mi. Ottawa County floodway layer: CLEAN - zero of nine local parcels flagged", "evidence": {"label": "VERIFIED SCAN", "source": "EGLE RRD + Ottawa FloodParcels", "url": "https://gisagoegle.state.mi.us"}}], "sections": [{"kicker": "1 - THE PROPERTY", "title": "Three and a Quarter Acres on State Road", "narration": "14143 State Road, Nunica, Michigan. Crockery Township, Ottawa County. Parcel 70-04-07-300-026: a 3.25-acre residential-improved strip - the north 425 feet of the east half of the west half of the southeast quarter of the southwest quarter, Section 7, Town 8 North, Range 15 West - with frontage on State Road, the old highway corridor through Nunica. The owner of record is Jacob M. Boles, and the mailing address matches the property: this is an owner-occupied homestead, not an absentee holding. The county pegs the state equalized value at 106,000 dollars, which screens toward roughly 212,000 dollars of market value at the standard two-to-one ratio - a screen, never a price. All facts in this section come from Ottawa County's own parcel service, pulled October 21, 2026."}, {"kicker": "2 - WHAT THE ASSESSOR SAYS", "title": "The Cap Tells the Ownership Story", "narration": "Taxable value is 57,434 dollars against a 106,000 dollar SEV - a cap ratio of 0.54. Under Proposal A, taxable values only stay that far below market when ownership has been continuous for years, so this parcel has history with the same owner. For a buyer it matters twice: the seller has real equity and no forced-sale pressure, and the cap dies at closing - the new owner's taxable value resets toward the full state equalized value, which at typical Crockery Township millage means roughly a doubling of the annual tax bill. Exact reset math gets confirmed with the township's current millage rate before any offer."}, {"kicker": "3 - THE LAND", "title": "A 425-Foot Deep Strip With Options", "narration": "The footprint is roughly 355 feet of State Road frontage running 425 feet deep - a three-and-a-quarter-acre shape that fits a homesite plus outbuildings, a shop yard behind the house line, or a future split if Crockery Township's ordinance allows it. Rural Nunica runs on private well and septic almost certainly - that combination, and whether the soils support a replacement drain field, is the first question for any build or expansion plan, and it goes to Ottawa County Community Health, not to guesswork."}, {"kicker": "4 - THE NEIGHBORS", "title": "Owner-Occupied Street, One Vacant Lot, One Foreclosure", "narration": "The immediate street is owner-occupied and stable: Evans at 14151, Steenhagen at 14149, the Lyttle Trust at 14145 - SEVs in the eighty-to-ninety-thousand band, everyone local. Tyler Poley at 14147 carries the street's biggest assessment at 166,100 dollars and also holds a vacant class-402 lot nearby assessed at just 500 dollars - one owner with both a homestead and spare land, which is always worth knowing. Behind the road, Barbara Boulevard shows newer construction at 213,000 to 287,000 dollars SEV - corridor depth. And one parcel in the immediate section is owned by the Ottawa County Treasurer at zero dollars - a foreclosed lot in the neighborhood that becomes a research file, not a commitment."}, {"kicker": "5 - ENVIRONMENTAL", "title": "28 Sites Within Three Miles - and a Clean Floodway", "narration": "The EGLE scan finds 28 Part 201 sites within three miles. The nearest sits 0.56 miles out - on State Road itself, half a mile north - and the Sanico North Landfill is 0.97 miles. Nothing is on or adjacent to the parcel, and this corridor's contamination profile is the ordinary rural-operations mix: salvage yards, refinishing shops, closed landfills. The floodway check is the good news: Ottawa County's own flood layer flags none of the nine local parcels including ours - clean. The FEMA flood insurance rate map still gets checked by address before any offer, because county floodway data and full FEMA floodplain designation are two different questions."}, {"kicker": "6 - THE MONEY PATHS", "title": "What This Parcel Can Actually Do", "narration": "One - the homestead buy: a stable owner-occupied home on 3.25 acres in a corridor with new construction pricing behind it. Two - the land: a 425-foot-deep lot with room for outbuildings or a shop yard if Crockery's zoning permits - a written answer from the township, never an assumption. Three - the split question: 355 feet of frontage can sometimes yield a second homesite under modern ordinances; that is a question for the zoning administrator with the PIN in hand. Four - the neighbor angle: the vacant 500-dollar Poley lot and the county-treasurer foreclosure nearby are the two cheap assembly targets on the street. Five - the tax reset is the cost side of every path: budget the doubled taxable value into every scenario before the offer, not after."}, {"kicker": "7 - RISKS AND VERIFICATION", "title": "What We Know, What We Don't", "narration": "Verified today: ownership, acreage, legal description, SEV and taxable values, owner-occupancy, the floodway clearance, and the 28-site environmental radius. Still unknown and named with their owners: the FEMA flood insurance rate zone - two minutes at the map service center. The well and septic status - Ottawa County Community Health with the PIN. Crockery Township zoning - permitted uses, accessory buildings, and split eligibility, in writing. Sales history and any listing status - the county's tax records and the deed registry, same path the Historian drove for Hancock. The identity of the nearest Part 201 site at 14508 State Road - one EGLE records check. The exact millage for the tax-reset math - the township. Six calls, every one a question, none a commitment."}], "vectors": [{"n": 1, "risk": "The tax cap dies at closing", "story": "$57,434 taxable resets toward the full $106,000 SEV for a new owner - roughly double the annual bill.", "fix": "Budget the reset into every scenario. Confirm Crockery Township's current millage rate before offering.", "src": "Ottawa County GIS, pulled 2026-10-21", "flagged": "Nunica subject"}, {"n": 2, "risk": "Private well and septic on 3.25 acres", "story": "Rural Nunica is almost certainly private water and waste. A failing septic or contaminated well is a five-figure surprise.", "fix": "Ottawa County Community Health site evaluation with the PIN before any offer. If a well exists, a standard water test plus PFAS given the corridor history.", "src": "Ottawa County Environmental Health rules", "flagged": "Nunica subject"}, {"n": 3, "risk": "The nearest Part 201 site is on State Road", "story": "0.56 miles north - same road, half a mile. Identity and status unreviewed.", "fix": "One EGLE records pull identifies the site and its contaminant. If groundwater flow runs south toward the parcel, the well test becomes non-negotiable.", "src": "EGLE RRD OpenData, pulled 2026-10-21", "flagged": "Nunica subject"}, {"n": 4, "risk": "Zoning gates the money paths", "story": "Shop yard, outbuildings, second homesite - all use decisions made by Crockery Township, not by the market.", "fix": "Zoning administrator call with the PIN. Get permitted uses, accessory rules, and split eligibility in writing.", "src": "Crockery Township zoning ordinance", "flagged": "Nunica subject"}, {"n": 5, "risk": "FEMA zone vs county floodway", "story": "Ottawa's clean floodway layer is not the same as a clean FEMA floodplain determination.", "fix": "Two minutes at the FEMA Map Service Center with the address before any offer.", "src": "msc.fema.gov", "flagged": "Nunica subject"}, {"n": 6, "risk": "Owner-occupied means no distress discount", "story": "An owner-occupant with equity has no forced-sale pressure - expect market pricing, not bargain pricing.", "fix": "Compare against actual sold comps from the corridor, never against SEV. The Barbara Boulevard new construction gives the ceiling; the older State Road homes give the floor.", "src": "Ottawa County sold records", "flagged": "Nunica subject"}, {"n": 7, "risk": "The county foreclosure nearby", "story": "One parcel in the section is treasurer-owned at zero - not a defect of the subject, but a neighborhood signal worth reading.", "fix": "Track the treasurer's disposition of 70-04-07-300-042. If it re-lists cheap, it becomes the street's second acquisition target.", "src": "Ottawa County Treasurer via GIS", "flagged": "Nunica subject"}, {"n": 8, "risk": "Sales history gap", "story": "The public layer carries values but not the transfer record - ownership duration is inferred from the cap ratio, not yet documented.", "fix": "Deed registry search documents the chain - same path used for the Hancock parcel. A listing check on the MLS answers whether it is even for sale.", "src": "Ottawa County deed records; MLS check", "flagged": "Nunica subject"}, {"n": 9, "risk": "Corridor legacy contamination", "story": "A landfill at 0.97 miles and two dozen rural Part 201 sites are the background radiation of any Ottawa County rural purchase.", "fix": "File a Baseline Environmental Assessment within 45 days of purchase if buying - cheap insurance that transfers liability protection with the deed.", "src": "MCL 324.20118 - Part 201 BEA provisions", "flagged": "Nunica subject"}], "identity": [{"name": "14143 State Rd (SUBJECT)", "pin": "70-04-07-300-026", "county": "Ottawa", "legal": "N 425 ft of E 1/2 W 1/2 SE 1/4 SW 1/4 Sec 7 T8N R15W, 3.25 ac", "sev": 106000}, {"name": "14151 State Rd", "pin": "70-04-07-300-024", "county": "Ottawa", "legal": "Evans, Mary - class 401", "sev": 92300}, {"name": "14149 State Rd", "pin": "70-04-07-300-025", "county": "Ottawa", "legal": "Steenhagen, Deborah E - class 401", "sev": 88500}, {"name": "14147 State Rd", "pin": "70-04-07-300-027", "county": "Ottawa", "legal": "Poley, Tyler - class 401", "sev": 166100}, {"name": "14145 State Rd", "pin": "70-04-07-300-029", "county": "Ottawa", "legal": "Lyttle Trust - class 401", "sev": 90100}], "chain": [{"name": "14143 State (subject)", "prior_bid": "$106,000 SEV", "now": "$57,434 taxable", "ratio": "0.54 cap"}, {"name": "Brown Trust (nearby)", "prior_bid": "$40,800 SEV", "now": "$4,681 taxable", "ratio": "0.11 cap"}, {"name": "Hortech LLC (nearby)", "prior_bid": "$46,100 SEV", "now": "$24,096 taxable", "ratio": "0.52 cap"}, {"name": "Chittenden (nearby)", "prior_bid": "$1,200 SEV", "now": "$178 taxable", "ratio": "0.15 cap"}], "layers": {"portfolio": [[43.091388, -86.139633, "14143 State Rd - SUBJECT", "Ottawa", 106000, "OFFER"], [43.091602050382036, -86.14085041482015, "70-04-07-300-024", "Ottawa", 92300.0, "NOW"], [43.090239202628474, -86.14077062714411, "70-04-07-300-025", "Ottawa", 88500.0, "NOW"], [43.08988460518631, -86.13939743152531, "70-04-07-300-027", "Ottawa", 166100.0, "NOW"], [43.089617623664545, -86.13839421136187, "70-04-07-300-007", "Ottawa", 110600.0, "NOW"], [43.0909750246468, -86.13681020692471, "70-04-07-300-034", "Ottawa", 287300.0, "NOW"], [43.091773405097804, -86.13679484757502, "70-04-07-300-033", "Ottawa", 281900.0, "NOW"], [43.08905931318337, -86.1391091826649, "70-04-07-300-019", "Ottawa", 110100.0, "NOW"], [43.08905662501777, -86.14048836976023, "70-04-07-300-038", "Ottawa", 135200.0, "NOW"]], "part201_map": {"14508 State Road (a portion of (0.56 mi)": {"part201": [{"site": "14508 State Road (a portion of), Spring Lake", "dist_mi": 0.56, "risk": "Inadequate Data to Assign Risk"}], "ust": [], "brownfield": []}, "Sanico North Landfill (0.97 mi)": {"part201": [{"site": "Sanico North Landfill", "dist_mi": 0.97, "risk": "Inadequate Data to Assign Risk"}], "ust": [], "brownfield": []}, "16958 144th Avenue, Nunica (1.01 mi)": {"part201": [{"site": "16958 144th Avenue, Nunica", "dist_mi": 1.01, "risk": "Inadequate Data to Assign Risk"}], "ust": [], "brownfield": []}, "17102 148th Avenue  (1.06 mi)": {"part201": [{"site": "17102 148th Avenue ", "dist_mi": 1.06, "risk": "Inadequate Data to Assign Risk"}], "ust": [], "brownfield": []}, "Almond Products (1.07 mi)": {"part201": [{"site": "Almond Products", "dist_mi": 1.07, "risk": "Inadequate Data to Assign Risk"}], "ust": [], "brownfield": []}, "Van's Refinishing (1.13 mi)": {"part201": [{"site": "Van's Refinishing", "dist_mi": 1.13, "risk": "Inadequate Data to Assign Risk"}], "ust": [], "brownfield": []}, "16928 148th Avenue, Spring Lak (1.25 mi)": {"part201": [{"site": "16928 148th Avenue, Spring Lake", "dist_mi": 1.25, "risk": "Inadequate Data to Assign Risk"}], "ust": [], "brownfield": []}, "14520 Cleveland Street, Spring (1.35 mi)": {"part201": [{"site": "14520 Cleveland Street, Spring Lake", "dist_mi": 1.35, "risk": "Inadequate Data to Assign Risk"}], "ust": [], "brownfield": []}, "16880 148th Avenue, Spring Lak (1.36 mi)": {"part201": [{"site": "16880 148th Avenue, Spring Lake", "dist_mi": 1.36, "risk": "Inadequate Data to Assign Risk"}], "ust": [], "brownfield": []}, "Mink Salvage Yard (1.36 mi)": {"part201": [{"site": "Mink Salvage Yard", "dist_mi": 1.36, "risk": "Inadequate Data to Assign Risk"}], "ust": [], "brownfield": []}, "14771 & 14747 Cleveland Street (1.41 mi)": {"part201": [{"site": "14771 & 14747 Cleveland Street, Spring Lake", "dist_mi": 1.41, "risk": "Inadequate Data to Assign Risk"}], "ust": [], "brownfield": []}, "14638 Apple Drive, Fruitport (1.58 mi)": {"part201": [{"site": "14638 Apple Drive, Fruitport", "dist_mi": 1.58, "risk": "Inadequate Data to Assign Risk"}], "ust": [], "brownfield": []}, "14851 Michael Lane, Spring Lak (1.67 mi)": {"part201": [{"site": "14851 Michael Lane, Spring Lake", "dist_mi": 1.67, "risk": "Inadequate Data to Assign Risk"}], "ust": [], "brownfield": []}, "150th Avenue, Spring Lake (1.72 mi)": {"part201": [{"site": "150th Avenue, Spring Lake", "dist_mi": 1.72, "risk": "Inadequate Data to Assign Risk"}], "ust": [], "brownfield": []}, "M-104 Fuel Spill (1.77 mi)": {"part201": [{"site": "M-104 Fuel Spill", "dist_mi": 1.77, "risk": "Inadequate Data to Assign Risk"}], "ust": [], "brownfield": []}, "15348 Cleveland Street, Spring (1.88 mi)": {"part201": [{"site": "15348 Cleveland Street, Spring Lake", "dist_mi": 1.88, "risk": "Inadequate Data to Assign Risk"}], "ust": [], "brownfield": []}, "M-104/Cleveland Street - vacan (2.14 mi)": {"part201": [{"site": "M-104/Cleveland Street - vacant land, Nunica", "dist_mi": 2.14, "risk": "Inadequate Data to Assign Risk"}], "ust": [], "brownfield": []}, "Undeveloped Parcel on the West (2.20 mi)": {"part201": [{"site": "Undeveloped Parcel on the West End of Dickinson Street", "dist_mi": 2.2, "risk": "Inadequate Data to Assign Risk"}], "ust": [], "brownfield": []}, "820 East Savidge Street, Sprin (2.22 mi)": {"part201": [{"site": "820 East Savidge Street, Spring Lake", "dist_mi": 2.22, "risk": "Inadequate Data to Assign Risk"}], "ust": [], "brownfield": []}, "Dickinson Street & I-96, Nunic (2.36 mi)": {"part201": [{"site": "Dickinson Street & I-96, Nunica - Former Jablonski Field Airstrip", "dist_mi": 2.36, "risk": "Inadequate Data to Assign Risk"}], "ust": [], "brownfield": []}, "Anderson-Bolling Manufacturing (2.39 mi)": {"part201": [{"site": "Anderson-Bolling Manufacturing", "dist_mi": 2.39, "risk": "Inadequate Data to Assign Risk"}], "ust": [], "brownfield": []}, "12409 Cleveland Street, Nunica (2.47 mi)": {"part201": [{"site": "12409 Cleveland Street, Nunica", "dist_mi": 2.47, "risk": "Inadequate Data to Assign Risk"}], "ust": [], "brownfield": []}, "625 East Savidge Street, Sprin (2.47 mi)": {"part201": [{"site": "625 East Savidge Street, Spring Lake", "dist_mi": 2.47, "risk": "Inadequate Data to Assign Risk"}], "ust": [], "brownfield": []}, "700 & 704 East Savidge Street, (2.48 mi)": {"part201": [{"site": "700 & 704 East Savidge Street, Spring Lake", "dist_mi": 2.48, "risk": "Inadequate Data to Assign Risk"}], "ust": [], "brownfield": []}, "169 Park Street, Fruitport (2.48 mi)": {"part201": [{"site": "169 Park Street, Fruitport", "dist_mi": 2.48, "risk": "Inadequate Data to Assign Risk"}], "ust": [], "brownfield": []}, "617 East Savidge Street, Sprin (2.50 mi)": {"part201": [{"site": "617 East Savidge Street, Spring Lake", "dist_mi": 2.5, "risk": "Inadequate Data to Assign Risk"}], "ust": [], "brownfield": []}, "622 East Savidge Street, Sprin (2.52 mi)": {"part201": [{"site": "622 East Savidge Street, Spring Lake", "dist_mi": 2.52, "risk": "Inadequate Data to Assign Risk"}], "ust": [], "brownfield": []}, "345 North 3rd Avenue  (2.83 mi)": {"part201": [{"site": "345 North 3rd Avenue ", "dist_mi": 2.83, "risk": "Inadequate Data to Assign Risk"}], "ust": [], "brownfield": []}}}, "sources": [{"class": "VERIFIED", "name": "Ottawa County ParcelsPublic GIS - subject, neighbors, values, geometry", "url": "https://gis.miottawa.org"}, {"class": "VERIFIED", "name": "Ottawa County FloodParcels layer - floodway check, zero hits locally", "url": "https://gis.miottawa.org"}, {"class": "VERIFIED", "name": "EGLE RRD OpenData - 28 Part 201 sites within 3 mi", "url": "https://gisagoegle.state.mi.us"}, {"class": "PENDING", "name": "FEMA Map Service Center - flood zone by address", "url": "https://msc.fema.gov"}, {"class": "PENDING", "name": "Crockery Township zoning ordinance - permitted uses", "url": null}, {"class": "PENDING", "name": "Ottawa County deed records - sales history, listing status", "url": null}], "what_we_didnt_find": ["The FEMA flood zone - county floodway is clean, the FIRM is unverified", "Well and septic status - likely private, unconfirmed", "Sales history and listing status - cap ratio infers long ownership, no deeds pulled", "Crockery Township zoning detail - uses, accessory buildings, split eligibility", "The identity of the nearest Part 201 site at 14508 State Road", "Exact millage rate for the post-sale tax reset"]};
+const map = L.map('map',{zoomControl:true}).setView([43.091388, -86.139633], 15);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+ {maxZoom:19, attribution:'Esri, Maxar, Earthstar Geographics'}).addTo(map);
+const colors={NOW:'#34d399',OFFER:'#60a5fa',AUCTION:'#f59e0b'};
+const subjectRing = [[-86.14012543652076, 43.090920337695536], [-86.14011813904646, 43.092086460905584], [-86.13889289036983, 43.092088743147066], [-86.13890063735697, 43.090922621540784], [-86.14012543652076, 43.090920337695536]];
+L.polygon(subjectRing, {color:'#34d399', weight:3, fillOpacity:.18}).addTo(map).bindPopup('<b>14143 State Rd - SUBJECT</b><br>3.25 acres, Boles');
+
+R.layers.portfolio.forEach(p=>{
+  L.circleMarker([p[0],p[1]],{radius:8,color:'#0b111a',weight:2,fillColor:colors[p[5]]||'#f59e0b',fillOpacity:.95})
+   .addTo(map).bindPopup(`<b>${p[2]}</b><br>${p[3]} County · ${p[5]==='AUCTION'?'opens $'+p[4]:'$'+p[4]}`);
+});
+const p201g = L.layerGroup().addTo(map);
+Object.entries(R.layers.part201_map).forEach(([name,h])=>{
+  (h.part201||[]).forEach(s=>{
+    if(s.dist_mi!==undefined && s.lat===undefined){
+      // scan results carry dist only; skip plotting individual sites without coords
+    }
+  });
+});
+function evBadge(e,srcName,url){const cls=e.label[0]==='V'?'eV':(e.label[0]==='M'?'eM':(e.label==='PUBLIC REFERENCE'?'eP':(e.label==='PENDING'?'eD':'eA')));
+  return `<button class="ev ${cls}" data-src="${srcName}" data-url="${url||''}" onclick="showDrawer(this)">${e.label}</button>`;}
+let html='';
+R.sections.forEach((s,i)=>{
+  html+=`<div class="sec" id="sec${i}"><div class="kicker">${s.kicker}</div><h2>${s.title}</h2><div class="narr">${s.narration}</div>`;
+  if(i===0){
+    html+=`<div class="cards">`+R.cards.map(c=>`<div class="card"><div class="lbl">${c.label}</div><div class="val">${c.value}</div><div class="sub">${c.sub}</div>${evBadge(c.evidence,c.evidence.source,c.evidence.url)}</div>`).join('')+`</div>`;
+  }
+  if(i===1){
+    html+=`<div class="veclist">`+R.vectors.map(v=>`<div class="vec"><div class="n">VECTOR ${v.n} OF 12</div><div class="t">${v.risk}</div><div class="s">${v.story}</div><div class="fx"><b>FAIL-SAFE</b> — ${v.fix}</div><div class="sc">SOURCE: ${v.src}<br><b>Flagged in portfolio:</b> ${v.flagged}</div></div>`).join('')+`</div>`;
+  }
+  if(i===2){
+    html+=`<div class="chain">`+R.chain.map(c=>`<div class="chrow"><span class="nm">${c.name}</span><span class="was">${c.prior_bid}</span><span class="arrow">→</span><span class="now">${c.now}</span><span class="ratio">${c.ratio} drop</span></div>`).join('')+`</div>
+    <div class="clean" style="margin-top:12px"><ul>`+R.what_we_didnt_find.map(x=>`<li>✓ ${x}</li>`).join('')+`</ul></div>`;
+  }
+  if(i===3){
+    html+=`<table><tr><th>Parcel</th><th>PIN (verified)</th><th>County</th><th>Legal</th><th>SEV</th></tr>`+
+      R.identity.map(x=>`<tr><td><b>${x.name}</b></td><td>${x.pin}</td><td>${x.county}</td><td>${x.legal}</td><td>${x.sev?'$'+x.sev.toLocaleString():'$0'}</td></tr>`).join('')+`</table>`;
+  }
+  if(i===7){
+    html+=`<div class="srclist">`+R.sources.map(s=>{const cls=s.class==='VERIFIED'?'eV':(s.class==='MODELED'?'eM':(s.class==='PENDING'?'eD':'eP'));
+      return `<div class="src"><span class="cls ${cls}">${s.class}</span><span>${s.name}${s.url?` — <a style="color:#60a5fa" href="${s.url}" target="_blank">source</a>`:''}</span></div>`;}).join('')+`</div>`;
+  }
+  html+=`</div>`;
+});
+document.getElementById('list').innerHTML=html;
+
+// ===== SOOTHING VOICE ENGINE v2 — Mr. Results =====
+// Calm, natural, correctly-pronounced narration. Replaces the raw innerText reader.
+const GLOSSARY = {
+ "SEVs":"state equalized values","SEV":"state equalized value","TV":"taxable value",
+ "GIS":"G I S","EGLE":"Eagle","PFAS":"P F A S","HDR":"H D R","POA":"property owners association",
+ "AOC":"Area of Concern","FSBO":"for sale by owner","MDOT":"M dot",
+ "M-115":"M one fifteen","Twp":"Township","Part 201":"Part two oh one",
+ "ac":"acres","mi":"miles","R-1":"R one","R-2":"R two","Rd":"Road","St":"Street","SEV,":"state equalized value,"
+};
+function speakable(raw){
+  let t = raw.replace(/\s+/g," ")
+    .replace(/→/g," to ").replace(/·/g,", ").replace(/×/g," times ")
+    .replace(/&/g," and ").replace(/[✓▶●◦]/g," ").replace(/[""]/g,'"').replace(/[""]/g,"'");
+  const keys = Object.keys(GLOSSARY).sort((a,b)=>b.length-a.length);
+  for(const k of keys){
+    t = t.replace(new RegExp(k.replace(/[-]/g,"\\-").replace(/,/g,"")+"(?=[\\s,.:;)]|$)","g"), GLOSSARY[k]);
+  }
+  t = t.replace(/\b(\d{2}-\d{2}-\d{3}-\d{3}-\d{4}-\d{2})\b/g, m=>m.split("-").join(", "));
+  t = t.replace(/\b(\d{2}-\d{3}-\d{3}-\d{2})\b/g, m=>m.split("-").join(", "));
+  t = t.replace(/\b(\d{1,2}-\d{1,3}-\d{3}-\d{3}(-\d{4})?(-\d{2})?)\b/g, m=>m.split("-").join(", "));
+  t = t.replace(/\b([A-Z]{2,6})\b/g, m=>m.split("").join(" "));
+  t = t.replace(/,\s*,/g,",").replace(/\s+\./g,".").replace(/\s{2,}/g," ");
+  return t.trim();
+}
+function pickVoice(voices){
+  if(!voices || !voices.length) return null;
+  const en = voices.filter(v=>/^en[-_]/i.test(v.lang||""));
+  const pool = en.length?en:voices;
+  const prefs=[[/Aria.*Natural/i,100],[/Jenny.*Natural/i,96],[/Guy.*Natural/i,95],[/Ana.*Natural/i,94],
+   [/Google US English/i,92],[/Online.*Natural/i,90],[/Neural/i,88],[/Samantha/i,85],
+   [/Aria/i,80],[/Jenny/i,78],[/Eloquence/i,74],[/Zira/i,70],[/en[-_]US/i,45],[/en/i,25]];
+  let best=null,bs=-1;
+  for(const v of pool){let s=0;for(const [re,x] of prefs){if(re.test(v.name)&&x>s)s=x;}if(s>bs){bs=s;best=v;}}
+  return best;
+}
+let VOICE=null, RATE=0.94;
+function loadVoices(){
+  const vs = speechSynthesis.getVoices();
+  VOICE = pickVoice(vs);
+  const sel = document.getElementById("vsel");
+  if(sel){
+    sel.innerHTML = vs.map((v,i)=>`<option value="${i}" ${v===VOICE?"selected":""}>${v.name.replace(/Microsoft |Google /,"")}</option>`).join("");
+    if(VOICE){const vi = vs.indexOf(VOICE); if(vi>-1) sel.value = vi;}
+  }
+}
+function speakNext(){
+  if(qi>=queue.length){
+    if(idx<SECS.length){ setTimeout(()=>playReport(), 900); }
+    else { setPlaying(false); }
+    return;
+  }
+  const u=new SpeechSynthesisUtterance(queue[qi]);
+  if(VOICE) u.voice=VOICE;
+  u.rate=RATE; u.pitch=0.96;
+  u.onend=()=>{ qi++; setTimeout(speakNext, qi<queue.length?430:250); };
+  u.onerror=()=>{ qi++; setTimeout(speakNext, 150); };
+  speechSynthesis.speak(u);
+  if(speechSynthesis.paused) speechSynthesis.resume();
+}
+let queue=[], qi=0;
+function buildQueue(sec){
+  const h2 = sec.querySelector("h2"), narr = sec.querySelector(".narr");
+  const cards = [...sec.querySelectorAll(".card")].map(c=>{
+    const lbl=c.querySelector(".lbl"), val=c.querySelector(".val"), sub=c.querySelector(".sub");
+    return [lbl?lbl.textContent:"", val?val.textContent:"", sub?sub.textContent:""].filter(Boolean).join(". ");
+  }).join(". ");
+  let text = (h2?h2.textContent+". ":"") + (narr?narr.textContent:"") + (cards?" "+cards:"");
+  const st = speakable(text);
+  return (st.match(/[^.!?…]+[.!?…]+/g)||[st]).map(s=>s.trim()).filter(Boolean);
+}
+let SECS=[];
+function playReport(){
+  if(window.speechSynthesis && (speechSynthesis.speaking||speechSynthesis.pending)){
+    speechSynthesis.cancel(); setPlaying(false); idx=Math.max(0,idx-1); return;
+  }
+  SECS=document.querySelectorAll(".sec");
+  if(!SECS.length) return;
+  if(idx>=SECS.length){idx=0; setPlaying(false); return;}
+  SECS[idx].scrollIntoView({behavior:"smooth",block:"start"});
+  if(window.speechSynthesis){
+    if(speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
+    queue=buildQueue(SECS[idx]); qi=0;
+    setPlaying(true);
+    if(queue.length) speakNext();
+  }
+  idx++;
+}
+function setPlaying(on){
+  const b=document.getElementById("play");
+  if(b) b.innerHTML = on? "❚❚ Reading…" : "▶ Read This Report";
+}
+
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight')playReport();if(e.key==='ArrowLeft'){idx=Math.max(0,idx-2);playReport();}});
+function showDrawer(b){
+  const d=document.getElementById('drawer');
+  d.innerHTML=`<b style="color:var(--acc)">${b.textContent}</b><br><span style="color:var(--mut)">Source:</span> ${b.dataset.src}`+
+    (b.dataset.url?`<br><a style="color:#60a5fa" href="${b.dataset.url}" target="_blank">Open source documentation →</a>`:'')+
+    `<br><span style="color:var(--mut);font-size:11px">Every claim in this report carries its evidence class. Click any badge to see its source.</span>`;
+  d.classList.add('open');
+  setTimeout(()=>d.classList.remove('open'),7000);
+}
+</script><div id="vbar" style="position:fixed;bottom:14px;right:14px;z-index:999;background:#161b22f0;border:1px solid #2a3644;border-radius:10px;padding:8px 10px;display:flex;gap:8px;align-items:center;font-size:12px">
+<span style="color:#8aa">🎙</span>
+<select id="vsel" style="background:#0d1117;color:#cfe;border:1px solid #2a3644;border-radius:6px;padding:3px 5px;max-width:170px"></select>
+<span style="color:#8aa">speed</span>
+<input id="vrate" type="range" min="0.8" max="1.15" step="0.02" value="0.94" style="width:70px">
+</div>
+<script>
+if(window.speechSynthesis){speechSynthesis.onvoiceschanged=loadVoices;loadVoices();}
+document.addEventListener('DOMContentLoaded',()=>{const s=document.getElementById('vsel');if(s)s.onchange=e=>{VOICE=speechSynthesis.getVoices()[e.target.value];};const r=document.getElementById('vrate');if(r)r.oninput=e=>{RATE=parseFloat(e.target.value);};});
+</script><div id="qrdrawer" style="display:none;position:fixed;bottom:70px;right:16px;z-index:9999;background:#161b22;border:1px solid #2a3340;border-radius:12px;padding:14px;text-align:center"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUgAAAFIAQAAAAAab1qeAAACZklEQVR4nO1a0W4bMQwjh/z/L3MPouRrgQ3O0M5WIacIrjGBkwVbEilT2By/doGDHOSXIaHcoPLHP/pTs+qyorNICtSnB4oAREBYs11WdAGSJACA/ov/pHjw7AV29kJSCodKkES79z+9/QciSQCC6DMO/Qn5HW//QUhF2hEyYhKgoPCrZy+wswHyheehlpORPQk8Zrus6Hh+r0eIIiLPO8M/TnyXFR3fnxQQuxIiFDk9tqic6ade2h0vO40C4c0ZaQkgqChLqdN2NkJSAkTar7lFI7+LQOT743a2QCa1hCKRP/imyaYEQMM3N4eKpiu9mlno8fvw992R2y+KT9ehdvLy8uzPfaQEEkRQTGX4jPyUtf0FdrZBOr+DccAJWR/ByvU32NkGKSn4ZbrPOp3ApZJcYGcDpPkR9XiOAp6mn+njLis6Xs+DFo/DfQCsgaY2Muf93fOeTuMS5YMgRSQl77CzB7KOdvAhZtyEM5FlkeN2tkBaS1IdbAKm9PE15/1dpPUlJ/IknK7v67ift7MLUuZAKYcAIOhN64B6g50tkMUns91RYXMReoweso185YMYvQ4q9DmWfzn7813+bi05BGXALgUBlhx63M4WyGwNR6BM5yn7R1id4y4ruiB+poqcwbM0vPX7xM+98bExXP03oHpHEz/fzEelzUVPk9FKUjh0ObzLio77s2Ikk75/Ov7RPO6yovP+LC0pCiUFKYr5dXeky4quQZokidmTY0ZTjb70z8i8pGhlXhBETb20OV5A8Uvm1YYsQjPRz/2QbeTH+/N2oqpJXFfqp/7cG4/688DbBznIv4/fSuByFX5GFMQAAAAASUVORK5CYII=" width="180" height="180" style="border-radius:6px"><div style="color:#e6edf3;font-size:12px;margin-top:8px;font-weight:600">Scan to open this report</div><div style="color:#8b949e;font-size:10px;margin-top:6px">No login needed - works on any phone</div></div><button onclick="toggleQR()" style="position:fixed;top:70px;right:16px;z-index:9999;background:#161b22;border:1px solid #2a3340;color:#e6edf3;border-radius:10px;padding:9px 14px;font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.5)">▮ Share QR</button><script>function toggleQR(){const p=document.getElementById("qrdrawer");p.style.display=p.style.display==="none"?"block":"none";}</script></body></html>
