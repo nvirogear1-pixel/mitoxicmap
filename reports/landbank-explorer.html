@@ -85,6 +85,7 @@ function draw(){
   });
   layer.addTo(map);
   count.textContent = LIST.length + ' parcels - ' + CURRENT;
+  if(LIST.length) select(0);
 }
 function select(i){
   if(i<0||i>=LIST.length) return;
