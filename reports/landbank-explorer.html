@@ -67,21 +67,30 @@ function matches(ft, f){
 let LIST = [];
 let SEL = -1;
 let layer = null;
+const polyMap = {};
 const style = ft => ({color:'#0b111a',weight:1,fillColor:MUNI_COLOR[ft.properties.muni]||'#94a3b8',fillOpacity:.55});
 const hl = {color:'#34d399',weight:4,fillColor:'#34d399',fillOpacity:.75};
 function draw(){
   if(layer) map.removeLayer(layer);
   LIST = GJ.features.filter(ft=>matches(ft,CURRENT));
-  layer = L.geoJSON(LIST, {style: style, onEachFeature: (ft,ly)=>{
-    ly.on('click', ()=>{ const i = LIST.indexOf(ft); select(i); });
-  }}).addTo(map);
+  layer = L.layerGroup();
+  LIST.forEach((ft,i)=>{
+    const ring = ft.geometry ? ft.geometry.coordinates : null;
+    if(!ring || ring.length < 4) return;
+    const ll = ring.map(p=>[p[1],p[0]]);
+    const poly = L.polygon(ll, style(ft));
+    poly.on('click', ()=>select(i));
+    polyMap[ft.properties.pin] = poly;
+    layer.addLayer(poly);
+  });
+  layer.addTo(map);
   count.textContent = LIST.length + ' parcels - ' + CURRENT;
 }
 function select(i){
   if(i<0||i>=LIST.length) return;
   SEL = i;
   const ft = LIST[i]; const p = ft.properties;
-  layer.eachLayer(ly=>{ ly.setStyle(style(ly.feature)); if(ly.feature.properties.pin===p.pin){ ly.setStyle(hl); ly.bringToFront(); }});
+  Object.values(polyMap).forEach(ly=>ly.setStyle(style(ly.feature))); if(polyMap[p.pin]){ polyMap[p.pin].setStyle(hl); polyMap[p.pin].bringToFront(); }
   if(ft.bbox) map.fitBounds([[ft.bbox[1],ft.bbox[0]],[ft.bbox[3],ft.bbox[2]]],{padding:[40,40],maxZoom:18});
   document.getElementById('panel').innerHTML =
     '<h3>'+p.pin+'</h3><div class="pin">'+(p.addr||'address on file')+(p.city?', '+p.city:'')+' &#183; '+(p.muni||'')+'</div>'+
