@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>THE MASTER REPORT - All Agents, One Picture</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{--bg:#0b111a;--panel:#121a26;--line:#223047;--txt:#e8eef7;--mut:#94a3b8;--acc:#00f5a3;--amber:#f59e0b;--red:#e53e3e;--blue:#60a5fa}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:var(--bg);color:var(--txt);font:15px/1.6 system-ui,sans-serif;overflow:hidden}
+#map{position:fixed;inset:0;z-index:1}
+#top{position:fixed;top:0;left:0;right:0;z-index:30;display:flex;justify-content:space-between;align-items:flex-start;padding:10px 18px;background:linear-gradient(180deg,rgba(7,11,18,.95),rgba(7,11,18,.6));border-bottom:1px solid var(--line)}
+#top .brand{font-size:12px;letter-spacing:.16em;color:var(--acc);font-weight:800}
+#top h1{font-size:17px;margin-top:2px}
+#top .meta{font-size:11.5px;color:var(--mut);margin-top:3px}
+.playbtn{background:var(--acc);color:#04131d;font-weight:800;border:none;border-radius:24px;padding:10px 18px;font-size:13px;cursor:pointer;box-shadow:0 0 24px rgba(0,245,163,.35);z-index:40}
+#panel{position:fixed;top:0;bottom:0;right:0;width:min(640px,100%);z-index:20;background:linear-gradient(90deg,rgba(11,17,26,0) 0%,rgba(11,17,26,.5) 14px,rgba(11,17,26,.97) 40px)}
+#panel .inner{position:absolute;top:78px;bottom:12px;left:44px;right:12px;overflow-y:auto;padding-right:6px}
+#panel .inner::-webkit-scrollbar{width:8px}#panel .inner::-webkit-scrollbar-thumb{background:#2a3a55;border-radius:4px}
+.sec{margin:26px 0 12px;scroll-margin-top:70px}
+.sec .kicker{font-size:11px;letter-spacing:.18em;color:var(--acc);font-weight:800}
+.sec h2{font-size:19px;margin:4px 0 8px}
+.sec .narr{font-size:14.5px;color:#cbd5e1;background:rgba(18,26,38,.72);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.card{background:rgba(18,26,38,.85);border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+.card .lbl{font-size:10.5px;letter-spacing:.1em;color:var(--mut);font-weight:700}
+.card .val{font-size:16.5px;font-weight:800;margin:3px 0}
+.card .sub{font-size:12px;color:var(--mut)}
+.ev{font-size:10px;font-weight:800;border:1px solid;border-radius:5px;padding:2px 7px;cursor:pointer;margin-top:7px;display:inline-block}
+.eV{color:var(--acc);border-color:var(--acc)}.eM{color:var(--amber);border-color:var(--amber)}.eP{color:#a5b4fc;border-color:#a5b4fc}.eA{color:var(--blue);border-color:var(--blue)}.eD{color:var(--red);border-color:var(--red)}
+.veclist{margin-top:12px}
+.vec{background:rgba(18,26,38,.85);border:1px solid var(--line);border-left:3px solid var(--red);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.vec .n{font-size:11px;color:var(--red);font-weight:800;letter-spacing:.1em}
+.vec .t{font-weight:800;font-size:14.5px;margin:2px 0 6px}
+.vec .s{font-size:13px;color:#cbd5e1}
+.vec .fx{font-size:13px;margin-top:7px;color:#a7f3d0}
+.vec .fx b{color:var(--acc);font-size:11.5px;letter-spacing:.08em}
+.vec .sc{font-size:11.5px;color:var(--mut);margin-top:6px;border-top:1px dashed #223047;padding-top:5px}
+.chain{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+.chrow{display:flex;align-items:center;gap:10px;background:rgba(18,26,38,.85);border:1px solid var(--line);border-radius:10px;padding:10px 13px;flex-wrap:wrap}
+.chrow .nm{font-weight:700;font-size:13.5px;flex:1;min-width:150px}
+.chrow .was{color:var(--red);font-weight:800;text-decoration:line-through;text-decoration-color:rgba(229,62,62,.55);font-size:14px}
+.chrow .arrow{color:var(--mut)}
+.chrow .now{color:var(--acc);font-weight:800;font-size:14px}
+.chrow .ratio{font-size:11px;color:var(--amber);border:1px solid var(--amber);border-radius:5px;padding:1px 6px}
+table{width:100%;border-collapse:collapse;margin-top:12px;font-size:12.5px}
+th{color:var(--acc);text-align:left;font-size:10.5px;letter-spacing:.1em;border-bottom:1px solid var(--line);padding:6px 8px}
+td{border-bottom:1px solid #1a2740;padding:7px 8px;vertical-align:top;color:#cbd5e1}
+td b{color:var(--txt)}
+.clean{background:rgba(18,26,38,.72);border:1px solid var(--line);border-radius:12px;padding:13px 16px;margin-top:12px}
+.clean li{list-style:none;font-size:13px;color:#a7f3d0;margin:5px 0}
+.srclist{margin-top:12px}
+.src{display:flex;gap:8px;align-items:baseline;font-size:12.5px;margin:7px 0;flex-wrap:wrap}
+.src .cls{font-size:9.5px;font-weight:800;border:1px solid;border-radius:4px;padding:1px 5px}
+#drawer{position:fixed;left:12px;bottom:12px;max-width:340px;background:rgba(13,21,34,.95);border:1px solid var(--line);border-radius:12px;padding:12px 15px;z-index:45;font-size:12.5px;color:#cbd5e1;opacity:0;pointer-events:none;transition:opacity .3s}
+#drawer.open{opacity:1}
+.legend{position:fixed;left:12px;bottom:12px;z-index:25;background:rgba(11,18,32,.85);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:11.5px}
+.legend .row{display:flex;align-items:center;gap:7px;margin:3px 0}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+@media (max-width:700px){#panel .inner{left:12px;top:120px}.cards{grid-template-columns:1fr}.legend{display:none}}
+</style></head><body>
+<div id="map"></div>
+<div id="top">
+  <div><div class="brand">NVIROGEAR PROPERTY INTELLIGENCE</div>
+  <h1>THE MASTER REPORT - All Agents, One Picture</h1>
+  <div class="meta">15 targets · Mid & Northern Michigan · Every verified finding from every agent - the Winter Freeze shortlist, consolidated and reconciled · 2026-10-15</div></div>
+  <button class="playbtn" id="play" onclick="playReport()">▶ Read This Report</button>
+</div>
+<div class="legend" id="legendbox">
+  <div class="row"><span class="dot" style="background:#f59e0b"></span>Oct 30 auction lot</div>
+  <div class="row"><span class="dot" style="background:#60a5fa"></span>Land bank offer</div>
+  <div class="row"><span class="dot" style="background:#34d399"></span>Buy now OTC</div>
+  <div class="row"><span class="dot" style="background:#e53e3e;border:2px solid #fff"></span>Part 201 site (EGLE)</div>
+</div>
+<div id="panel"><div class="inner" id="list"></div></div>
+<div id="drawer"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const R = {"brand": "NVIROGEAR PROPERTY INTELLIGENCE", "title": "THE MASTER REPORT - All Agents, One Picture", "subtitle": "Every verified finding from every agent - the Winter Freeze shortlist, consolidated and reconciled - 2026-10-21", "sections": [{"kicker": "1 - THE PRIORITY STACK", "title": "Where the Money Goes First", "narration": "This is the consolidated picture from every agent on the Winter Freeze: Mr. Results, the Land Hunter, the Historian, the Underground King, the analyst, and the vault. The stack is unchanged from the audit, now with identities closed. ONE: Copemish Lot 4406 - four point one seven acres at a one-hundred-dollar verified minimum, same parcel as our woodlot packet, gated only by Jet's frontage measurement. TWO: the Pentwater five-hundred-dollar village lot - now a named parcel with a metes-and-bounds legal, a ravine, and a paper-street question that one phone call to the village answers. THREE: the Lakewood bundle through the land bank door - our verified offer math stands. FOUR: the Miramichi and Michaywe clusters in the October 30 sale. And standing outside the auction entirely: the five point eight nine acre Hancock compound, the most evidenced parcel we hold, waiting on a listing price. Every fact in this stack carries an agent name, a source, and a date."}, {"kicker": "2 - COPEMISH 4406", "title": "The Identity Question Is Closed", "narration": "The analyst's catalog decode and the vault's cross-check agree: October 30 Lot 4406 is PIN 04-036-275-04 - the exact four point one seven acre interior fraction south of M-115 that our historian packet already documents. The price story matters more than the parcel story: the prior cycle opened this parcel at twenty-nine thousand six hundred seven dollars and it failed to sell. The county re-offered it at one hundred dollars. That is a verified collapse, not a typo. What remains open is the one gate that sets our number: the Land Hunter claimed one hundred fifty feet of M-115 frontage; the legal reads as an interior fraction. Jet's polygon-versus-road measurement is the deciding evidence, and it is queued. The bidding discipline is unchanged: if the frontage is real, this is the best buy on the board. If it is not, this is a landlocked woodlot that sells to a neighbor - and our bid says so."}, {"kicker": "3 - PENTWATER 640200", "title": "The Five-Hundred-Dollar Village Lot, Fully Named", "narration": "The vault agent recovered what the listing hides: parcel 044-320-005-50, Section 23, Township 16 North, Range 18 West, in the Village of Pentwater, with a state equalized value of sixteen thousand four hundred dollars. The legal is Johnson's Replat of Outlot 5 in Forest Hills - a seven-sided irregular polygon whose traverse computes to roughly a third of an acre, with an eleven percent closure gap that only the recorded plat resolves. The county's own notes are the honest part: the platted road route was never improved, the parcel likely sits in a ravine, and the nearest existing access is from Old State Road behind two houses and a split-rail fence. The environmental screen is clean - eleven Part 201 sites within five miles, the nearest controlled. So the verdict: five hundred dollars buys a lottery-ticket flip in a resort village, not a build candidate - and the ticket only becomes real when the Village Assessor answers the paper-street question. One phone call. No money before it."}, {"kicker": "4 - THE POA WARNING ZONE", "title": "What Sugar Springs Taught Us", "narration": "Six of the open surplus lots are Enchanted Forest POA land in Otsego County - including the analyst's acreage picks at eight hundred fifty and seven hundred fifty dollars. The Winter Freeze already paid for this lesson: Sugar Springs looked like a deal until the verified dues came back at four hundred seventy-five dollars per lot per year, and the thesis died. The rule that survived: no POA bid without a written dues statement from the association itself - current dues, special assessments pending, and the fire-road maintenance history. Enchanted Forest gets the same call Sugar Springs got. Until that paper arrives, the Enchanted Forest lots stay research files, and the August Oceana listings stay unconfirmed - they are not in the current catalog and do not exist for bidding purposes."}, {"kicker": "5 - THE LAND BANK LANE", "title": "Two Hundred Eighty-Nine Doors, Open Now", "narration": "The Muskegon Land Bank inventory was pulled live this morning: two hundred eighty-nine for-sale parcels, two hundred nineteen of them in Muskegon Heights. The vault agent cross-referenced eleven vacant candidates against county polygons - the largest is S Brooks Road at zero point seven four one acres with verified shape, and the Russ Road parcel is honestly flagged as landlocked at zero point two six acres. One reconciliation note, held open: the vault agent's pull counted two hundred forty-three for-sale records against our two hundred eighty-nine - different filters or a same-day inventory change, and it gets resolved against the source before anyone quotes the number externally. These are neighbor-sale and infill plays at nominal prices, sold through Tim Burgess at the land bank, 231-724-6170. Our own W Lakewood bundle sits in this inventory as a verified for-sale record - and our thousand-dollar offer math was built for exactly this door."}, {"kicker": "6 - THE MULTI-AGENT LEDGER", "title": "Who Verified What, and Where We Corrected Each Other", "narration": "The cross-check discipline held across the whole fleet. The Land Hunter corrected our Part 201 count; we corrected their Occidental-versus-Chemours conflation. The Historian corrected our township - White River to Montague - and we adopted their precise tax math. The Underground King ran the deed registry and confirmed the mineral estate intact with zero drift. The operator's own regressions - the count that crept back, the township that faded on rebuild - were caught by the audit and fixed at the data layer. Nothing was averaged; everything reconciled to a primary source. The result is that the priority stack you are reading is the most evidenced acquisition picture this operation has ever had: every parcel named, every claim sourced, every unknown assigned to a specific verification action with a specific owner."}, {"kicker": "7 - THE CLOCK AND THE LEDGER", "title": "Nine Days, Two Monitors, One Discipline", "narration": "The sealed-bid window closes October 30 at 7 PM Eastern. Two monitors are live: a recheck when tax-sale.info returns at 1 PM today - which re-pulls the catalogs, strikes anything redeemed, and confirms Copemish's Lot 4406 - and a final sweep October 29, the day before the auction, to catch withdrawals and lock the bid sheet. The verification ledger stands: Jet's frontage answer gates Copemish's number; the village call gates Pentwater; written dues gate the Enchanted Forest lots; the land bank price requests go through Burgess; FEMA panels and wetland overlays stay pending until the network lets them through. The discipline does not change with the deadline: evidence picks the price, no bid exceeds its cap, and losing a lot to an unknown is the only unacceptable outcome. Nine days is enough time to check everything once."}], "cards": [{"label": "THE CLOCK", "value": "Bids close Oct 30, 7:00 PM EDT", "sub": "Sealed bids - one max bid per lot, submitted in the 10 AM to 7 PM window on tax-sale.info. No live bidding, no bid fever. Decisions gate on Jet's frontage answer, not on emotion. Source: verified catalog format, Oct 17 pull", "evidence": {"label": "VERIFIED", "source": "MPLA sealed-bid format", "url": "https://www.tax-sale.info"}}, {"label": "TARGET 1 - COPEMISH", "value": "Lot 4406 - $100 verified minimum", "sub": "PIN 04-036-275-04 CONFIRMED SAME PARCEL as our woodlot packet. 4.17 ac, SEV $37,800, interior fraction south of M-115. Prior cycle opened at $29,607 and failed - county re-offered at $100. Open gate: Jet's M-115 frontage measurement sets the bid", "evidence": {"label": "VERIFIED", "source": "Manistee catalog 3003 decode + historian packet", "url": "https://www.tax-sale.info"}}, {"label": "TARGET 2 - PENTWATER", "value": "Lot 640200 - $500 OTC", "sub": "PIN 044-320-005-50, Village of Pentwater, SEV $16,400. Johnson's Replat of Outlot 5, Forest Hills. ~0.34-0.44 ac, 7-sided ravine lot. County itself flags: platted road never improved, access behind 160 and 210 Old State Rd. Lottery-ticket flip until the village answers the paper-street question", "evidence": {"label": "VERIFIED", "source": "Oceana surplus CSV + EGLE scan", "url": ""}}, {"label": "THE ASSEMBLY LANE", "value": "Muskegon Land Bank - 289 FS live", "sub": "219 Muskegon Heights + 70 elsewhere, pulled live Oct 21. Eleven vacant candidates carry verified polygons - largest S Brooks Rd at 0.741 ac; Russ Rd landlocked 0.259 ac flagged honestly. Prices by request: Tim Burgess, 231-724-6170. Our W Lakewood bundle is in this inventory", "evidence": {"label": "VERIFIED", "source": "Muskegon Land Bank GIS layer", "url": ""}}], "vectors": [{"risk": "Bidding on Copemish before Jet's frontage answer", "story": "The $100 minimum hides the only question that matters: 150 feet of highway frontage or a landlocked woodlot. Two agents, two reads, one measurement pending.", "fix": "No bid number is written until the polygon-versus-road measurement lands. If it misses, the bid is neighbor-sale pricing only.", "src": "Historian packet + Land Hunter claim, Oct 17-21", "flagged": true, "n": 1}, {"risk": "Buying Pentwater's ravine without the paper-street answer", "story": "The county itself says the platted road was never improved and the lot likely sits in a ravine behind two houses and a fence.", "fix": "One call to the Village Assessor. No $500 moves until the access question has a written answer.", "src": "Oceana surplus CSV notes, Oct 15", "flagged": true, "n": 2}, {"risk": "POA lots without written dues", "story": "Sugar Springs died at $475 per lot per year after the deal looked done. Six Enchanted Forest lots sit open at auction prices now.", "fix": "Written dues statement from the association - current dues, special assessments, road history - before any bid, every POA, no exceptions.", "src": "Sugar Springs verification, Oct 17", "flagged": true, "n": 3}, {"risk": "Land bank inventory quoted without price confirmation", "story": "289 for-sale records carry no asking prices, and two pulls returned different counts (289 vs 243).", "fix": "Price requests go through Tim Burgess in writing; the count variance resolves against the live layer before any external quote.", "src": "Land Bank GIS, Oct 21", "flagged": true, "n": 4}, {"risk": "Catalog changes before October 30", "story": "Lots get redeemed and withdrawn every week. The Oct 17 pull is verified but nine days old.", "fix": "Two monitors: the 1:45 PM recheck today and the final sweep October 29. No bid sheet is final until both have run.", "src": "tax-sale.info maintenance notice, Oct 21", "flagged": true, "n": 5}, {"risk": "The tax reset surprises a buyer", "story": "Hancock: taxable value resets at sale, $1,400 a year becomes $3,640. Nunica: $57,434 taxable on $106,000 SEV resets to full. The cap dies with the deed.", "fix": "Every offer prices the post-sale tax bill, not the seller's current one. Verified by the Historian's millage math.", "src": "Muskegon + Ottawa assessor records, Oct 18-21", "flagged": false, "n": 6}, {"risk": "One source becomes the truth without a second pull", "story": "This cycle's drift log: Part 201 count corrected, township corrected, Occidental-Chemours conflation caught, minerals confirmed clean, operator regressions caught by the audit.", "fix": "Every load-bearing number gets an independent pull and a named source. The reconciliation report is the index of record.", "src": "The Reconciliation report, Oct 21", "flagged": false, "n": 7}, {"risk": "Deadline pressure substitutes for evidence", "story": "Nine days feels short. It is long enough to verify everything once and nothing twice.", "fix": "The bid sheet locks October 29 after the final sweep. Until then, every number on it stays provisional and labeled.", "src": "Standing discipline", "flagged": false, "n": 8}, {"risk": "Assembly dreams exceed verified geometry", "story": "The land bank lane offers neighbor lots at nominal prices, but verified polygons cap the dream: the largest vacant candidate is 0.741 acres.", "fix": "Every assembly claim is bounded by the verified polygon it stands on - the vault's cross-reference is the boundary.", "src": "Vault polygon pull, Oct 21", "flagged": false, "n": 9}], "identity": [{"name": "Copemish 4406 (woodlot)", "pin": "04-036-275-04", "county": "Manistee", "legal": "W 1/2 E 1/2 E 1/2 SE 1/4 NW 1/4, S of M-115", "sev": 37800}, {"name": "Pentwater 640200", "pin": "044-320-005-50", "county": "Oceana", "legal": "Johnson's Replat of Outlot 5, Forest Hills", "sev": 16400}, {"name": "W Lakewood bundle (6 lots)", "pin": "61-06-404-067-0009-00", "county": "Muskegon", "legal": "Lakewood Add'n No 4, Lots 9-14 Blk 67", "sev": 0}, {"name": "Hancock compound (5.89 ac)", "pin": "61-02-019-400-0036-20/-10", "county": "Muskegon", "legal": "Sec 19 T12N R17W splits, Montague Twp", "sev": 99000}, {"name": "14143 State Rd (Nunica)", "pin": "70-04-07-300-026", "county": "Ottawa", "legal": "N 425 ft E 1/2 W 1/2 SE 1/4 SW 1/4 Sec 7 T8N R15W", "sev": 106000}, {"name": "S Brooks Rd (land bank)", "pin": "FS inventory", "county": "Muskegon", "legal": "Largest verified vacant FS polygon - 0.741 ac", "sev": 0}, {"name": "Russ Rd (landlocked)", "pin": "61-11-020-400-0021-20", "county": "Muskegon", "legal": "Egelston Twp - 112 x 100, landlocked", "sev": 0}, {"name": "Enchanted Forest pair", "pin": "Lots 690738 / 690840", "county": "Otsego", "legal": "POA - dues statement required before any bid", "sev": 0}], "chain": [{"name": "Copemish 4406", "prior_bid": "$29,607 prior cycle", "now": "$100 re-offer", "ratio": "99.7% collapse"}, {"name": "Pentwater 640200", "prior_bid": "$500 OTC ask", "now": "SEV $16,400", "ratio": "32x SEV-to-ask"}, {"name": "Lakewood bundle", "prior_bid": "2024 foreclosure wave", "now": "$1K offer standing", "ratio": "land bank exit"}, {"name": "Sugar Springs lesson", "prior_bid": "$100 lots looked cheap", "now": "$475/lot/yr dues", "ratio": "thesis killed"}, {"name": "Miramichi cluster", "prior_bid": "$100 open", "now": "$100/lot x 6", "ratio": "cluster discipline"}, {"name": "Michaywe pair", "prior_bid": "$100 open", "now": "assembly study", "ratio": "assembly math"}], "what_we_didnt_find": ["Jet's M-115 frontage measurement - the Copemish bid gate - still queued", "Pentwater: the Village Assessor's answer on the unimproved platted street", "Enchanted Forest POA: written dues and pending special assessments", "Land bank asking prices for the eleven verified-polygon candidates", "FEMA FIRM zone and NWI wetland overlays for every target - network-blocked, still assigned", "Live re-confirmation of the Oct 30 catalog - tax-sale.info maintenance until 1 PM today", "Whether the August Oceana lots (5600, 5605) remain available - not in current catalog", "The count reconciliation: 289 FS records (our pull) vs 243 (vault pull) - same-day variance, resolve at source"], "sources": [{"class": "VERIFIED", "name": "Muskegon County GIS (PropertyViewer, Land Bank layers)", "url": "https://maps.muskegoncountygis.com"}, {"class": "VERIFIED", "name": "Ottawa County ParcelsPublic + FloodParcels", "url": "https://gis.miottawa.org"}, {"class": "VERIFIED", "name": "EGLE RRD Part 201 scan (statewide)", "url": "https://gisagoegle.state.mi.us/arcgis/rest/services/EGLE/RRDOpenData/MapServer"}, {"class": "VERIFIED", "name": "Muskegon County Register of Deeds (deed chain, mineral severance)", "url": "https://muskegonrecords.com"}, {"class": "VERIFIED", "name": "Muskegon Land Bank inventory (live pull Oct 21)", "url": ""}, {"class": "VERIFIED", "name": "MPLA Oct 30 catalog decode (Oct 17 pull, tax-sale.info)", "url": "https://www.tax-sale.info"}, {"class": "VERIFIED", "name": "Oceana surplus CSV - Pentwater Lot 640200 legal + SEV", "url": ""}, {"class": "PENDING", "name": "FEMA FIRM panels (all targets - network-blocked this cycle)", "url": "https://msc.fema.gov"}, {"class": "PENDING", "name": "tax-sale.info live re-verification (maintenance until 1 PM Oct 21)", "url": "https://www.tax-sale.info"}], "layers": {"portfolio": [[44.459, -85.884, "Copemish 4406", "Manistee", 100, "AUCTION"], [43.778, -86.365, "Pentwater 640200", "Oceana", 500, "OFFER"], [43.28, -86.21, "W Lakewood bundle", "Muskegon", 1000, "OFFER"], [43.416, -86.381, "Hancock compound 5.89 ac", "Muskegon", 0, "NOW"], [43.091, -86.14, "14143 State Rd Nunica", "Ottawa", 0, "NOW"], [43.93, -85.32, "Miramichi cluster x6", "Osceola", 100, "AUCTION"], [44.27, -84.41, "Michaywe pair", "Crawford", 100, "AUCTION"], [43.99, -84.55, "Sugar Springs (dead thesis)", "Clare", 0, "NOW"], [43.16, -85.83, "Russ Rd landlocked / S Brooks", "Muskegon", 0, "OFFER"]], "part201_map": {}}};
+const map = L.map('map',{zoomControl:true}).setView([43.9,-85.4],7);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+ {maxZoom:19, attribution:'Esri, Maxar, Earthstar Geographics'}).addTo(map);
+const colors={NOW:'#34d399',OFFER:'#60a5fa',AUCTION:'#f59e0b'};
+R.layers.portfolio.forEach(p=>{
+  L.circleMarker([p[0],p[1]],{radius:8,color:'#0b111a',weight:2,fillColor:colors[p[5]]||'#f59e0b',fillOpacity:.95})
+   .addTo(map).bindPopup(`<b>${p[2]}</b><br>${p[3]} County · ${p[5]==='AUCTION'?'opens $'+p[4]:'$'+p[4]}`);
+});
+const p201g = L.layerGroup().addTo(map);
+Object.entries(R.layers.part201_map).forEach(([name,h])=>{
+  (h.part201||[]).forEach(s=>{
+    if(s.dist_mi!==undefined && s.lat===undefined){
+      // scan results carry dist only; skip plotting individual sites without coords
+    }
+  });
+});
+function evBadge(e,srcName,url){const cls=e.label[0]==='V'?'eV':(e.label[0]==='M'?'eM':(e.label==='PUBLIC REFERENCE'?'eP':(e.label==='PENDING'?'eD':'eA')));
+  return `<button class="ev ${cls}" data-src="${srcName}" data-url="${url||''}" onclick="showDrawer(this)">${e.label}</button>`;}
+let html='';
+R.sections.forEach((s,i)=>{
+  html+=`<div class="sec" id="sec${i}"><div class="kicker">${s.kicker}</div><h2>${s.title}</h2><div class="narr">${s.narration}</div>`;
+  if(i===0){
+    html+=`<div class="cards">`+R.cards.map(c=>`<div class="card"><div class="lbl">${c.label}</div><div class="val">${c.value}</div><div class="sub">${c.sub}</div>${evBadge(c.evidence,c.evidence.source,c.evidence.url)}</div>`).join('')+`</div>`;
+  }
+  if(i===1){
+    html+=`<div class="veclist">`+R.vectors.map(v=>`<div class="vec"><div class="n">VECTOR ${v.n} OF 12</div><div class="t">${v.risk}</div><div class="s">${v.story}</div><div class="fx"><b>FAIL-SAFE</b> — ${v.fix}</div><div class="sc">SOURCE: ${v.src}<br><b>Flagged in portfolio:</b> ${v.flagged}</div></div>`).join('')+`</div>`;
+  }
+  if(i===2){
+    html+=`<div class="chain">`+R.chain.map(c=>`<div class="chrow"><span class="nm">${c.name}</span><span class="was">${c.prior_bid}</span><span class="arrow">→</span><span class="now">${c.now}</span><span class="ratio">${c.ratio} drop</span></div>`).join('')+`</div>
+    <div class="clean" style="margin-top:12px"><ul>`+R.what_we_didnt_find.map(x=>`<li>✓ ${x}</li>`).join('')+`</ul></div>`;
+  }
+  if(i===3){
+    html+=`<table><tr><th>Parcel</th><th>PIN (verified)</th><th>County</th><th>Legal</th><th>SEV</th></tr>`+
+      R.identity.map(x=>`<tr><td><b>${x.name}</b></td><td>${x.pin}</td><td>${x.county}</td><td>${x.legal}</td><td>${x.sev?'$'+x.sev.toLocaleString():'$0'}</td></tr>`).join('')+`</table>`;
+  }
+  if(i===7){
+    html+=`<div class="srclist">`+R.sources.map(s=>{const cls=s.class==='VERIFIED'?'eV':(s.class==='MODELED'?'eM':(s.class==='PENDING'?'eD':'eP'));
+      return `<div class="src"><span class="cls ${cls}">${s.class}</span><span>${s.name}${s.url?` — <a style="color:#60a5fa" href="${s.url}" target="_blank">source</a>`:''}</span></div>`;}).join('')+`</div>`;
+  }
+  html+=`</div>`;
+});
+document.getElementById('list').innerHTML=html;
+
+// ===== SOOTHING VOICE ENGINE v2 — Mr. Results =====
+// Calm, natural, correctly-pronounced narration. Replaces the raw innerText reader.
+const GLOSSARY = {
+ "SEVs":"state equalized values","SEV":"state equalized value","TV":"taxable value",
+ "GIS":"G I S","EGLE":"Eagle","PFAS":"P F A S","HDR":"H D R","POA":"property owners association",
+ "AOC":"Area of Concern","FSBO":"for sale by owner","MDOT":"M dot",
+ "M-115":"M one fifteen","Twp":"Township","Part 201":"Part two oh one",
+ "ac":"acres","mi":"miles","R-1":"R one","R-2":"R two","Rd":"Road","St":"Street","SEV,":"state equalized value,"
+};
+function speakable(raw){
+  let t = raw.replace(/\s+/g," ")
+    .replace(/→/g," to ").replace(/·/g,", ").replace(/×/g," times ")
+    .replace(/&/g," and ").replace(/[✓▶●◦]/g," ").replace(/[""]/g,'"').replace(/[""]/g,"'");
+  const keys = Object.keys(GLOSSARY).sort((a,b)=>b.length-a.length);
+  for(const k of keys){
+    t = t.replace(new RegExp(k.replace(/[-]/g,"\\-").replace(/,/g,"")+"(?=[\\s,.:;)]|$)","g"), GLOSSARY[k]);
+  }
+  t = t.replace(/\b(\d{2}-\d{2}-\d{3}-\d{3}-\d{4}-\d{2})\b/g, m=>m.split("-").join(", "));
+  t = t.replace(/\b(\d{2}-\d{3}-\d{3}-\d{2})\b/g, m=>m.split("-").join(", "));
+  t = t.replace(/\b(\d{1,2}-\d{1,3}-\d{3}-\d{3}(-\d{4})?(-\d{2})?)\b/g, m=>m.split("-").join(", "));
+  t = t.replace(/\b([A-Z]{2,6})\b/g, m=>m.split("").join(" "));
+  t = t.replace(/,\s*,/g,",").replace(/\s+\./g,".").replace(/\s{2,}/g," ");
+  return t.trim();
+}
+function pickVoice(voices){
+  if(!voices || !voices.length) return null;
+  const en = voices.filter(v=>/^en[-_]/i.test(v.lang||""));
+  const pool = en.length?en:voices;
+  const prefs=[[/Aria.*Natural/i,100],[/Jenny.*Natural/i,96],[/Guy.*Natural/i,95],[/Ana.*Natural/i,94],
+   [/Google US English/i,92],[/Online.*Natural/i,90],[/Neural/i,88],[/Samantha/i,85],
+   [/Aria/i,80],[/Jenny/i,78],[/Eloquence/i,74],[/Zira/i,70],[/en[-_]US/i,45],[/en/i,25]];
+  let best=null,bs=-1;
+  for(const v of pool){let s=0;for(const [re,x] of prefs){if(re.test(v.name)&&x>s)s=x;}if(s>bs){bs=s;best=v;}}
+  return best;
+}
+let VOICE=null, RATE=0.94;
+function loadVoices(){
+  const vs = speechSynthesis.getVoices();
+  VOICE = pickVoice(vs);
+  const sel = document.getElementById("vsel");
+  if(sel){
+    sel.innerHTML = vs.map((v,i)=>`<option value="${i}" ${v===VOICE?"selected":""}>${v.name.replace(/Microsoft |Google /,"")}</option>`).join("");
+    if(VOICE){const vi = vs.indexOf(VOICE); if(vi>-1) sel.value = vi;}
+  }
+}
+function speakNext(){
+  if(qi>=queue.length){
+    if(idx<SECS.length){ setTimeout(()=>playReport(), 900); }
+    else { setPlaying(false); }
+    return;
+  }
+  const u=new SpeechSynthesisUtterance(queue[qi]);
+  if(VOICE) u.voice=VOICE;
+  u.rate=RATE; u.pitch=0.96;
+  u.onend=()=>{ qi++; setTimeout(speakNext, qi<queue.length?430:250); };
+  u.onerror=()=>{ qi++; setTimeout(speakNext, 150); };
+  speechSynthesis.speak(u);
+  if(speechSynthesis.paused) speechSynthesis.resume();
+}
+let queue=[], qi=0;
+function buildQueue(sec){
+  const h2 = sec.querySelector("h2"), narr = sec.querySelector(".narr");
+  const cards = [...sec.querySelectorAll(".card")].map(c=>{
+    const lbl=c.querySelector(".lbl"), val=c.querySelector(".val"), sub=c.querySelector(".sub");
+    return [lbl?lbl.textContent:"", val?val.textContent:"", sub?sub.textContent:""].filter(Boolean).join(". ");
+  }).join(". ");
+  let text = (h2?h2.textContent+". ":"") + (narr?narr.textContent:"") + (cards?" "+cards:"");
+  const st = speakable(text);
+  return (st.match(/[^.!?…]+[.!?…]+/g)||[st]).map(s=>s.trim()).filter(Boolean);
+}
+let idx=0;
+let SECS=[]; let READING=false; let GEN=0;
+function setPlaying(on){
+  const b=document.getElementById("play");
+  if(b) b.innerHTML = on? "❚❚ Reading…" : "▶ Read This Report";
+}
+function stopSpeech(){
+  READING=false; GEN++;
+  if(window.speechSynthesis) speechSynthesis.cancel();
+  setPlaying(false);
+}
+function playReport(){
+  if(READING){ stopSpeech(); return; }
+  if(!window.speechSynthesis) return;
+  SECS=document.querySelectorAll(".sec");
+  if(!SECS.length) return;
+  if(idx>=SECS.length) idx=0;
+  speechSynthesis.cancel();
+  const gen=++GEN;
+  READING=true;
+  setPlaying(true);
+  playSection(gen, idx);
+}
+function playSection(gen, i){
+  if(gen!==GEN || !READING) return;
+  if(SECS[i].scrollIntoView) SECS[i].scrollIntoView({behavior:"smooth",block:"start"});
+  queue=buildQueue(SECS[i]); qi=0;
+  if(queue.length) speakNext(gen); else sectionDone(gen);
+}
+function speakNext(gen){
+  if(gen!==GEN || !READING) return;
+  if(qi>=queue.length){ sectionDone(gen); return; }
+  const u=new SpeechSynthesisUtterance(queue[qi]);
+  if(VOICE) u.voice=VOICE;
+  u.rate=RATE; u.pitch=0.96;
+  u.onend=()=>{ if(gen!==GEN||!READING) return; qi++; setTimeout(()=>speakNext(gen), 420); };
+  u.onerror=()=>{ if(gen!==GEN||!READING) return; qi++; setTimeout(()=>speakNext(gen), 150); };
+  speechSynthesis.speak(u);
+  if(speechSynthesis.paused) speechSynthesis.resume();
+}
+function sectionDone(gen){
+  if(gen!==GEN || !READING) return;
+  idx++;
+  if(idx<SECS.length) setTimeout(()=>playSection(gen, idx), 900);
+  else stopSpeech();
+}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'){idx=Math.min(idx+1,Math.max(0,SECS.length-1)); if(READING) playSection(++GEN,idx);}if(e.key==='ArrowLeft'){idx=Math.max(0,idx-1); if(READING) playSection(++GEN,idx);}});
+function showDrawer(b){
+  const d=document.getElementById('drawer');
+  d.innerHTML=`<b style="color:var(--acc)">${b.textContent}</b><br><span style="color:var(--mut)">Source:</span> ${b.dataset.src}`+
+    (b.dataset.url?`<br><a style="color:#60a5fa" href="${b.dataset.url}" target="_blank">Open source documentation →</a>`:'')+
+    `<br><span style="color:var(--mut);font-size:11px">Every claim in this report carries its evidence class. Click any badge to see its source.</span>`;
+  d.classList.add('open');
+  setTimeout(()=>d.classList.remove('open'),7000);
+}
+</script><div id="vbar" style="position:fixed;bottom:14px;right:14px;z-index:999;background:#161b22f0;border:1px solid #2a3644;border-radius:10px;padding:8px 10px;display:flex;gap:8px;align-items:center;font-size:12px">
+<span style="color:#8aa">🎙</span>
+<select id="vsel" style="background:#0d1117;color:#cfe;border:1px solid #2a3644;border-radius:6px;padding:3px 5px;max-width:170px"></select>
+<span style="color:#8aa">speed</span>
+<input id="vrate" type="range" min="0.8" max="1.15" step="0.02" value="0.94" style="width:70px">
+</div>
+<script>
+if(window.speechSynthesis){speechSynthesis.onvoiceschanged=loadVoices;loadVoices();}
+document.addEventListener('DOMContentLoaded',()=>{const s=document.getElementById('vsel');if(s)s.onchange=e=>{VOICE=speechSynthesis.getVoices()[e.target.value];};const r=document.getElementById('vrate');if(r)r.oninput=e=>{RATE=parseFloat(e.target.value);};});
+</script><div id="qrdrawer" style="display:none;position:fixed;bottom:70px;right:16px;z-index:9999;background:#161b22;border:1px solid #2a3340;border-radius:12px;padding:14px;text-align:center;box-shadow:0 4px 18px rgba(0,0,0,.5)"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAUgAAAFIAQAAAAAab1qeAAACbklEQVR4nO2a66rbQAyEvyl5/1ee/hhp7UIpyaEHrw7rQJx4BywNWl1X5s3r17vAgzzI/4bEbaAGG+eGMeBr1VM0ehb5AgwgACywjLUQvTpFow2QkgAsik4AXCTX6gZyDkC+rp+LTmFhhNEVrqZotA2fsgxCVmj8M/RP0WgDPkOci9KyTYHstTpGo33i+98/DZui0bPIm4NELMvEWTv+80PkK7QBVJLUNilbWEYWeIxGj/NZVhirVJlp/qqe46flnIIsKhOFAPkKR3Df91M02gFpybXre/dX7Rkz1SZyTkHKtbXjNKn9r3CZtGkHOWcgk3NKV4W56vhiWsd/vo8UIY6yybAq4wpQ6PRDPkCmKWc5nRArRNIJ6amPPt3vEkrgMa7wE6PsZGkLOScgK1+30le6P69vVQNvikZbIOND40IVyyybjR89/vPN60XVlKtwVzWaCL8dqsZo9Ph+77Cz2iCVKbHq+g3knIJUG+M1MSpiqw2yHOgUjbbof3aGlCfVE+1bas8pGj2PNF1k2hkjpcJE2E7itIOcE5Cr+QmwhnDqMNQ+9Zve/jORrsGGSQ3PjU67Hevzck5A9oGQdOewy1u2X11cH//5NtJSHa9Bmb1Xg8lGcnL9DeScgKx58ZW9Z3enDO3xx+nXvY28DTCrhM/tGsd3eJqi0eP2eZsUUeYYVvPf1bSbotHjfN7O16mcaQjtUefZ7x8i6wRdMvs1hLPXkk9/6c3rdh6MCuVeUanze058/wLSXmUmywnYNd7cR86tkbfzddnWderTt0pT3/b2n4e86vc+vdQpVBedqiMiUzR6nM8H336QB/nv6zcW9FJXj426uwAAAABJRU5ErkJggg==" width="180" height="180" style="image-rendering:pixelated;border-radius:6px"><div style="color:#e6edf3;font-size:12px;margin-top:8px;font-weight:600">Scan to open this report</div><div style="color:#8b949e;font-size:11px;margin-top:4px;word-break:break-all;max-width:200px">https://nvirogear1-pixel.github.io/mitoxicmap/reports/master-report.html</div><div style="color:#8b949e;font-size:10px;margin-top:6px">No login needed - works on any phone</div></div><button onclick="toggleQR()" style="position:fixed;top:70px;right:16px;z-index:9999;background:#161b22;border:1px solid #2a3340;color:#e6edf3;border-radius:10px;padding:9px 14px;font-size:12px;font-weight:600;cursor:pointer;box-shadow:0 4px 18px rgba(0,0,0,.5)">▮ Share QR</button><script>function toggleQR(){const p=document.getElementById("qrdrawer");p.style.display=p.style.display==="none"?"block":"none";}</script></body></html>
