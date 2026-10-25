@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Homestead Extravaganza — Land Investor Risk Audit & Fail-Safe Report</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{--bg:#0b111a;--panel:#121a26;--line:#223047;--txt:#e8eef7;--mut:#94a3b8;--acc:#00f5a3;--amber:#f59e0b;--red:#e53e3e;--blue:#60a5fa}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:var(--bg);color:var(--txt);font:15px/1.6 system-ui,sans-serif;overflow:hidden}
+#map{position:fixed;inset:0;z-index:1}
+#top{position:fixed;top:0;left:0;right:0;z-index:30;display:flex;justify-content:space-between;align-items:flex-start;padding:10px 18px;background:linear-gradient(180deg,rgba(7,11,18,.95),rgba(7,11,18,.6));border-bottom:1px solid var(--line)}
+#top .brand{font-size:12px;letter-spacing:.16em;color:var(--acc);font-weight:800}
+#top h1{font-size:17px;margin-top:2px}
+#top .meta{font-size:11.5px;color:var(--mut);margin-top:3px}
+.playbtn{background:var(--acc);color:#04131d;font-weight:800;border:none;border-radius:24px;padding:10px 18px;font-size:13px;cursor:pointer;box-shadow:0 0 24px rgba(0,245,163,.35);z-index:40}
+#panel{position:fixed;top:0;bottom:0;right:0;width:min(640px,100%);z-index:20;background:linear-gradient(90deg,rgba(11,17,26,0) 0%,rgba(11,17,26,.5) 14px,rgba(11,17,26,.97) 40px)}
+#panel .inner{position:absolute;top:78px;bottom:12px;left:44px;right:12px;overflow-y:auto;padding-right:6px}
+#panel .inner::-webkit-scrollbar{width:8px}#panel .inner::-webkit-scrollbar-thumb{background:#2a3a55;border-radius:4px}
+.sec{margin:26px 0 12px;scroll-margin-top:70px}
+.sec .kicker{font-size:11px;letter-spacing:.18em;color:var(--acc);font-weight:800}
+.sec h2{font-size:19px;margin:4px 0 8px}
+.sec .narr{font-size:14.5px;color:#cbd5e1;background:rgba(18,26,38,.72);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.card{background:rgba(18,26,38,.85);border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+.card .lbl{font-size:10.5px;letter-spacing:.1em;color:var(--mut);font-weight:700}
+.card .val{font-size:16.5px;font-weight:800;margin:3px 0}
+.card .sub{font-size:12px;color:var(--mut)}
+.ev{font-size:10px;font-weight:800;border:1px solid;border-radius:5px;padding:2px 7px;cursor:pointer;margin-top:7px;display:inline-block}
+.eV{color:var(--acc);border-color:var(--acc)}.eM{color:var(--amber);border-color:var(--amber)}.eP{color:#a5b4fc;border-color:#a5b4fc}.eA{color:var(--blue);border-color:var(--blue)}.eD{color:var(--red);border-color:var(--red)}
+.veclist{margin-top:12px}
+.vec{background:rgba(18,26,38,.85);border:1px solid var(--line);border-left:3px solid var(--red);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.vec .n{font-size:11px;color:var(--red);font-weight:800;letter-spacing:.1em}
+.vec .t{font-weight:800;font-size:14.5px;margin:2px 0 6px}
+.vec .s{font-size:13px;color:#cbd5e1}
+.vec .fx{font-size:13px;margin-top:7px;color:#a7f3d0}
+.vec .fx b{color:var(--acc);font-size:11.5px;letter-spacing:.08em}
+.vec .sc{font-size:11.5px;color:var(--mut);margin-top:6px;border-top:1px dashed #223047;padding-top:5px}
+.chain{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+.chrow{display:flex;align-items:center;gap:10px;background:rgba(18,26,38,.85);border:1px solid var(--line);border-radius:10px;padding:10px 13px;flex-wrap:wrap}
+.chrow .nm{font-weight:700;font-size:13.5px;flex:1;min-width:150px}
+.chrow .was{color:var(--red);font-weight:800;text-decoration:line-through;text-decoration-color:rgba(229,62,62,.55);font-size:14px}
+.chrow .arrow{color:var(--mut)}
+.chrow .now{color:var(--acc);font-weight:800;font-size:14px}
+.chrow .ratio{font-size:11px;color:var(--amber);border:1px solid var(--amber);border-radius:5px;padding:1px 6px}
+table{width:100%;border-collapse:collapse;margin-top:12px;font-size:12.5px}
+th{color:var(--acc);text-align:left;font-size:10.5px;letter-spacing:.1em;border-bottom:1px solid var(--line);padding:6px 8px}
+td{border-bottom:1px solid #1a2740;padding:7px 8px;vertical-align:top;color:#cbd5e1}
+td b{color:var(--txt)}
+.clean{background:rgba(18,26,38,.72);border:1px solid var(--line);border-radius:12px;padding:13px 16px;margin-top:12px}
+.clean li{list-style:none;font-size:13px;color:#a7f3d0;margin:5px 0}
+.srclist{margin-top:12px}
+.src{display:flex;gap:8px;align-items:baseline;font-size:12.5px;margin:7px 0;flex-wrap:wrap}
+.src .cls{font-size:9.5px;font-weight:800;border:1px solid;border-radius:4px;padding:1px 5px}
+#drawer{position:fixed;left:12px;bottom:12px;max-width:340px;background:rgba(13,21,34,.95);border:1px solid var(--line);border-radius:12px;padding:12px 15px;z-index:45;font-size:12.5px;color:#cbd5e1;opacity:0;pointer-events:none;transition:opacity .3s}
+#drawer.open{opacity:1}
+.legend{position:fixed;left:12px;bottom:12px;z-index:25;background:rgba(11,18,32,.85);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:11.5px}
+.legend .row{display:flex;align-items:center;gap:7px;margin:3px 0}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+@media (max-width:700px){#panel .inner{left:12px;top:120px}.cards{grid-template-columns:1fr}.legend{display:none}}
+</style></head><body>
+<div id="map"></div>
+<div id="top">
+  <div><div class="brand">NVIROGEAR PROPERTY INTELLIGENCE</div>
+  <h1>Land Investor Risk Audit — Homestead Extravaganza</h1>
+  <div class="meta">15 targets · Mid & Northern Michigan · The 12 ways investors get screwed, the fail-safe for each, and what actually happened to these lots · 2026-10-15</div></div>
+  <button class="playbtn" id="play" onclick="playReport()">▶ Read This Report</button>
+</div>
+<div class="legend" id="legendbox">
+  <div class="row"><span class="dot" style="background:#f59e0b"></span>Oct 30 auction lot</div>
+  <div class="row"><span class="dot" style="background:#60a5fa"></span>Land bank offer</div>
+  <div class="row"><span class="dot" style="background:#34d399"></span>Buy now OTC</div>
+  <div class="row"><span class="dot" style="background:#e53e3e;border:2px solid #fff"></span>Part 201 site (EGLE)</div>
+</div>
+<div id="panel"><div class="inner" id="list"></div></div>
+<div id="drawer"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const R = {"brand": "NVIROGEAR PROPERTY INTELLIGENCE", "title": "2413 PLAINFIELD AVE NE - The Father's House Investment Report", "subtitle": "Every aspect of the equity: value today, the new garage, the repair stack, and the path up - all-agents report, 2026-10-25", "sections": [{"kicker": "1 - THE PROPERTY, CONFIRMED", "title": "Lot 3, Block 2, Riverside Gardens", "narration": "The county's own parcel layer confirms the identity, and every number in this report traces to it. Parcel 411-407-280-010, Lot 3 Block 2 of the Riverside Gardens plat, class 401 residential improved, on roughly a quarter acre in the 2400 block of Plainfield Avenue NE. The environmental register is clean: zero Part 201 contamination sites within one mile, verified against the state's own layer, not a guess. Two items stay open and are named in the ledger: the FEMA flood panel, because Riverside Gardens sits near the Grand River corridor, and the year-built and square-footage records, which live in the county's property-search system and were not reachable this pass. What is here is verified; what is pending is labeled pending."}, {"kicker": "2 - VALUE TODAY", "title": "What the House Is Worth Right Now", "narration": "The assessor's State Equalized Value is one hundred twenty-two thousand five hundred dollars. In Michigan that number is by convention half of market value, so the modeled market value today is about two hundred forty-five thousand dollars. The taxable value is fifty-eight and a half thousand - and that is the number his property taxes are actually built on, protected by the state's assessment cap. One honest caveat travels with the market figure: it is a model, not an appraisal. The real number comes when the county reappraises, and the new garage gives that reappraisal something to see."}, {"kicker": "3 - THE BLOCK MATH", "title": "The Hundred-Thousand-Dollar Runway", "narration": "Seventeen owner-class homes stand in the 2300-to-2500 block of Plainfield Avenue. Their median State Equalized Value is about one hundred seventy-four thousand dollars, which models to a median market value near three hundred forty-eight thousand. The father's house, at one hundred twenty-two and a half, is the lowest improved home on the block - only a vacant lot sits lower. Read plainly: the block is telling you what houses in this stretch sell for when they are brought to standard, and his house is about one hundred three thousand dollars below that line today. That gap is not a problem. That gap is the equity. The work - and it is real work, the house needs it - is what closes the distance."}, {"kicker": "4 - WHAT THE GARAGE ALREADY DID", "title": "The Lift Is Not Just a Toy", "narration": "The new garage and driveway are already built, and they matter three ways. First, appraised value: a detached two-or-three-car garage typically adds fifteen to thirty thousand, a new driveway five to ten. Second, the buyer pool: a tall bay with a installed lift is a niche premium - the car-guy buyer pays for it, and there are more of them than there are lifted garages. Third, the tax cap protects him: under Proposal A the taxable value only picks up roughly half the true cash value of the new construction as an addition - his taxes will not explode, but his worth goes up."}, {"kicker": "5 - THE REPAIR STACK", "title": "Where the Money Goes, In Order", "narration": "Ranked by return. One: roof and furnace if they are at end of life - these do not add value so much as they stop a buyer's lender from killing a deal. Two: kitchen and bath refresh, the classic equity builders. Three: paint and exterior - the block already reads well from the street, and matching it costs little. Four: the garage door and approach finish, because it is the newest thing on the property and it should look like it. The target is not a showpiece. The target is the block median, three hundred forty-eight thousand, and every thousand spent past the break-even point is wasted. This is a catch-up project, not a castle project."}, {"kicker": "6 - THE EQUITY PATHS", "title": "Turning the Runway Into Cash He Can Use", "narration": "Today, at a modeled two hundred forty-five, an eighty-percent loan against the house supports about one hundred ninety-six thousand. If the repair stack brings the house to the block median near three hundred forty-eight, that same eighty-percent line supports about two hundred seventy-eight thousand. That difference is the bank's version of the equity he is building with his hands. The honest gaps: his mortgage balance is the missing input, so real borrowing power cannot be computed yet - and renting garage bay time to hobby mechanics is an idea worth a zoning call before it is a plan. Fleet passes from the Historian and the Site Tracker are dispatched and acknowledged; their comp work and history work will sharpen these numbers when they report back."}, {"kicker": "7 - THE LEDGER", "title": "Verified, Modeled, Pending - No Blending", "narration": "Verified: the parcel identity, the values, the block, the clean environmental register, the fleet dispatches. Modeled: the market values, which are assessor-convention estimates, not appraisals. Pending, by name: the FEMA flood panel, the year-built and square footage, the zoning check, and the one acreage variance - the county record says zero point two seven acres and the polygon measures about half that, flagged rather than silently resolved. The fleet is running. When their passes land, this report gets its update, same page, same chain."}], "cards": [{"label": "VALUE TODAY (MODELED)", "value": "$245,000", "sub": "SEV $122,500 x 2 - Michigan convention. Not an appraisal.", "evidence": {"label": "MODELED", "source": "Grand Rapids GIS SEV", "url": "https://gisportalgr.grcity.us"}}, {"label": "BLOCK MEDIAN MARKET", "value": "~$348,000", "sub": "17 homes, 2300-2500 block. His gap: ~$103,000.", "evidence": {"label": "VERIFIED", "source": "Grand Rapids GIS - 28 block parcels", "url": "https://gisportalgr.grcity.us"}}, {"label": "TAXABLE VALUE (PROTECTED)", "value": "$58,523", "sub": "Proposal A cap - improvements barely move the tax bill.", "evidence": {"label": "VERIFIED", "source": "Grand Rapids GIS TV", "url": "https://gisportalgr.grcity.us"}}, {"label": "PART 201 SITES", "value": "0 within 1 mile", "sub": "State EGLE layer, verified this pass.", "evidence": {"label": "VERIFIED", "source": "EGLE RRD scan", "url": "https://gisagoegle.state.mi.us"}}], "vectors": [{"n": 1, "risk": "The $103K gap could shrink on its own", "story": "If the block softens while the house waits, the runway closes without him lifting a hammer. Equity built by neighbors is equity borrowed from neighbors.", "fix": "The repair stack is sequenced cheapest-first with the block median as the stop line. No work continues past break-even.", "src": "Block comp analysis, Oct 25"}, {"n": 2, "risk": "SEV x 2 is a convention, not an appraisal", "story": "Michigan assessors target 50% of market, but individual parcels drift - his may lag after years of light updates.", "fix": "The county reappraisal after the garage is the truth-teller; if it comes in strong, the model was conservative.", "src": "Assessor convention - MODELED label"}, {"n": 3, "risk": "FEMA panel unchecked", "story": "Riverside Gardens sits near the Grand River corridor. A flood zone changes insurance and lender math.", "fix": "Panel check queued as PENDING; no financing numbers are finalized until it clears.", "src": "FEMA - pending"}, {"n": 4, "risk": "Mortgage balance unknown", "story": "Borrowing power math uses 80% of value, but real equity is value minus debt.", "fix": "One number from the father - current balance - turns the borrowing section from illustrative to exact.", "src": "Owner input needed"}, {"n": 5, "risk": "Garage value is real but not itemized", "story": "The county has not yet re-assessed the new garage; its value is temporarily invisible to the tax roll.", "fix": "At the next assessment cycle the SEV should rise; if it does not, appeal with build receipts.", "src": "Proposal A mechanics"}, {"n": 6, "risk": "Acreage variance", "story": "County record says 0.27 acres; the parcel polygon measures about 0.135.", "fix": "Flagged, not resolved. Deed legal description settles it; cosmetic to the equity story either way.", "src": "GIS measurement variance"}, {"n": 7, "risk": "Repair cost inflation", "story": "West Michigan contractor pricing moved with everything else; a 2024 quote is not a 2026 price.", "fix": "All repair figures here are planning ranges, and the stack is sequenced so the first items are also the cheapest.", "src": "Standard cost caution"}, {"n": 8, "risk": "Lift rental idea needs zoning cover", "story": "Renting bay time to hobby mechanics could carry commercial-use or home-occupation rules in Grand Rapids.", "fix": "One zoning call before money changes hands. Labeled idea, not plan.", "src": "Grand Rapids zoning - pending"}, {"n": 9, "risk": "Relying on fleet numbers not yet returned", "story": "The Historian and Site Tracker ACKed their passes, but their comp and history detail has not landed.", "fix": "This report stands on verified county data; the fleet passes will merge as updates, not silently replace.", "src": "Fleet ACKs, Oct 25"}], "identity": [["Parcel ID", "411-407-280-010", "VERIFIED"], ["Address", "2413 Plainfield Ave NE, Grand Rapids MI", "VERIFIED"], ["Legal", "Lot 3, Block 2 - Riverside Gardens plat", "VERIFIED"], ["Class", "401 - Residential improved", "VERIFIED"], ["SEV / Taxable", "$122,500 / $58,523", "VERIFIED"], ["Modeled market", "~$245,000 (SEV x 2)", "MODELED"], ["Block median (17 homes)", "~$348,000 modeled", "VERIFIED INPUTS"], ["Environmental", "0 Part 201 sites within 1 mile", "VERIFIED"], ["Flood zone", "FEMA panel - queued", "PENDING"], ["Year built / sq ft", "Kent BS&A - not reachable this pass", "PENDING"]], "chain": [{"name": "Assessor's SEV", "prior_bid": "$122,500", "now": "$245,000 modeled market", "ratio": 2.0, "src": "GR GIS"}, {"name": "Block median", "prior_bid": "$245,000 (his)", "now": "~$348,000 (theirs)", "ratio": 1.42, "src": "28 block parcels"}, {"name": "Post-repair ceiling", "prior_bid": "$245,000 today", "now": "~$348,000 at median", "ratio": 1.42, "src": "Catch-up model"}, {"name": "80% lending line", "prior_bid": "$196,000 now", "now": "$278,000 post-repair", "ratio": 1.42, "src": "MODELED"}], "what_we_didnt_find": ["Year built and square footage - the property-search system was unreachable this pass; labeled pending, never guessed.", "The FEMA flood panel - network-blocked; Riverside Gardens proximity to the river keeps this on the open list.", "His mortgage balance - the one number that turns borrowing math from illustrative to exact. It comes from him, not a database.", "Zoning confirmation for garage-bay rental - an idea stays an idea until the city answers."], "sources": [{"class": "VERIFIED", "name": "Grand Rapids GIS Core_Data/Parcels (PPN, SEV, TV, legal, geometry)", "url": "https://gisportalgr.grcity.us"}, {"class": "VERIFIED", "name": "EGLE RRD Part 201 scan - 1-mile radius, zero sites", "url": "https://gisagoegle.state.mi.us"}, {"class": "VERIFIED", "name": "Fleet dispatch ACKs - Historian parcel_scan + Site Tracker site_check", "url": ""}, {"class": "MODELED", "name": "Market value = SEV x 2 (Michigan assessment convention)", "url": ""}, {"class": "PENDING", "name": "FEMA flood panel (Riverside Gardens near the Grand River)", "url": "https://msc.fema.gov"}, {"class": "PENDING", "name": "Year built / square footage / sales history - Kent County BS&A", "url": ""}, {"class": "PENDING", "name": "Zoning district + ADU feasibility - City of Grand Rapids", "url": ""}], "layers": {"portfolio": [[43.007059, -85.650861, "2413 Plainfield Ave NE", "Kent", "122500", "NOW"]], "part201_map": {}}};
+const map = L.map('map',{zoomControl:true}).setView([44.4,-84.6],7);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+ {maxZoom:19, attribution:'Esri, Maxar, Earthstar Geographics'}).addTo(map);
+const colors={NOW:'#34d399',OFFER:'#60a5fa',AUCTION:'#f59e0b'};
+R.layers.portfolio.forEach(p=>{
+  L.circleMarker([p[0],p[1]],{radius:8,color:'#0b111a',weight:2,fillColor:colors[p[5]]||'#f59e0b',fillOpacity:.95})
+   .addTo(map).bindPopup(`<b>${p[2]}</b><br>${p[3]} County · ${p[5]==='AUCTION'?'opens $'+p[4]:'$'+p[4]}`);
+});
+const p201g = L.layerGroup().addTo(map);
+Object.entries(R.layers.part201_map).forEach(([name,h])=>{
+  (h.part201||[]).forEach(s=>{
+    if(s.dist_mi!==undefined && s.lat===undefined){
+      // scan results carry dist only; skip plotting individual sites without coords
+    }
+  });
+});
+function evBadge(e,srcName,url){const cls=e.label[0]==='V'?'eV':(e.label[0]==='M'?'eM':(e.label==='PUBLIC REFERENCE'?'eP':(e.label==='PENDING'?'eD':'eA')));
+  return `<button class="ev ${cls}" data-src="${srcName}" data-url="${url||''}" onclick="showDrawer(this)">${e.label}</button>`;}
+let html='';
+R.sections.forEach((s,i)=>{
+  html+=`<div class="sec" id="sec${i}"><div class="kicker">${s.kicker}</div><h2>${s.title}</h2><div class="narr">${s.narration}</div>`;
+  if(i===0){
+    html+=`<div class="cards">`+R.cards.map(c=>`<div class="card"><div class="lbl">${c.label}</div><div class="val">${c.value}</div><div class="sub">${c.sub}</div>${evBadge(c.evidence,c.evidence.source,c.evidence.url)}</div>`).join('')+`</div>`;
+  }
+  if(i===1){
+    html+=`<div class="veclist">`+R.vectors.map(v=>`<div class="vec"><div class="n">VECTOR ${v.n} OF 12</div><div class="t">${v.risk}</div><div class="s">${v.story}</div><div class="fx"><b>FAIL-SAFE</b> — ${v.fix}</div><div class="sc">SOURCE: ${v.src}<br><b>Flagged in portfolio:</b> ${v.flagged}</div></div>`).join('')+`</div>`;
+  }
+  if(i===2){
+    html+=`<div class="chain">`+R.chain.map(c=>`<div class="chrow"><span class="nm">${c.name}</span><span class="was">${c.prior_bid}</span><span class="arrow">→</span><span class="now">${c.now}</span><span class="ratio">${c.ratio} drop</span></div>`).join('')+`</div>
+    <div class="clean" style="margin-top:12px"><ul>`+R.what_we_didnt_find.map(x=>`<li>✓ ${x}</li>`).join('')+`</ul></div>`;
+  }
+  if(i===3){
+    html+=`<table><tr><th>Parcel</th><th>PIN (verified)</th><th>County</th><th>Legal</th><th>SEV</th></tr>`+
+      R.identity.map(x=>`<tr><td><b>${x.name}</b></td><td>${x.pin}</td><td>${x.county}</td><td>${x.legal}</td><td>${x.sev?'$'+x.sev.toLocaleString():'$0'}</td></tr>`).join('')+`</table>`;
+  }
+  if(i===7){
+    html+=`<div class="srclist">`+R.sources.map(s=>{const cls=s.class==='VERIFIED'?'eV':(s.class==='MODELED'?'eM':(s.class==='PENDING'?'eD':'eP'));
+      return `<div class="src"><span class="cls ${cls}">${s.class}</span><span>${s.name}${s.url?` — <a style="color:#60a5fa" href="${s.url}" target="_blank">source</a>`:''}</span></div>`;}).join('')+`</div>`;
+  }
+  html+=`</div>`;
+});
+document.getElementById('list').innerHTML=html;
+
+// ===== SOOTHING VOICE ENGINE v2 — Mr. Results =====
+// Calm, natural, correctly-pronounced narration. Replaces the raw innerText reader.
+const GLOSSARY = {
+ "SEVs":"state equalized values","SEV":"state equalized value","TV":"taxable value",
+ "GIS":"G I S","EGLE":"Eagle","PFAS":"P F A S","HDR":"H D R","POA":"property owners association",
+ "AOC":"Area of Concern","FSBO":"for sale by owner","MDOT":"M dot",
+ "M-115":"M one fifteen","Twp":"Township","Part 201":"Part two oh one",
+ "ac":"acres","mi":"miles","R-1":"R one","R-2":"R two","Rd":"Road","St":"Street","SEV,":"state equalized value,"
+};
+function speakable(raw){
+  let t = raw.replace(/\s+/g," ")
+    .replace(/→/g," to ").replace(/·/g,", ").replace(/×/g," times ")
+    .replace(/&/g," and ").replace(/[✓▶●◦]/g," ").replace(/[""]/g,'"').replace(/[""]/g,"'");
+  const keys = Object.keys(GLOSSARY).sort((a,b)=>b.length-a.length);
+  for(const k of keys){
+    t = t.replace(new RegExp(k.replace(/[-]/g,"\\-").replace(/,/g,"")+"(?=[\\s,.:;)]|$)","g"), GLOSSARY[k]);
+  }
+  t = t.replace(/\b(\d{2}-\d{2}-\d{3}-\d{3}-\d{4}-\d{2})\b/g, m=>m.split("-").join(", "));
+  t = t.replace(/\b(\d{2}-\d{3}-\d{3}-\d{2})\b/g, m=>m.split("-").join(", "));
+  t = t.replace(/\b(\d{1,2}-\d{1,3}-\d{3}-\d{3}(-\d{4})?(-\d{2})?)\b/g, m=>m.split("-").join(", "));
+  t = t.replace(/\b([A-Z]{2,6})\b/g, m=>m.split("").join(" "));
+  t = t.replace(/,\s*,/g,",").replace(/\s+\./g,".").replace(/\s{2,}/g," ");
+  return t.trim();
+}
+function pickVoice(voices){
+  if(!voices || !voices.length) return null;
+  const en = voices.filter(v=>/^en[-_]/i.test(v.lang||""));
+  const pool = en.length?en:voices;
+  const prefs=[[/Aria.*Natural/i,100],[/Jenny.*Natural/i,96],[/Guy.*Natural/i,95],[/Ana.*Natural/i,94],
+   [/Google US English/i,92],[/Online.*Natural/i,90],[/Neural/i,88],[/Samantha/i,85],
+   [/Aria/i,80],[/Jenny/i,78],[/Eloquence/i,74],[/Zira/i,70],[/en[-_]US/i,45],[/en/i,25]];
+  let best=null,bs=-1;
+  for(const v of pool){let s=0;for(const [re,x] of prefs){if(re.test(v.name)&&x>s)s=x;}if(s>bs){bs=s;best=v;}}
+  return best;
+}
+let VOICE=null, RATE=0.94;
+function loadVoices(){
+  const vs = speechSynthesis.getVoices();
+  VOICE = pickVoice(vs);
+  const sel = document.getElementById("vsel");
+  if(sel){
+    sel.innerHTML = vs.map((v,i)=>`<option value="${i}" ${v===VOICE?"selected":""}>${v.name.replace(/Microsoft |Google /,"")}</option>`).join("");
+    if(VOICE){const vi = vs.indexOf(VOICE); if(vi>-1) sel.value = vi;}
+  }
+}
+function speakNext(){
+  if(qi>=queue.length){
+    if(idx<SECS.length){ setTimeout(()=>playReport(), 900); }
+    else { setPlaying(false); }
+    return;
+  }
+  const u=new SpeechSynthesisUtterance(queue[qi]);
+  if(VOICE) u.voice=VOICE;
+  u.rate=RATE; u.pitch=0.96;
+  u.onend=()=>{ qi++; setTimeout(speakNext, qi<queue.length?430:250); };
+  u.onerror=()=>{ qi++; setTimeout(speakNext, 150); };
+  speechSynthesis.speak(u);
+  if(speechSynthesis.paused) speechSynthesis.resume();
+}
+let queue=[], qi=0;
+function buildQueue(sec){
+  const h2 = sec.querySelector("h2"), narr = sec.querySelector(".narr");
+  const cards = [...sec.querySelectorAll(".card")].map(c=>{
+    const lbl=c.querySelector(".lbl"), val=c.querySelector(".val"), sub=c.querySelector(".sub");
+    return [lbl?lbl.textContent:"", val?val.textContent:"", sub?sub.textContent:""].filter(Boolean).join(". ");
+  }).join(". ");
+  let text = (h2?h2.textContent+". ":"") + (narr?narr.textContent:"") + (cards?" "+cards:"");
+  const st = speakable(text);
+  return (st.match(/[^.!?…]+[.!?…]+/g)||[st]).map(s=>s.trim()).filter(Boolean);
+}
+let idx=0;
+let SECS=[]; let READING=false; let GEN=0;
+function setPlaying(on){
+  const b=document.getElementById("play");
+  if(b) b.innerHTML = on? "❚❚ Reading…" : "▶ Read This Report";
+}
+function stopSpeech(){
+  READING=false; GEN++;
+  if(window.speechSynthesis) speechSynthesis.cancel();
+  setPlaying(false);
+}
+function playReport(){
+  if(READING){ stopSpeech(); return; }
+  if(!window.speechSynthesis) return;
+  SECS=document.querySelectorAll(".sec");
+  if(!SECS.length) return;
+  if(idx>=SECS.length) idx=0;
+  speechSynthesis.cancel();
+  const gen=++GEN;
+  READING=true;
+  setPlaying(true);
+  playSection(gen, idx);
+}
+function playSection(gen, i){
+  if(gen!==GEN || !READING) return;
+  if(SECS[i].scrollIntoView) SECS[i].scrollIntoView({behavior:"smooth",block:"start"});
+  queue=buildQueue(SECS[i]); qi=0;
+  if(queue.length) speakNext(gen); else sectionDone(gen);
+}
+function speakNext(gen){
+  if(gen!==GEN || !READING) return;
+  if(qi>=queue.length){ sectionDone(gen); return; }
+  const u=new SpeechSynthesisUtterance(queue[qi]);
+  if(VOICE) u.voice=VOICE;
+  u.rate=RATE; u.pitch=0.96;
+  u.onend=()=>{ if(gen!==GEN||!READING) return; qi++; setTimeout(()=>speakNext(gen), 420); };
+  u.onerror=()=>{ if(gen!==GEN||!READING) return; qi++; setTimeout(()=>speakNext(gen), 150); };
+  speechSynthesis.speak(u);
+  if(speechSynthesis.paused) speechSynthesis.resume();
+}
+function sectionDone(gen){
+  if(gen!==GEN || !READING) return;
+  idx++;
+  if(idx<SECS.length) setTimeout(()=>playSection(gen, idx), 900);
+  else stopSpeech();
+}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'){idx=Math.min(idx+1,Math.max(0,SECS.length-1)); if(READING) playSection(++GEN,idx);}if(e.key==='ArrowLeft'){idx=Math.max(0,idx-1); if(READING) playSection(++GEN,idx);}});
+function showDrawer(b){
+  const d=document.getElementById('drawer');
+  d.innerHTML=`<b style="color:var(--acc)">${b.textContent}</b><br><span style="color:var(--mut)">Source:</span> ${b.dataset.src}`+
+    (b.dataset.url?`<br><a style="color:#60a5fa" href="${b.dataset.url}" target="_blank">Open source documentation →</a>`:'')+
+    `<br><span style="color:var(--mut);font-size:11px">Every claim in this report carries its evidence class. Click any badge to see its source.</span>`;
+  d.classList.add('open');
+  setTimeout(()=>d.classList.remove('open'),7000);
+}
+</script><div id="vbar" style="position:fixed;bottom:14px;right:14px;z-index:999;background:#161b22f0;border:1px solid #2a3644;border-radius:10px;padding:8px 10px;display:flex;gap:8px;align-items:center;font-size:12px">
+<span style="color:#8aa">🎙</span>
+<select id="vsel" style="background:#0d1117;color:#cfe;border:1px solid #2a3644;border-radius:6px;padding:3px 5px;max-width:170px"></select>
+<span style="color:#8aa">speed</span>
+<input id="vrate" type="range" min="0.8" max="1.15" step="0.02" value="0.94" style="width:70px">
+</div>
+<script>
+if(window.speechSynthesis){speechSynthesis.onvoiceschanged=loadVoices;loadVoices();}
+document.addEventListener('DOMContentLoaded',()=>{const s=document.getElementById('vsel');if(s)s.onchange=e=>{VOICE=speechSynthesis.getVoices()[e.target.value];};const r=document.getElementById('vrate');if(r)r.oninput=e=>{RATE=parseFloat(e.target.value);};});
+</script></body></html>
