@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Homestead Extravaganza — Land Investor Risk Audit & Fail-Safe Report</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{--bg:#0b111a;--panel:#121a26;--line:#223047;--txt:#e8eef7;--mut:#94a3b8;--acc:#00f5a3;--amber:#f59e0b;--red:#e53e3e;--blue:#60a5fa}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:var(--bg);color:var(--txt);font:15px/1.6 system-ui,sans-serif;overflow:hidden}
+#map{position:fixed;inset:0;z-index:1}
+#top{position:fixed;top:0;left:0;right:0;z-index:30;display:flex;justify-content:space-between;align-items:flex-start;padding:10px 18px;background:linear-gradient(180deg,rgba(7,11,18,.95),rgba(7,11,18,.6));border-bottom:1px solid var(--line)}
+#top .brand{font-size:12px;letter-spacing:.16em;color:var(--acc);font-weight:800}
+#top h1{font-size:17px;margin-top:2px}
+#top .meta{font-size:11.5px;color:var(--mut);margin-top:3px}
+.playbtn{background:var(--acc);color:#04131d;font-weight:800;border:none;border-radius:24px;padding:10px 18px;font-size:13px;cursor:pointer;box-shadow:0 0 24px rgba(0,245,163,.35);z-index:40}
+#panel{position:fixed;top:0;bottom:0;right:0;width:min(640px,100%);z-index:20;background:linear-gradient(90deg,rgba(11,17,26,0) 0%,rgba(11,17,26,.5) 14px,rgba(11,17,26,.97) 40px)}
+#panel .inner{position:absolute;top:78px;bottom:12px;left:44px;right:12px;overflow-y:auto;padding-right:6px}
+#panel .inner::-webkit-scrollbar{width:8px}#panel .inner::-webkit-scrollbar-thumb{background:#2a3a55;border-radius:4px}
+.sec{margin:26px 0 12px;scroll-margin-top:70px}
+.sec .kicker{font-size:11px;letter-spacing:.18em;color:var(--acc);font-weight:800}
+.sec h2{font-size:19px;margin:4px 0 8px}
+.sec .narr{font-size:14.5px;color:#cbd5e1;background:rgba(18,26,38,.72);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.card{background:rgba(18,26,38,.85);border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+.card .lbl{font-size:10.5px;letter-spacing:.1em;color:var(--mut);font-weight:700}
+.card .val{font-size:16.5px;font-weight:800;margin:3px 0}
+.card .sub{font-size:12px;color:var(--mut)}
+.ev{font-size:10px;font-weight:800;border:1px solid;border-radius:5px;padding:2px 7px;cursor:pointer;margin-top:7px;display:inline-block}
+.eV{color:var(--acc);border-color:var(--acc)}.eM{color:var(--amber);border-color:var(--amber)}.eP{color:#a5b4fc;border-color:#a5b4fc}.eA{color:var(--blue);border-color:var(--blue)}.eD{color:var(--red);border-color:var(--red)}
+.veclist{margin-top:12px}
+.vec{background:rgba(18,26,38,.85);border:1px solid var(--line);border-left:3px solid var(--red);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.vec .n{font-size:11px;color:var(--red);font-weight:800;letter-spacing:.1em}
+.vec .t{font-weight:800;font-size:14.5px;margin:2px 0 6px}
+.vec .s{font-size:13px;color:#cbd5e1}
+.vec .fx{font-size:13px;margin-top:7px;color:#a7f3d0}
+.vec .fx b{color:var(--acc);font-size:11.5px;letter-spacing:.08em}
+.vec .sc{font-size:11.5px;color:var(--mut);margin-top:6px;border-top:1px dashed #223047;padding-top:5px}
+.chain{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+.chrow{display:flex;align-items:center;gap:10px;background:rgba(18,26,38,.85);border:1px solid var(--line);border-radius:10px;padding:10px 13px;flex-wrap:wrap}
+.chrow .nm{font-weight:700;font-size:13.5px;flex:1;min-width:150px}
+.chrow .was{color:var(--red);font-weight:800;text-decoration:line-through;text-decoration-color:rgba(229,62,62,.55);font-size:14px}
+.chrow .arrow{color:var(--mut)}
+.chrow .now{color:var(--acc);font-weight:800;font-size:14px}
+.chrow .ratio{font-size:11px;color:var(--amber);border:1px solid var(--amber);border-radius:5px;padding:1px 6px}
+table{width:100%;border-collapse:collapse;margin-top:12px;font-size:12.5px}
+th{color:var(--acc);text-align:left;font-size:10.5px;letter-spacing:.1em;border-bottom:1px solid var(--line);padding:6px 8px}
+td{border-bottom:1px solid #1a2740;padding:7px 8px;vertical-align:top;color:#cbd5e1}
+td b{color:var(--txt)}
+.clean{background:rgba(18,26,38,.72);border:1px solid var(--line);border-radius:12px;padding:13px 16px;margin-top:12px}
+.clean li{list-style:none;font-size:13px;color:#a7f3d0;margin:5px 0}
+.srclist{margin-top:12px}
+.src{display:flex;gap:8px;align-items:baseline;font-size:12.5px;margin:7px 0;flex-wrap:wrap}
+.src .cls{font-size:9.5px;font-weight:800;border:1px solid;border-radius:4px;padding:1px 5px}
+#drawer{position:fixed;left:12px;bottom:12px;max-width:340px;background:rgba(13,21,34,.95);border:1px solid var(--line);border-radius:12px;padding:12px 15px;z-index:45;font-size:12.5px;color:#cbd5e1;opacity:0;pointer-events:none;transition:opacity .3s}
+#drawer.open{opacity:1}
+.legend{position:fixed;left:12px;bottom:12px;z-index:25;background:rgba(11,18,32,.85);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:11.5px}
+.legend .row{display:flex;align-items:center;gap:7px;margin:3px 0}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+@media (max-width:700px){#panel .inner{left:12px;top:120px}.cards{grid-template-columns:1fr}.legend{display:none}}
+</style></head><body>
+<div id="map"></div>
+<div id="top">
+  <div><div class="brand">NVIROGEAR PROPERTY INTELLIGENCE</div>
+  <h1>Land Investor Risk Audit — Homestead Extravaganza</h1>
+  <div class="meta">15 targets · Mid & Northern Michigan · The 12 ways investors get screwed, the fail-safe for each, and what actually happened to these lots · 2026-10-15</div></div>
+  <button class="playbtn" id="play" onclick="playReport()">▶ Read This Report</button>
+</div>
+<div class="legend" id="legendbox">
+  <div class="row"><span class="dot" style="background:#f59e0b"></span>Oct 30 auction lot</div>
+  <div class="row"><span class="dot" style="background:#60a5fa"></span>Land bank offer</div>
+  <div class="row"><span class="dot" style="background:#34d399"></span>Buy now OTC</div>
+  <div class="row"><span class="dot" style="background:#e53e3e;border:2px solid #fff"></span>Part 201 site (EGLE)</div>
+</div>
+<div id="panel"><div class="inner" id="list"></div></div>
+<div id="drawer"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const R = {"brand": "NVIROGEAR DRIVE INTELLIGENCE", "title": "Your Drive, Read Back To You", "subtitle": "A complete inventory of 10,687 files - the gold, the noise, and the things you forgot you built", "vectors_title": "THE FIVE FINDS", "cards": [{"value": "10,687", "label": "FILES IN THE VAULT", "evidence": {"label": "VERIFIED", "text": "Full recursive Drive listing, trashed files excluded, Nov 7 2026"}}, {"value": "142", "label": "DOCUMENTS (PDF, 66 MB)", "evidence": {"label": "VERIFIED", "text": "Every PDF counted and clustered by subject"}}, {"value": "269.5 MB", "label": "SITTING IN DUPLICATES", "evidence": {"label": "VERIFIED", "text": "924 exact duplicate groups by name and byte size"}}, {"value": "5", "label": "THINGS YOU FORGOT", "evidence": {"label": "VERIFIED", "text": "Recent artifacts tied to work you are doing right now"}}], "vectors": [{"name": "BC-001 Black Creek Dossier", "status": "GOLD", "detail": "Two versions: Oct 27 original, Oct 28 REVISED. This is the exact 'records first' artifact the regulator review demanded - and it is not yet linked into the MITOXICMAP evidence chain.", "source": "Black creek contamination folder"}, {"name": "N-Gear Municipal Build Prompt", "status": "GOLD", "detail": "Oct 30 PDF - the municipal application scaffold. Sits one folder from the resume work and was never connected to Grand Haven.", "source": "N-VIROGEAR Field Operations"}, {"name": "Sovereign OS Standalone", "status": "NEWEST", "detail": "Nov 2, 871 KB - your most recent build in the entire Drive. Newer than anything in the current project folders.", "source": "Drive root"}, {"name": "Rental Improvement Reimbursement", "status": "MONEY", "detail": "A reimbursement document at 13520 Apple Dr - paperwork with a dollar sign attached, filed with the rental upkeep records.", "source": "Ron Russet Rental upkeep"}, {"name": "Farmers Insurance POI", "status": "CURRENCY", "detail": "Joseph Smith proof of insurance, Sept 24. The document every municipal and contract employer asks for first.", "source": "Farmers Insurance folder"}], "sections": [{"kicker": "1 - THE VAULT", "title": "What You Actually Own", "narration": "Ten thousand six hundred eighty-seven files. One thousand nine hundred sixteen folders. One hundred forty-two documents totaling sixty-six megabytes. That is the honest inventory of your Drive tonight, and it tells a story in three acts: a spring of building, a summer of quiet, and an autumn of real documents. April and May hold nearly eight thousand five hundred files - the code months. October holds eleven. But those eleven are worth more than the thousands, because they are the ones with your name and your evidence inside them."}, {"kicker": "2 - THE GOLD", "title": "Five Things Worth Rescuing", "narration": "The Black Creek folder holds BC-001, the environmental evidence dossier, in two versions: the October 27 original and the October 28 revision. That document is the exact artifact the regulator review said to build first - records before assertions - and right now it floats outside the MITOXICMAP evidence chain it belongs to. Then the N-Gear Municipal Application build prompt from October 30, sitting alone in Field Operations, never connected to the Grand Haven resume work. The Sovereign OS standalone, your newest build in the whole Drive at November 2. The rental improvement reimbursement at Apple Drive - a money document. And your Farmers Insurance proof of insurance, which every municipal employer asks for first."}, {"kicker": "3 - THE NOISE", "title": "Where the Weight Is", "narration": "Nine hundred twenty-four exact duplicate groups. Two hundred sixty-nine and a half megabytes of the same bytes stored twice or more. Two thousand three hundred twelve JavaScript files and six hundred eighty-two TypeScript files, nearly all from the April-May build weeks. Empty scaffold folders named tasks, screen_maps, safety_profiles, repeated across projects with nothing inside them. None of this is a crisis. All of it is clutter that makes the gold harder to find on the day you need it."}, {"kicker": "4 - THE FILING PROBLEM", "title": "Two Papers That Traveled", "narration": "The 2413 Plainfield property intelligence report - the one we consolidated this week - is filed inside the folder called Ron Russet Rental upkeep at 13520 Apple Drive. It does not belong there. And the rental master record exists twice: one copy at twelve kilobytes, one at seventy-seven. Same name, same day, different sizes. That is not a duplicate to delete - that is a version conflict, and one of those two documents is the truth about work performed."}, {"kicker": "5 - THE CLEANUP PLAN", "title": "Five Moves, In Order", "narration": "One: decide which rental master record is canonical - the twelve or the seventy-seven - and retire the other by name, not by deletion. Two: pull the 2413 report out of the rental folder and into the property intelligence archive. Three: move BC-001 and its revision into the environmental evidence archive under one identifier, with the revision marked as superseding. Four: archive the April-May code dumps into a single sealed folder - they are history, not clutter, but they do not belong in the working tree. Five: five top-level folders, nothing deeper than three levels, names that read like sentences."}, {"kicker": "6 - THE ONE QUESTION", "title": "And The Thing You Cut Off", "narration": "One open question decides the cleanup: which rental master record is canon - the twelve-kilobyte original or the seventy-seven-kilobyte version, both dated September twenty-seven? And the other open item is yours: your message ended at the words and also. The Drive is read back to you, the brief is built, and the vault is mapped. Whatever the and also was - it is still waiting."}], "portfolio": [], "part201_map": [], "chain": [], "sources": [], "what_we_didnt_find": [], "layers": {"portfolio": [], "part201_map": {}}, "identity": []};
+const map = L.map('map',{zoomControl:true}).setView([44.4,-84.6],7);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+ {maxZoom:19, attribution:'Esri, Maxar, Earthstar Geographics'}).addTo(map);
+const colors={NOW:'#34d399',OFFER:'#60a5fa',AUCTION:'#f59e0b'};
+R.layers.portfolio.forEach(p=>{
+  L.circleMarker([p[0],p[1]],{radius:8,color:'#0b111a',weight:2,fillColor:colors[p[5]]||'#f59e0b',fillOpacity:.95})
+   .addTo(map).bindPopup(`<b>${p[2]}</b><br>${p[3]} County · ${p[5]==='AUCTION'?'opens $'+p[4]:'$'+p[4]}`);
+});
+const p201g = L.layerGroup().addTo(map);
+Object.entries(R.layers.part201_map).forEach(([name,h])=>{
+  (h.part201||[]).forEach(s=>{
+    if(s.dist_mi!==undefined && s.lat===undefined){
+      // scan results carry dist only; skip plotting individual sites without coords
+    }
+  });
+});
+function evBadge(e,srcName,url){const cls=e.label[0]==='V'?'eV':(e.label[0]==='M'?'eM':(e.label==='PUBLIC REFERENCE'?'eP':(e.label==='PENDING'?'eD':'eA')));
+  return `<button class="ev ${cls}" data-src="${srcName}" data-url="${url||''}" onclick="showDrawer(this)">${e.label}</button>`;}
+let html='';
+R.sections.forEach((s,i)=>{
+  html+=`<div class="sec" id="sec${i}"><div class="kicker">${s.kicker}</div><h2>${s.title}</h2><div class="narr">${s.narration}</div>`;
+  if(i===0){
+    html+=`<div class="cards">`+R.cards.map(c=>`<div class="card"><div class="lbl">${c.label}</div><div class="val">${c.value}</div><div class="sub">${c.sub}</div>${evBadge(c.evidence,c.evidence.source,c.evidence.url)}</div>`).join('')+`</div>`;
+  }
+  if(i===1){
+    html+=`<div class="veclist">`+R.vectors.map(v=>`<div class="vec"><div class="n">VECTOR ${v.n} OF 12</div><div class="t">${v.risk}</div><div class="s">${v.story}</div><div class="fx"><b>FAIL-SAFE</b> — ${v.fix}</div><div class="sc">SOURCE: ${v.src}<br><b>Flagged in portfolio:</b> ${v.flagged}</div></div>`).join('')+`</div>`;
+  }
+  if(i===2){
+    html+=`<div class="chain">`+R.chain.map(c=>`<div class="chrow"><span class="nm">${c.name}</span><span class="was">${c.prior_bid}</span><span class="arrow">→</span><span class="now">${c.now}</span><span class="ratio">${c.ratio} drop</span></div>`).join('')+`</div>
+    <div class="clean" style="margin-top:12px"><ul>`+R.what_we_didnt_find.map(x=>`<li>✓ ${x}</li>`).join('')+`</ul></div>`;
+  }
+  if(i===3){
+    html+=`<table><tr><th>Parcel</th><th>PIN (verified)</th><th>County</th><th>Legal</th><th>SEV</th></tr>`+
+      R.identity.map(x=>`<tr><td><b>${x.name}</b></td><td>${x.pin}</td><td>${x.county}</td><td>${x.legal}</td><td>${x.sev?'$'+x.sev.toLocaleString():'$0'}</td></tr>`).join('')+`</table>`;
+  }
+  if(i===7){
+    html+=`<div class="srclist">`+R.sources.map(s=>{const cls=s.class==='VERIFIED'?'eV':(s.class==='MODELED'?'eM':(s.class==='PENDING'?'eD':'eP'));
+      return `<div class="src"><span class="cls ${cls}">${s.class}</span><span>${s.name}${s.url?` — <a style="color:#60a5fa" href="${s.url}" target="_blank">source</a>`:''}</span></div>`;}).join('')+`</div>`;
+  }
+  html+=`</div>`;
+});
+document.getElementById('list').innerHTML=html;
+
+// ===== SOOTHING VOICE ENGINE v2 — Mr. Results =====
+// Calm, natural, correctly-pronounced narration. Replaces the raw innerText reader.
+const GLOSSARY = {
+ "SEVs":"state equalized values","SEV":"state equalized value","TV":"taxable value",
+ "GIS":"G I S","EGLE":"Eagle","PFAS":"P F A S","HDR":"H D R","POA":"property owners association",
+ "AOC":"Area of Concern","FSBO":"for sale by owner","MDOT":"M dot",
+ "M-115":"M one fifteen","Twp":"Township","Part 201":"Part two oh one",
+ "ac":"acres","mi":"miles","R-1":"R one","R-2":"R two","Rd":"Road","St":"Street","SEV,":"state equalized value,"
+};
+function speakable(raw){
+  let t = raw.replace(/\s+/g," ")
+    .replace(/→/g," to ").replace(/·/g,", ").replace(/×/g," times ")
+    .replace(/&/g," and ").replace(/[✓▶●◦]/g," ").replace(/[""]/g,'"').replace(/[""]/g,"'");
+  const keys = Object.keys(GLOSSARY).sort((a,b)=>b.length-a.length);
+  for(const k of keys){
+    t = t.replace(new RegExp(k.replace(/[-]/g,"\\-").replace(/,/g,"")+"(?=[\\s,.:;)]|$)","g"), GLOSSARY[k]);
+  }
+  t = t.replace(/\b(\d{2}-\d{2}-\d{3}-\d{3}-\d{4}-\d{2})\b/g, m=>m.split("-").join(", "));
+  t = t.replace(/\b(\d{2}-\d{3}-\d{3}-\d{2})\b/g, m=>m.split("-").join(", "));
+  t = t.replace(/\b(\d{1,2}-\d{1,3}-\d{3}-\d{3}(-\d{4})?(-\d{2})?)\b/g, m=>m.split("-").join(", "));
+  t = t.replace(/\b([A-Z]{2,6})\b/g, m=>m.split("").join(" "));
+  t = t.replace(/,\s*,/g,",").replace(/\s+\./g,".").replace(/\s{2,}/g," ");
+  return t.trim();
+}
+function pickVoice(voices){
+  if(!voices || !voices.length) return null;
+  const en = voices.filter(v=>/^en[-_]/i.test(v.lang||""));
+  const pool = en.length?en:voices;
+  const prefs=[[/Aria.*Natural/i,100],[/Jenny.*Natural/i,96],[/Guy.*Natural/i,95],[/Ana.*Natural/i,94],
+   [/Google US English/i,92],[/Online.*Natural/i,90],[/Neural/i,88],[/Samantha/i,85],
+   [/Aria/i,80],[/Jenny/i,78],[/Eloquence/i,74],[/Zira/i,70],[/en[-_]US/i,45],[/en/i,25]];
+  let best=null,bs=-1;
+  for(const v of pool){let s=0;for(const [re,x] of prefs){if(re.test(v.name)&&x>s)s=x;}if(s>bs){bs=s;best=v;}}
+  return best;
+}
+let VOICE=null, RATE=0.94;
+function loadVoices(){
+  const vs = speechSynthesis.getVoices();
+  VOICE = pickVoice(vs);
+  const sel = document.getElementById("vsel");
+  if(sel){
+    sel.innerHTML = vs.map((v,i)=>`<option value="${i}" ${v===VOICE?"selected":""}>${v.name.replace(/Microsoft |Google /,"")}</option>`).join("");
+    if(VOICE){const vi = vs.indexOf(VOICE); if(vi>-1) sel.value = vi;}
+  }
+}
+function speakNext(){
+  if(qi>=queue.length){
+    if(idx<SECS.length){ setTimeout(()=>playReport(), 900); }
+    else { setPlaying(false); }
+    return;
+  }
+  const u=new SpeechSynthesisUtterance(queue[qi]);
+  if(VOICE) u.voice=VOICE;
+  u.rate=RATE; u.pitch=0.96;
+  u.onend=()=>{ qi++; setTimeout(speakNext, qi<queue.length?430:250); };
+  u.onerror=()=>{ qi++; setTimeout(speakNext, 150); };
+  speechSynthesis.speak(u);
+  if(speechSynthesis.paused) speechSynthesis.resume();
+}
+let queue=[], qi=0;
+function buildQueue(sec){
+  const h2 = sec.querySelector("h2"), narr = sec.querySelector(".narr");
+  const cards = [...sec.querySelectorAll(".card")].map(c=>{
+    const lbl=c.querySelector(".lbl"), val=c.querySelector(".val"), sub=c.querySelector(".sub");
+    return [lbl?lbl.textContent:"", val?val.textContent:"", sub?sub.textContent:""].filter(Boolean).join(". ");
+  }).join(". ");
+  let text = (h2?h2.textContent+". ":"") + (narr?narr.textContent:"") + (cards?" "+cards:"");
+  const st = speakable(text);
+  return (st.match(/[^.!?…]+[.!?…]+/g)||[st]).map(s=>s.trim()).filter(Boolean);
+}
+let idx=0;
+let SECS=[]; let READING=false; let GEN=0;
+function setPlaying(on){
+  const b=document.getElementById("play");
+  if(b) b.innerHTML = on? "❚❚ Reading…" : "▶ Read This Report";
+}
+function stopSpeech(){
+  READING=false; GEN++;
+  if(window.speechSynthesis) speechSynthesis.cancel();
+  setPlaying(false);
+}
+function playReport(){
+  if(READING){ stopSpeech(); return; }
+  if(!window.speechSynthesis) return;
+  SECS=document.querySelectorAll(".sec");
+  if(!SECS.length) return;
+  if(idx>=SECS.length) idx=0;
+  speechSynthesis.cancel();
+  const gen=++GEN;
+  READING=true;
+  setPlaying(true);
+  playSection(gen, idx);
+}
+function playSection(gen, i){
+  if(gen!==GEN || !READING) return;
+  if(SECS[i].scrollIntoView) SECS[i].scrollIntoView({behavior:"smooth",block:"start"});
+  queue=buildQueue(SECS[i]); qi=0;
+  if(queue.length) speakNext(gen); else sectionDone(gen);
+}
+function speakNext(gen){
+  if(gen!==GEN || !READING) return;
+  if(qi>=queue.length){ sectionDone(gen); return; }
+  const u=new SpeechSynthesisUtterance(queue[qi]);
+  if(VOICE) u.voice=VOICE;
+  u.rate=RATE; u.pitch=0.96;
+  u.onend=()=>{ if(gen!==GEN||!READING) return; qi++; setTimeout(()=>speakNext(gen), 420); };
+  u.onerror=()=>{ if(gen!==GEN||!READING) return; qi++; setTimeout(()=>speakNext(gen), 150); };
+  speechSynthesis.speak(u);
+  if(speechSynthesis.paused) speechSynthesis.resume();
+}
+function sectionDone(gen){
+  if(gen!==GEN || !READING) return;
+  idx++;
+  if(idx<SECS.length) setTimeout(()=>playSection(gen, idx), 900);
+  else stopSpeech();
+}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'){idx=Math.min(idx+1,Math.max(0,SECS.length-1)); if(READING) playSection(++GEN,idx);}if(e.key==='ArrowLeft'){idx=Math.max(0,idx-1); if(READING) playSection(++GEN,idx);}});
+function showDrawer(b){
+  const d=document.getElementById('drawer');
+  d.innerHTML=`<b style="color:var(--acc)">${b.textContent}</b><br><span style="color:var(--mut)">Source:</span> ${b.dataset.src}`+
+    (b.dataset.url?`<br><a style="color:#60a5fa" href="${b.dataset.url}" target="_blank">Open source documentation →</a>`:'')+
+    `<br><span style="color:var(--mut);font-size:11px">Every claim in this report carries its evidence class. Click any badge to see its source.</span>`;
+  d.classList.add('open');
+  setTimeout(()=>d.classList.remove('open'),7000);
+}
+</script><div id="vbar" style="position:fixed;bottom:14px;right:14px;z-index:999;background:#161b22f0;border:1px solid #2a3644;border-radius:10px;padding:8px 10px;display:flex;gap:8px;align-items:center;font-size:12px">
+<span style="color:#8aa">🎙</span>
+<select id="vsel" style="background:#0d1117;color:#cfe;border:1px solid #2a3644;border-radius:6px;padding:3px 5px;max-width:170px"></select>
+<span style="color:#8aa">speed</span>
+<input id="vrate" type="range" min="0.8" max="1.15" step="0.02" value="0.94" style="width:70px">
+</div>
+<script>
+if(window.speechSynthesis){speechSynthesis.onvoiceschanged=loadVoices;loadVoices();}
+document.addEventListener('DOMContentLoaded',()=>{const s=document.getElementById('vsel');if(s)s.onchange=e=>{VOICE=speechSynthesis.getVoices()[e.target.value];};const r=document.getElementById('vrate');if(r)r.oninput=e=>{RATE=parseFloat(e.target.value);};});
+</script></body></html>
