@@ -1,0 +1,86 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Joseph Smith — Environmental &amp; Water Operations</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{--ink:#16211b;--mut:#5b6b62;--accent:#14532d;--accent2:#0f766e;--line:#dfe6e1;--bg:#fbfcfb}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Georgia,'Times New Roman',serif;color:var(--ink);background:var(--bg);line-height:1.6}
+.wrap{max-width:1020px;margin:0 auto;padding:0 22px}
+header{padding:64px 0 40px;border-bottom:1px solid var(--line)}
+h1{font-family:Arial,Helvetica,sans-serif;font-size:40px;letter-spacing:-.5px}
+.tag{font-family:Arial,sans-serif;color:var(--accent);font-weight:700;font-size:15px;letter-spacing:.4px;margin-top:4px}
+.hero{display:flex;justify-content:space-between;gap:28px;align-items:flex-start;flex-wrap:wrap}
+.meta{font-family:Arial,sans-serif;font-size:13.5px;color:var(--mut);margin-top:16px}
+.meta a{color:var(--accent);text-decoration:none;font-weight:700}
+.site{font-family:Arial,sans-serif;font-size:15px;font-weight:700;letter-spacing:.5px;color:var(--ink)}
+.qrbox{text-align:center;font-family:Arial,sans-serif;font-size:10.5px;color:var(--mut)}
+.qrbox img{width:96px;height:96px;display:block;margin:0 auto 4px;border:1px solid var(--line);border-radius:6px;background:#fff;padding:4px}
+section{padding:44px 0;border-bottom:1px solid var(--line)}
+h2{font-family:Arial,sans-serif;font-size:13px;letter-spacing:2.2px;text-transform:uppercase;color:var(--accent);margin-bottom:18px}
+blockquote{font-size:17px;max-width:760px;color:#2b3a32}
+.dl{display:flex;gap:14px;flex-wrap:wrap;margin-top:18px}
+.btn{font-family:Arial,sans-serif;font-size:13.5px;font-weight:700;text-decoration:none;padding:12px 20px;border-radius:8px;background:var(--accent);color:#fff;border:1.5px solid var(--accent)}
+.btn.alt{background:#fff;color:var(--accent)}
+#map{height:400px;border-radius:10px;border:1px solid var(--line);margin-top:6px}
+.legend{font-family:Arial,sans-serif;font-size:12px;color:var(--mut);margin-top:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px}
+.card{background:#fff;border:1px solid var(--line);border-radius:10px;padding:20px}
+.card h3{font-family:Arial,sans-serif;font-size:16.5px;margin:8px 0 6px}
+.card p{font-size:14.5px;color:#38463d}
+.card a{font-family:Arial,sans-serif;font-size:13px;font-weight:700;color:var(--accent);text-decoration:none}
+.badge{font-family:Arial,sans-serif;font-size:10px;font-weight:800;letter-spacing:1px;padding:3px 9px;border-radius:20px;color:#fff}
+.badge.live{background:#15803d}.badge.prototype{background:#b45309}.badge.concept{background:#6b7280}
+.soon{font-family:Arial,sans-serif;font-size:12.5px;color:var(--mut)}
+.note{font-family:Arial,sans-serif;font-size:13px;color:var(--mut);max-width:760px;margin-top:14px}
+footer{padding:34px 0 60px;font-family:Arial,sans-serif;font-size:12.5px;color:var(--mut)}
+@media(max-width:640px){h1{font-size:30px}#map{height:320px}}
+</style></head><body>
+<header><div class="wrap"><div class="hero"><div>
+<h1>Joseph Smith</h1>
+<div class="tag">Environmental &amp; Water Operations Leader &middot; Muskegon, Michigan</div>
+<div class="meta"><span class="site">josephsmith.info</span> &nbsp;&middot;&nbsp; joe@homesteadestates.com</div>
+<div class="meta" style="margin-top:6px">Open to Public Services / Water &amp; Wastewater Operations Supervisor roles</div>
+</div><div class="qrbox"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAZoAAAGaAQAAAAAefbjOAAAC8ElEQVR4nO2cQY6jMBBFXw1IWYLUB5ijwA3mTH0zOEofoCV7GQlUsyjbOJnZtDJD0lAsEBA/YUtf3+UqHFG+fMw/vs6AQw455JBDDjl0TEjS0SLSryJjzFfSrwIxNxif0j2H9ocGVVUNADQWbKp+XOyZjDSqqqq30H7dc2h/KCYD0Cm2MPcgI6tAbK2BiLTP655Du0Ht3b3QBRgmUCJAt7Tp6sE3OfQ9IdWwCgAydgsy0qiM/+NNDr0mlD2iUyAC8wg6S3qscx/S1VO659DuUFJEkkCDDOFtsRPxTWX4aBdglRp68TE59AhkiqgNoFtQuArzz6sAq+htg5cfk0OPQNiqcgigE6BTt61Dt9tGdeqWtEqdXnxMDj0CZY+wdcVnyxBA6BQBkCGsrZpRxIvK3t1zaHcoe4QumDOYC2RnsCZTtwDuEaeATBE6WVZyweYPe9YtqGapJJW4Io4OlTiiUYsjNDQWVjDkH8we6FTdI44PsdUr0uRgR1M8Qk0RZhTuEYeHyqyR7EEnqAtflVHkcpcr4tAQWo6kAy3Rg5lHk6OM4Io4A1QpItlDgBQzhCQGwD3iNFAVWZoO/vgBMEX46vMUUB1ZptRkSk+YSqqIInhkeQao1D4/W+ZfV4FubZX4psx9gxJ7FJpFrDy6c/cc2h0qcUTOWabJocwQJU010Xg+4gTQTbhgaYdc1SKfbqYTV8TBoewRIdc+t5hhy2yXDJUr4vhQVdeoslEpikzzh2nD6xrngO5rn1XOsuSlrOGQs1auiENDdYbK1qGluDHkUqiZB+4RJ4K2PV1bSkrftw0asYUhlI8tv8WYHHpw1tA0QxQ/IJU0yB7hq89TQWVP13u/iukAQEaAWUSyeTynew49DZJxu86FDAsq3/t/+yaHXhO63+UH8aIyfKSQQWFt2Tb07N09h3aH7uOI6hP9qcpnb27hccTBoar2SfmjgBxK3jQZ/IuZU0D3e7r+dpVvy1eYLz4mhxxyyCGHHHJoH+g3g2LPhNuZaEMAAAAASUVORK5CYII=" alt="QR code to this portfolio"><span>Scan for this portfolio</span></div></div>
+</div></header>
+
+<section><div class="wrap"><h2>What I bring</h2>
+<blockquote>Field-tested operations leadership across environmental remediation, municipal water and wastewater support, commercial construction crews, and heavy equipment — paired with a GIS-based reporting system that turns field data into records that survive agency review.</blockquote>
+<div class="dl">
+<a class="btn" href="JosephSmith_Resume_EnvironmentalWater.pdf">Download Résumé (PDF)</a>
+<a class="btn alt" href="JosephSmith_Resume_GrandHavenTownship.pdf">Grand Haven Township Version (PDF)</a>
+<a class="btn alt" href="JosephSmith_Resume_EnvironmentalWater.html">Print-ready HTML</a>
+</div>
+<p class="note">Two versions, one set of facts: the broader environmental/water résumé for general applications, and a targeted Grand Haven Charter Township edition.</p>
+</div></section>
+
+<section><div class="wrap"><h2>Michigan field experience</h2>
+<div id="map"></div>
+<div class="legend">Sites reflect field work and business operations. Locations are approximate at the regional level; exact project addresses available on request.</div>
+</div></section>
+
+<section><div class="wrap"><h2>Projects — labeled honestly</h2>
+<div class="grid"><div class="card"><div class="ctop"><span class="badge live">LIVE</span></div>
+      <h3>MITOXICMAP</h3><p>Public environmental story map: documented contamination sites, evidence-labeled, scrollytelling and voice narration.</p><a href='https://nvirogear1-pixel.github.io/mitoxicmap/' target='_blank'>View live &rarr;</a></div><div class="card"><div class="ctop"><span class="badge live">LIVE</span></div>
+      <h3>Muskegon Land Bank Explorers</h3><p>289 parcels with verified county polygon geometry, click-to-explore with per-parcel records.</p><a href='https://nvirogear1-pixel.github.io/mitoxicmap/reports/landbank-explorer.html' target='_blank'>View live &rarr;</a></div><div class="card"><div class="ctop"><span class="badge live">LIVE</span></div>
+      <h3>MISS DIG Cross-Reference Engine</h3><p>Live 811 ticket feed cross-referenced against contamination records; 500 tickets scanned in under a second, human-approved alerts only.</p><a href='https://nvirogear1-pixel.github.io/mitoxicmap/reports/the-mystic-ticket-parser.html' target='_blank'>View live &rarr;</a></div><div class="card"><div class="ctop"><span class="badge prototype">PROTOTYPE</span></div>
+      <h3>ALICE / ParcelFax</h3><p>Property intelligence platform - tiered reports, evidence packages, hashed provenance. Modules verified in test, not yet sold.</p><span class='soon'>Link on request</span></div><div class="card"><div class="ctop"><span class="badge prototype">PROTOTYPE</span></div>
+      <h3>Vyro-Gear Storefront</h3><p>Portable, local-first storefront architecture. Built and tested; not launched.</p><span class='soon'>Link on request</span></div><div class="card"><div class="ctop"><span class="badge live">LIVE</span></div>
+      <h3>Deliberation Podcast Module</h3><p>Frozen-evidence buyer/advisor audio reports. Reference run executed end-to-end; distribution not yet live.</p><span class='soon'>Link on request</span></div></div>
+<p class="note">Live means in production and publicly usable. Prototype means built and tested but not launched or sold. Nothing here is labeled Live unless a user can open it today.</p>
+</div></section>
+
+<footer><div class="wrap">Joseph Smith &middot; Muskegon, Michigan &middot; josephsmith.info<br>
+Résumé facts are verified with the owner; certifications and dates are confirmed directly with Joseph before submission.</div></footer>
+
+<script>
+const SITES = [{"name": "Zephyr remediation site", "lat": 43.236, "lng": -86.276, "type": "ENVIRONMENTAL OPS", "label": "Field operations - remediation program, Muskegon Lake AOC", "years": "CONFIRM"}, {"name": "Fleis & VandenBrink project area", "lat": 43.012, "lng": -85.668, "type": "MUNICIPAL SUPPORT", "label": "Consultant-side field support (Grand Rapids / Muskegon region)", "years": "CONFIRM"}, {"name": "Tree service coverage", "lat": 43.3, "lng": -86.1, "type": "BUSINESS OWNER", "label": "Muskegon, Newaygo, Ottawa counties - crews and equipment", "years": "CONFIRM"}, {"name": "NviroGear / MITOXICMAP", "lat": 43.234, "lng": -86.248, "type": "TECHNOLOGY", "label": "54,000+ mapped parcels, contamination cross-reference, public story maps", "years": "Current"}];
+const map = L.map('map').setView([43.20, -86.05], 8);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {maxZoom: 18}).addTo(map);
+const COLOR = {'ENVIRONMENTAL OPS':'#15803d','MUNICIPAL SUPPORT':'#0f766e','BUSINESS OWNER':'#b45309','TECHNOLOGY':'#1d4ed8'};
+SITES.forEach(s=>{
+  L.circleMarker([s.lat, s.lng], {radius: 11, color:'#fff', weight:2.5, fillColor: COLOR[s.type]||'#333', fillOpacity:1})
+   .addTo(map).bindPopup('<b>'+s.name+'</b><br>'+s.type+'<br>'+s.label+'<br><i>'+s.years+'</i>');
+});
+</script></body></html>
