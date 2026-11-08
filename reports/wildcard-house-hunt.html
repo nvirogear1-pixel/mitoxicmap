@@ -1,0 +1,240 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
+<title>Wild Card's House Hunt — Nvirogear</title>
+<style>
+:root{--bg:#0b0f14;--card:#151c25;--card2:#1b2430;--line:#26313d;--txt:#e8eef4;--mut:#8fa0b3;
+--green:#3ddc84;--gold:#f5a623;--red:#ff5c5c;--blue:#58a6ff}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+line-height:1.5;padding:14px 12px 90px;max-width:640px;margin:0 auto}
+.brand{font-size:10px;letter-spacing:.18em;color:var(--green);font-weight:700;text-transform:uppercase}
+h1{font-size:26px;line-height:1.15;margin:6px 0 4px}
+.tagline{color:var(--mut);font-size:13px;margin-bottom:14px}
+.hud{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.hud div{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 10px}
+.hud b{display:block;font-size:18px;letter-spacing:-.02em}
+.hud span{font-size:9px;letter-spacing:.12em;color:var(--mut);text-transform:uppercase}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:11px;
+transition:transform .12s,border-color .12s}
+.card:active{transform:scale(.995)}
+.card.hot{border-color:var(--green)}
+.addr{font-size:17px;font-weight:700;letter-spacing:-.01em}
+.city{font-size:12px;color:var(--mut);margin-bottom:8px}
+.price{font-size:24px;font-weight:800;color:var(--green);letter-spacing:-.02em}
+.meta{font-size:12px;color:var(--mut);margin:2px 0 10px}
+.badge{display:inline-block;font-size:9px;letter-spacing:.1em;font-weight:700;padding:3px 7px;border-radius:5px;
+background:#20303f;color:var(--blue);vertical-align:middle;margin-left:6px}
+.badge.REO{background:#3a1d22;color:#ff8a8a}.badge.INVESTOR{background:#1d2f3a;color:#7fd7f0}
+.badge.FSBO{background:#2f2a1a;color:var(--gold)}.badge.INCOME{background:#22331f;color:#9ee88a}
+.badge.VERIFY{background:#33291a;color:var(--gold)}
+.intel{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px}
+.chip{font-size:11px;padding:5px 9px;border-radius:8px;background:var(--card2);border:1px solid var(--line);color:var(--mut)}
+.chip.good{color:#9ee88a;border-color:#2c4a2c}.chip.bad{color:#ff9b9b;border-color:#4a2c2c}
+.chip.locked{color:#6b7d8f;border-style:dashed;cursor:pointer}
+button{font:inherit;cursor:pointer;border-radius:11px;border:1px solid var(--line);background:var(--card2);color:var(--txt);
+padding:13px 14px;width:100%;text-align:center;font-weight:600;min-height:48px}
+button.primary{background:var(--green);color:#06210f;border-color:var(--green);font-weight:800}
+button.ghost{background:transparent;color:var(--mut)}
+button:disabled{opacity:.4}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
+.row3 button{font-size:12px;padding:12px 6px;line-height:1.25}
+.pick{border-color:var(--gold)}
+.note{font-size:11px;color:#6b7d8f;margin-top:10px;line-height:1.45}
+.log{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin:12px 0;font-size:13px}
+.log .big{font-size:22px;font-weight:800}
+.pos{color:var(--green)}.neg{color:var(--red)}
+.fixed{position:fixed;left:0;right:0;bottom:0;background:rgba(11,15,20,.96);border-top:1px solid var(--line);
+padding:10px 12px;backdrop-filter:blur(8px);z-index:9}
+.fixed .inner{max-width:640px;margin:0 auto;display:flex;gap:8px;align-items:center}
+.fixed .inner button{flex:1}
+.hide{display:none}
+.finalscore{text-align:center;padding:10px 0}
+.finalscore .n{font-size:46px;font-weight:900;letter-spacing:-.03em;color:var(--green)}
+.finalscore .b{font-size:15px;color:var(--gold);font-weight:700;margin-top:2px}
+.qr{text-align:center;margin:16px 0}
+.qr img{width:120px;height:120px;border-radius:8px;background:#fff;padding:6px}
+.recap{font-size:12px;color:var(--mut);text-align:left;margin-top:10px}
+.recap div{padding:5px 0;border-bottom:1px solid #1c2530}
+</style></head><body>
+<div class="brand">Nvirogear &middot; Property Intelligence</div>
+<h1>Wild Card's House Hunt</h1>
+<div class="tagline">Twenty-five real houses under $250,000. Five rounds. A budget, a token, and your own eyes.</div>
+
+<div class="hud">
+  <div><span>Budget</span><b id="hBudget">$250,000</b></div>
+  <div><span>Equity</span><b id="hEquity" class="pos">$0</b></div>
+  <div><span>Tokens</span><b id="hTokens">10</b></div>
+</div>
+
+<div id="stage"></div>
+<div id="log"></div>
+
+<div class="fixed"><div class="inner">
+  <button class="ghost" id="btnRules">How it works</button>
+  <button class="primary" id="btnMain">Deal the first round</button>
+</div></div>
+<script>
+const DATA={"props": [{"n": "697 W Grand Ave", "c": "Muskegon 49441", "p": "$50,000", "price": 50000, "sf": 952, "bd": 3, "tag": "INVESTOR", "yr": "", "pin": "61-24-205-414-0003-00", "ow": "Mount North Capital", "env": "Clean: 0 EGLE Part 201 sites within 1 mi", "lat": 43.22522, "lng": -86.260391, "ppsf": 53, "val": 133280}, {"n": "2418 View Ln", "c": "Muskegon 49445", "p": "$58,000", "price": 58000, "sf": null, "bd": null, "tag": "VERIFY", "yr": "", "pin": "pending county match", "ow": "pending", "env": "not screened - location pending", "lat": 45.0, "lng": -85.0, "ppsf": null, "val": null}, {"n": "1830 Leahy St", "c": "Muskegon 49442", "p": "$75,000", "price": 75000, "sf": null, "bd": 3, "tag": "FSBO", "yr": "", "pin": "61-24-675-003-0021-00", "ow": "Vazquez Carlos D", "env": "Clean: 0 EGLE Part 201 sites within 1 mi", "lat": 43.2291, "lng": -86.2343, "ppsf": null, "val": null}, {"n": "503 Orchard Ave", "c": "Muskegon 49442", "p": "$110,000", "price": 110000, "sf": 1556, "bd": 4, "tag": "", "yr": "", "pin": "61-24-205-047-0005-00", "ow": "Green Amie", "env": "Clean: 0 EGLE Part 201 sites within 1 mi", "lat": 43.236811, "lng": -86.231554, "ppsf": 71, "val": 217840}, {"n": "2334 Friendship Ln", "c": "Muskegon 49442", "p": "$129,000", "price": 129000, "sf": 1500, "bd": 3, "tag": "FSBO", "yr": "", "pin": "61-10-036-200-0049-71", "ow": "Stoltzfus Bonnie", "env": "Clean: 0 EGLE Part 201 sites within 1 mi", "lat": 43.20991, "lng": -86.14838, "ppsf": 86, "val": 210000}, {"n": "981 W Dale Ave", "c": "Muskegon 49441", "p": "$139,900", "price": 139900, "sf": null, "bd": 3, "tag": "", "yr": "", "pin": "61-24-773-000-0022-00", "ow": "Dyer Courtney C", "env": "Clean: 0 EGLE Part 201 sites within 1 mi", "lat": 43.221519, "lng": -86.267268, "ppsf": null, "val": null}, {"n": "1125 Williams St", "c": "Muskegon 49442", "p": "$149,900", "price": 149900, "sf": 1251, "bd": 3, "tag": "", "yr": "1935", "pin": "pending county match", "ow": "pending", "env": "Clean: 0 EGLE Part 201 sites within 1 mi", "lat": 43.233, "lng": -86.232, "ppsf": 120, "val": 175140}, {"n": "2168 Blodgett St", "c": "Muskegon 49441", "p": "$149,900", "price": 149900, "sf": 650, "bd": 1, "tag": "", "yr": "", "pin": "61-24-235-001-0021-00", "ow": "White James P", "env": "Clean: 0 EGLE Part 201 sites within 1 mi", "lat": 43.213614, "lng": -86.288778, "ppsf": 231, "val": 91000}, {"n": "1094 Williams St", "c": "Muskegon 49442", "p": "$152,000", "price": 152000, "sf": null, "bd": 3, "tag": "INCOME", "yr": "", "pin": "61-24-205-069-0007-10", "ow": "1094 Williams LLC", "env": "Clean: 0 EGLE Part 201 sites within 1 mi", "lat": 43.232466, "lng": -86.232016, "ppsf": null, "val": null}, {"n": "1782 Wood St", "c": "Muskegon 49442", "p": "$154,900", "price": 154900, "sf": 1050, "bd": 3, "tag": "INVESTOR", "yr": "", "pin": "61-24-185-120-0006-00", "ow": "JTLC Properties LLC", "env": "Clean: 0 EGLE Part 201 sites within 1 mi", "lat": 43.220028, "lng": -86.233964, "ppsf": 148, "val": 147000}, {"n": "2032 S Mill Iron Rd", "c": "Muskegon Twp 49442", "p": "$169,900", "price": 169900, "sf": 1288, "bd": 4, "tag": "", "yr": "1945", "pin": "61-10-036-200-0024-00", "ow": "Cooper Robert/Joseph", "env": "Clean: 0 EGLE Part 201 sites within 1 mi", "lat": 43.215571, "lng": -86.150305, "ppsf": 132, "val": 180320}, {"n": "420 West St", "c": "Muskegon 49442", "p": "$169,900", "price": 169900, "sf": 960, "bd": 3, "tag": "", "yr": "", "pin": "61-10-672-003-0003-00", "ow": "O'Brien Emma L", "env": "Clean: 0 EGLE Part 201 sites within 1 mi", "lat": 43.228, "lng": -86.22, "ppsf": 177, "val": 134400}, {"n": "2268 Oak Park Dr", "c": "Muskegon 49442", "p": "$170,000", "price": 170000, "sf": 949, "bd": 3, "tag": "", "yr": "1970", "pin": "61-10-315-002-0016-00", "ow": "Pierce David L / Foley De", "env": "Clean: 0 EGLE Part 201 sites within 1 mi", "lat": 43.233, "lng": -86.25, "ppsf": 179, "val": 132860}, {"n": "1532 Leahy St", "c": "Muskegon 49442", "p": "$174,900", "price": 174900, "sf": 1376, "bd": 3, "tag": "", "yr": "", "pin": "61-24-205-280-0005-00", "ow": "Johnson Christian", "env": "Clean: 0 EGLE Part 201 sites within 1 mi", "lat": 43.22454, "lng": -86.240151, "ppsf": 127, "val": 192640}, {"n": "1953 Jiroch St", "c": "Muskegon 49442", "p": "$179,900", "price": 179900, "sf": 1565, "bd": 3, "tag": "INVESTOR", "yr": "", "pin": "61-24-675-024-0007-00", "ow": "Natas Investments LLC", "env": "Clean: 0 EGLE Part 201 sites within 1 mi", "lat": 43.23, "lng": -86.239, "ppsf": 115, "val": 219100}, {"n": "2083 S Mill Iron Rd", "c": "Muskegon 49442", "p": "$174,900", "price": 174900, "sf": 1730, "bd": 3, "tag": "VERIFY", "yr": "", "pin": "pending county match", "ow": "pending", "env": "Clean: 0 EGLE Part 201 sites within 1 mi", "lat": 43.214, "lng": -86.152, "ppsf": 101, "val": 242200}, {"n": "1843 Fair Ave", "c": "Muskegon 49441", "p": "$198,000", "price": 198000, "sf": 816, "bd": 2, "tag": "VERIFY", "yr": "", "pin": "61-24-235-001-0030-00", "ow": "Brown Stone Properties", "env": "Clean: 0 EGLE Part 201 sites within 1 mi", "lat": 43.214657, "lng": -86.288927, "ppsf": 243, "val": 114240}, {"n": "1119 Pine St", "c": "Muskegon 49442", "p": "$220,000", "price": 220000, "sf": 1460, "bd": 3, "tag": "", "yr": "", "pin": "61-24-205-230-0010-00", "ow": "Cruz Luisa E Rivera", "env": "Clean: 0 EGLE Part 201 sites within 1 mi", "lat": 43.231923, "lng": -86.240644, "ppsf": 151, "val": 204400}, {"n": "2985 Glenside Blvd", "c": "Muskegon 49441", "p": "$237,500", "price": 237500, "sf": 1572, "bd": 3, "tag": "", "yr": "", "pin": "61-25-543-000-0829-00", "ow": "Hildreth Ruby C Trust", "env": "Clean: 0 EGLE Part 201 sites within 1 mi", "lat": 43.213, "lng": -86.259, "ppsf": 151, "val": 220080}, {"n": "1842 Mills Ave", "c": "Muskegon 49445", "p": "$239,900", "price": 239900, "sf": 1116, "bd": 2, "tag": "", "yr": "", "pin": "61-23-585-018-0019-00", "ow": "VanAndel Jack", "env": "Clean: 0 EGLE Part 201 sites within 1 mi", "lat": 43.261852, "lng": -86.262794, "ppsf": 215, "val": 156240}, {"n": "5128 Clark Ave", "c": "Twin Lake 49457", "p": "$250,000", "price": 250000, "sf": 906, "bd": 3, "tag": "", "yr": "1991", "pin": "61-08-171-000-0809-00", "ow": "Benham Ricky A Sr / Reta", "env": "Clean: 0 EGLE Part 201 sites within 1 mi", "lat": 43.346463, "lng": -86.083792, "ppsf": 276, "val": 126840}, {"n": "2851 Jarman St", "c": "Muskegon Heights 49444", "p": "$250,000", "price": 250000, "sf": 5644, "bd": 9, "tag": "INCOME", "yr": "", "pin": "61-26-635-254-0012-00", "ow": "Bucy Ashley", "env": "Clean: 0 EGLE Part 201 sites within 1 mi", "lat": 43.228, "lng": -86.24, "ppsf": 44, "val": 790160}, {"n": "510 Ada Ave", "c": "Muskegon", "p": "county-owned", "price": null, "sf": null, "bd": null, "tag": "LAND BANK", "yr": "", "pin": "61-24-205-066-0010-00", "ow": "Muskegon County Land Bank", "env": "Clean: 0 EGLE Part 201 sites within 1 mi", "lat": 43.233528, "lng": -86.231323, "ppsf": null, "val": null}, {"n": "2022 Henry St", "c": "Muskegon", "p": "ask pending", "price": null, "sf": 1124, "bd": 4, "tag": "REO", "yr": "", "pin": "61-24-140-001-0001-00", "ow": "Planet Home Lending LLC", "env": "Clean: 0 EGLE Part 201 sites within 1 mi", "lat": 43.215738, "lng": -86.262424, "ppsf": null, "val": 157360}, {"n": "2101 Kristin Ct", "c": "Muskegon 49442", "p": "ask pending", "price": null, "sf": 1459, "bd": 3, "tag": "", "yr": "", "pin": "61-10-550-000-0024-00", "ow": "Turner Laura", "env": "Clean: 0 EGLE Part 201 sites within 1 mi", "lat": 43.234, "lng": -86.245, "ppsf": null, "val": 204260}], "median_ppsf": 140};
+const P=DATA.props, MED=DATA.median_ppsf;
+const ROUNDS=5, START_TOKENS=10, BUDGET=250000;
+let S={round:0,tokens:START_TOKENS,budget:BUDGET,equity:0,hand:[],phase:'idle',log:[],revealed:{},last:null};
+const $=id=>document.getElementById(id);
+const money=n=>'$'+Math.round(n).toLocaleString();
+const el=(t,c,h)=>{const d=document.createElement(t);if(c)d.className=c;if(h!==undefined)d.innerHTML=h;return d;};
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function deal(){
+  const pool=shuffle(P.filter(p=>p.price&&p.sf));
+  S.hand=pool.slice(0,3); if(!S.revealed)S.revealed={}; S.phase='deal'; render();
+}
+function hud(){
+  $('hBudget').textContent=money(S.budget);
+  $('hTokens').textContent=S.tokens;
+  const e=$('hEquity'); e.textContent=money(S.equity); e.className=S.equity>=0?'pos':'neg';
+}
+function sellerType(p){
+  if(p.tag==='REO')return 'REO'; if(p.tag==='LAND BANK')return 'LAND BANK';
+  if(p.tag==='INVESTOR')return 'INVESTOR'; if(p.tag==='FSBO')return 'FSBO';
+  if(/LLC|TRUST|INVEST|CAPITAL|PROPERTIES|LAND$/i.test(p.ow))return 'INVESTOR';
+  return 'OWNER';
+}
+const ACCEPT={INVESTOR:{low:.72,fair:.95,over:.99},'LAND BANK':{low:.9,fair:.99,over:.99},
+ REO:{low:.58,fair:.86,over:.99},FSBO:{low:.42,fair:.74,over:.96},OWNER:{low:.3,fair:.7,over:.95}};
+function repairAllowance(p){
+  const ratio=p.ppsf/MED; let base= ratio<0.6?0.25: ratio<0.8?0.15: ratio<1.0?0.08:0.05;
+  const age=p.yr?Math.max(0,(2026-(+p.yr))):45;
+  if(age>60)base+=0.06; else if(age>35)base+=0.03;
+  return Math.round(p.val*base/500)*500;
+}
+function intelFor(p){
+  const st=sellerType(p); const pp=p.ppsf;
+  return [
+    {k:'owner',t:st==='OWNER'?('Owner of record: '+p.ow.slice(0,18)):('Seller type: '+st),
+     cls:(st==='REO'||st==='LAND BANK')?'bad':'good'},
+    {k:'val',t:pp?('$'+pp+'/sq ft vs $'+MED+' county median'):'Size unverified', cls:pp?(pp<MED*0.85?'good':'bad'):''},
+    {k:'env',t:p.env&&p.env.indexOf('Clean')===0?'EGLE clean within 1 mi':'Environmental: not screened',
+     cls:p.env&&p.env.indexOf('Clean')===0?'good':'bad'},
+    {k:'pin',t:p.pin&&p.pin!=='pending county match'?'Parcel verified':'Parcel unverified', cls:p.pin&&p.pin!=='pending county match'?'good':'bad'}
+  ];
+}
+function reveal(i){
+  const p=S.hand[i]; if(!S.revealed)S.revealed={};
+  const known=S.revealed[i]||0; if(known>=4)return;
+  if(S.tokens<=0){flash('No tokens left this game.');return;}
+  S.tokens--; S.revealed[i]=known+1; render();
+}
+function flash(m){const l=$('log');l.innerHTML='<div class="log">'+m+'</div>';}
+function offer(i,kind){
+  if(S.phase!=='deal')return;
+  const p=S.hand[i]; const mult=kind==='low'?0.9:kind==='over'?1.05:1;
+  const price=Math.round(p.price*mult/500)*500;
+  const st=sellerType(p); const prob=ACCEPT[st][kind];
+  const won=Math.random()<prob;
+  S.phase='resolved';
+  if(won&&price<=S.budget){
+    const repairs=repairAllowance(p);
+    const equity=Math.max(-40000,(p.val||p.price*1.1)-price-repairs);
+    S.equity+=equity; S.budget-=price;
+    S.last={won:true,p,price,repairs,equity,st,kind};
+  } else {
+    S.last={won:false,p,price,st,kind,reason:price>S.budget?'over budget':'offer declined'};
+  }
+  S.phase='resolved'; render();
+}
+function next(){
+  S.round++; S.revealed={}; S.last=null;
+  if(S.round>=ROUNDS){S.phase='end';render();return;}
+  deal();
+}
+function badgeFor(eq){
+  if(eq>=120000)return 'SHARP EYE — you bought the block';
+  if(eq>=60000)return 'BARGAIN HUNTER';
+  if(eq>=20000)return 'SOLID READ';
+  if(eq>=0)return 'BROKE EVEN, BRUISED';
+  return 'THE BANK OWNS YOUR STORY';
+}
+function render(){
+  hud();
+  const s=$('stage'); s.innerHTML='';
+  const btn=$('btnMain');
+  if(S.phase==='idle'){btn.textContent='Deal the first round';btn.disabled=false;return;}
+  if(S.phase==='end'){
+    btn.textContent='Play again';btn.disabled=false;
+    const box=el('div','card');box.style.textAlign='center';
+    box.appendChild(el('div','brand','Final result'));
+    box.appendChild(el('div','finalscore','<div class="n">'+money(S.equity)+'</div><div class="b">'+badgeFor(S.equity)+'</div>'));
+    const rec=el('div','recap', S.log.map(l=>'<div>Round '+l.r+': '+l.t+'</div>').join(''));
+    box.appendChild(rec);
+    s.appendChild(box);
+    const sh=el('div','card');
+    sh.appendChild(el('div','addr','Send this to Joe'));
+    sh.appendChild(el('div','meta','Screenshot the score, or open the full list of 25 houses and pick your favorite for a deep report.'));
+    const a=el('a','',''); a.href='https://nvirogear1-pixel.github.io/mitoxicmap/reports/wildcards-first-list.html';
+    a.style.color='var(--green)';a.style.fontWeight='700';a.textContent='Open the full property list →';
+    sh.appendChild(a); s.appendChild(sh);
+    return;
+  }
+  if(S.phase==='resolved'){
+    btn.textContent=S.round>=ROUNDS-1?'See final score':'Next round';btn.disabled=false;
+    const L=S.last; const c=el('div','card');
+    const head=el('div',''); 
+    head.appendChild(el('div','addr',L.p.n+(L.p.tag?'<span class="badge '+L.p.tag+'">'+L.p.tag+'</span>':'')));
+    head.appendChild(el('div','city',L.p.c));
+    const big=el('div','big', L.won?'ACCEPTED at '+money(L.price):'DECLINED');
+    big.style.color=L.won?'var(--green)':'var(--red)';big.style.fontSize='20px';big.style.fontWeight='800';
+    head.appendChild(big);
+    c.appendChild(head);
+    const det=el('div','log');
+    if(L.won){
+      det.innerHTML='<div>Seller: '+L.st+' &middot; offer: '+(L.kind==='low'?'10% under ask':L.kind==='over'?'5% over ask':'at ask')+'</div>'+
+      '<div>Modeled repairs: '+money(L.repairs)+'</div><div class="big '+(L.equity>=0?'pos':'neg')+'">Equity: '+money(L.equity)+'</div>';
+    } else {
+      det.innerHTML='<div>Seller: '+L.st+' &middot; ask: '+money(L.p.price)+'</div><div>'+L.reason+'. You keep your money, and you kept your discipline.</div>';
+    }
+    c.appendChild(det); s.appendChild(c);
+    return;
+  }
+  // dealing
+  btn.textContent='Pick a house above';btn.disabled=true;
+  const bar=el('div','log','Round '+(S.round+1)+' of '+ROUNDS+' &middot; tap a dashed chip to spend an inspection token (one per fact).');
+  s.appendChild(bar);
+  S.hand.forEach((p,i)=>{
+    const c=el('div','card');
+    c.appendChild(el('div','addr',p.n+(p.tag?'<span class="badge '+p.tag+'">'+p.tag+'</span>':'')));
+    c.appendChild(el('div','city',p.c));
+    c.appendChild(el('div','price',money(p.price)));
+    c.appendChild(el('div','meta',p.s+' &middot; '+(p.yr?('built '+p.yr):'year unverified')));
+    const intel=el('div','intel');
+    const known=S.revealed[i]||0; const facts=intelFor(p);
+    facts.forEach((f,fi)=>{
+      const chip=el('span','chip '+(fi<known?f.cls:'locked'), fi<known?f.t:('? '+(f.k==='owner'?'who is selling':f.k==='val'?'price per sq ft':f.k==='env'?'environmental':'parcel check')));
+      if(fi>=known)chip.onclick=()=>reveal(i);
+      intel.appendChild(chip);
+    });
+    c.appendChild(intel);
+    const row=el('div','row3');
+    [['low','Lowball 10% under'],['fair','Offer at ask'],['over','5% over ask']].forEach(([k,label])=>{
+      const b=el('button','',label); b.onclick=()=>offer(i,k); row.appendChild(b);
+    });
+    c.appendChild(row);
+    s.appendChild(c);
+  });
+}
+$('btnMain').onclick=()=>{
+  if(S.phase==='idle'){deal();return;}
+  if(S.phase==='resolved'){S.log.push({r:S.round+1,t:S.last.won?(S.last.p.n+' at '+money(S.last.price)+', +'+money(S.last.equity)):(S.last.p.n+' — declined, walked away')});next();return;}
+  if(S.phase==='end'){S={round:0,tokens:START_TOKENS,budget:BUDGET,equity:0,hand:[],phase:'idle',log:[],revealed:{},last:null};render();return;}
+};
+$('btnRules').onclick=()=>{
+  const s=$('stage'); s.innerHTML='';
+  const c=el('div','card');
+  c.innerHTML='<div class="addr">How it works</div><div class="meta">A decision game on real Muskegon houses.</div>'+
+  '<div class="note" style="font-size:13px;color:var(--txt)">Five rounds. Three houses each. You start with $250,000 and ten inspection tokens.<br><br>'+
+  'Tap a dashed chip to spend a token and reveal a fact: who is selling, price per square foot against the county median of $'+MED+', the environmental screen, and whether the parcel is verified.<br><br>'+
+  'Then make an offer: 10% under, at ask, or 5% over. Investors and land banks accept lowballs; owner-occupants and FSBOs rarely do. A bank will meet you in the middle.<br><br>'+
+  '<b>Every address, price, owner, parcel number and environmental result is real</b>, pulled November 8, 2026. The repair allowance and the seller behaviour are a model built for play, not an assessment of any house.</div>';
+  s.appendChild(c);
+};
+render();
+window.GAME={S,deal,reveal,offer,next,render};
+</script></body></html>
