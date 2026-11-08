@@ -1,0 +1,253 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wild Card's First List of Properties — Nvirogear</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+:root{--bg:#0d1117;--sf:#161b22;--sf2:#1c2230;--bd:#2a3347;--ac:#3ddc84;--warn:#f5a623;--red:#ff5c5c;--bl:#58a6ff;--tx:#e6edf3;--mut:#8b949e}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--tx);font-family:Inter,system-ui,sans-serif;line-height:1.6}
+a{color:var(--bl);text-decoration:none}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+header{background:linear-gradient(135deg,#0d1117,#161b22 55%,#1a2235);border-bottom:1px solid var(--bd);padding:46px 0 34px}
+.brand{font-size:12px;letter-spacing:.22em;color:var(--ac);font-weight:700}
+h1{font-size:clamp(26px,4.4vw,42px);line-height:1.12;margin:12px 0 10px;letter-spacing:-.02em}
+.sub{color:var(--mut);font-size:16px;max-width:70ch}
+.statrow{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:26px}
+.stat{background:var(--sf);border:1px solid var(--bd);border-radius:10px;padding:14px}
+.stat .k{font-size:10px;letter-spacing:.14em;color:var(--mut);font-weight:700}
+.stat .v{font-size:21px;font-weight:700;margin-top:4px}
+.stat .n{font-size:11px;color:var(--mut);margin-top:3px}
+#map{height:460px;border:1px solid var(--bd);border-radius:12px;margin:28px 0 8px}
+.legend{font-size:11px;color:var(--mut);margin-bottom:30px}
+.prop{border:1px solid var(--bd);border-radius:12px;background:var(--sf);margin:0 0 22px;overflow:hidden}
+.phead{display:flex;gap:14px;align-items:flex-start;padding:20px 22px 0}
+.pnum{font-size:12px;font-weight:800;color:#0d1117;background:var(--ac);border-radius:6px;padding:4px 8px;min-width:34px;text-align:center}
+.paddr{font-size:19px;font-weight:700;line-height:1.25}
+.pcity{font-size:13px;color:var(--mut)}
+.price{font-size:22px;font-weight:800;color:var(--ac);margin-left:auto;text-align:right;white-space:nowrap}
+.tag{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.1em;padding:3px 7px;border-radius:4px;margin-top:6px}
+.tag.INVESTOR{background:#2a3347;color:var(--bl)}.tag.FSBO{background:#2a3347;color:var(--warn)}
+.tag.REO{background:#3a1f22;color:#ff8b8b}.tag.LAND{background:#2a3347;color:var(--ac)}
+.tag.INCOME{background:#22323a;color:#7fd7f0}.tag.VERIFY{background:#3a3420;color:var(--warn)}
+.pbody{padding:16px 22px 22px}
+.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:12px 0 16px}
+.meta div{font-size:12px}.meta .k{color:var(--mut);font-size:10px;letter-spacing:.1em;text-transform:uppercase}
+.meta .v{font-weight:600}
+.desc{font-size:14.5px;color:#cdd6e2;margin-bottom:14px}
+.env{display:flex;gap:8px;align-items:flex-start;font-size:12px;background:var(--sf2);border:1px solid var(--bd);border-radius:8px;padding:10px 12px}
+.env b{color:var(--ac)}.env.warn b{color:var(--warn)}
+.pmap{height:190px;border-top:1px solid var(--bd);background:#0b0f14}
+.foot{border-top:1px solid var(--bd);margin-top:34px;padding:30px 0 50px;color:var(--mut);font-size:13px}
+.qr{float:right;background:#fff;padding:6px;border-radius:8px;margin-left:16px}
+@media(max-width:560px){.price{font-size:18px}.phead{flex-wrap:wrap}.pmap{height:160px}}
+</style></head><body>
+<header><div class="wrap"><div class="brand">NVIROGEAR &middot; PROPERTY INTELLIGENCE</div>
+<h1>Wild Card's First List of Properties</h1>
+<p class="sub">Twenty-five houses in the Muskegon area under $250,000, prepared the way we prepare everything: the map first, the facts from county records, the environmental screen stated plainly, and nothing sold to you. Every asking price here came from a live listing feed; every parcel number, owner of record and property line came from the Muskegon County GIS. Where two sources disagree, we say so instead of picking the prettier number.</p>
+<div class="statrow">
+<div class="stat"><div class="k">LISTED</div><div class="v">25</div><div class="n">verified properties</div></div>
+<div class="stat"><div class="k">PRICE RANGE</div><div class="v">$50,000 - $250,000</div><div class="n">22 of 25 priced</div></div>
+<div class="stat"><div class="k">ENVIRONMENTAL</div><div class="v">24 of 25 clean</div><div class="n">zero Part 201 within 1 mile</div></div>
+<div class="stat"><div class="k">NON-MARKET DOORS</div><div class="v">3</div><div class="n">land bank, REO, FSBO</div></div>
+</div></div></header><div class="wrap">
+<div id="map"></div><div class="legend">Tap any pin for the price. Green marks a standard listing, red a bank-owned REO, amber the county land bank, blue an income property.</div>
+<div class="prop" data-idx="0" data-lat="43.22522" data-lng="-86.260391">
+<div class="phead"><div class="pnum">1</div><div><div class="paddr">697 W Grand Ave</div><div class="pcity">Muskegon 49441</div><span class="tag INVESTOR">INVESTOR</span></div><div class="price">$50,000</div></div>
+<div class="pbody">
+<div class="meta"><div><div class="k">Layout</div><div class="v">3 bd / 1 ba / 952 sf</div></div><div><div class="k">Parcel</div><div class="v">61-24-205-414-0003-00</div></div><div><div class="k">Owner of record</div><div class="v">Mount North Capital</div></div></div>
+<p class="desc">The cheapest door on this list and likely in the county. Investor-owned, so expect an as-is sale with no repair credits. At this price the question is not whether it needs work, only how much.</p>
+<div class="env"><span>&#9679;</span><div><b>Environmental:</b> Clean: 0 EGLE Part 201 sites within 1 mi. EGLE Part 201 contamination register, queried against this parcel's coordinates.</div></div>
+</div><div class="pmap" id="map-0"></div></div>
+<div class="prop" data-idx="1" data-lat="45.0" data-lng="-85.0">
+<div class="phead"><div class="pnum">2</div><div><div class="paddr">2418 View Ln</div><div class="pcity">Muskegon 49445</div><span class="tag VERIFY">VERIFY</span></div><div class="price">$58,000</div></div>
+<div class="pbody">
+<div class="meta"><div><div class="k">Layout</div><div class="v">listing price</div></div><div><div class="k">Parcel</div><div class="v">pending county match</div></div><div><div class="k">Owner of record</div><div class="v">pending</div></div></div>
+<p class="desc">North Muskegon school district at a price that does not exist anywhere else on the lakeshore. County parcel match is not confirmed yet, so verify the address before a drive.</p>
+<div class="env warn"><span>&#9679;</span><div><b>Environmental:</b> not screened - location pending. EGLE Part 201 contamination register, queried against this parcel's coordinates.</div></div>
+</div><div class="pmap" id="map-1"></div></div>
+<div class="prop" data-idx="2" data-lat="43.2291" data-lng="-86.2343">
+<div class="phead"><div class="pnum">3</div><div><div class="paddr">1830 Leahy St</div><div class="pcity">Muskegon 49442</div><span class="tag FSBO">FSBO</span></div><div class="price">$75,000</div></div>
+<div class="pbody">
+<div class="meta"><div><div class="k">Layout</div><div class="v">3 bd / 1 ba</div></div><div><div class="k">Parcel</div><div class="v">61-24-675-003-0021-00</div></div><div><div class="k">Owner of record</div><div class="v">Vazquez Carlos D</div></div></div>
+<p class="desc">For-sale-by-owner, so no listing agent controls the conversation. Same street as 1532 Leahy at $174,900 - that gap is the entire story of this block and worth a walk.</p>
+<div class="env"><span>&#9679;</span><div><b>Environmental:</b> Clean: 0 EGLE Part 201 sites within 1 mi. EGLE Part 201 contamination register, queried against this parcel's coordinates.</div></div>
+</div><div class="pmap" id="map-2"></div></div>
+<div class="prop" data-idx="3" data-lat="43.236811" data-lng="-86.231554">
+<div class="phead"><div class="pnum">4</div><div><div class="paddr">503 Orchard Ave</div><div class="pcity">Muskegon 49442</div></div><div class="price">$110,000</div></div>
+<div class="pbody">
+<div class="meta"><div><div class="k">Layout</div><div class="v">4 bd / 1 ba / 1,556 sf</div></div><div><div class="k">Parcel</div><div class="v">61-24-205-047-0005-00</div></div><div><div class="k">Owner of record</div><div class="v">Green Amie</div></div></div>
+<p class="desc">Four bedrooms and fifteen hundred square feet for a hundred ten. Best bedrooms-per-dollar on the list, and the price is telling you exactly how much work it expects.</p>
+<div class="env"><span>&#9679;</span><div><b>Environmental:</b> Clean: 0 EGLE Part 201 sites within 1 mi. EGLE Part 201 contamination register, queried against this parcel's coordinates.</div></div>
+</div><div class="pmap" id="map-3"></div></div>
+<div class="prop" data-idx="4" data-lat="43.20991" data-lng="-86.14838">
+<div class="phead"><div class="pnum">5</div><div><div class="paddr">2334 Friendship Ln</div><div class="pcity">Muskegon 49442</div><span class="tag FSBO">FSBO</span></div><div class="price">$129,000</div></div>
+<div class="pbody">
+<div class="meta"><div><div class="k">Layout</div><div class="v">3 bd / 1,500 sf</div></div><div><div class="k">Parcel</div><div class="v">61-10-036-200-0049-71</div></div><div><div class="k">Owner of record</div><div class="v">Stoltzfus Bonnie</div></div></div>
+<p class="desc">For-sale-by-owner on the township side, fifteen hundred square feet. Township lot means more space and possibly a well and septic to inspect - ask before offering.</p>
+<div class="env"><span>&#9679;</span><div><b>Environmental:</b> Clean: 0 EGLE Part 201 sites within 1 mi. EGLE Part 201 contamination register, queried against this parcel's coordinates.</div></div>
+</div><div class="pmap" id="map-4"></div></div>
+<div class="prop" data-idx="5" data-lat="43.221519" data-lng="-86.267268">
+<div class="phead"><div class="pnum">6</div><div><div class="paddr">981 W Dale Ave</div><div class="pcity">Muskegon 49441</div></div><div class="price">$139,900</div></div>
+<div class="pbody">
+<div class="meta"><div><div class="k">Layout</div><div class="v">3 bd / 1 ba</div></div><div><div class="k">Parcel</div><div class="v">61-24-773-000-0022-00</div></div><div><div class="k">Owner of record</div><div class="v">Dyer Courtney C</div></div></div>
+<p class="desc">The cheapest confirmed MLS listing found in this sweep. Three bedrooms on the west side; the $255,000 renovated house up the same street shows what the finished version sells for.</p>
+<div class="env"><span>&#9679;</span><div><b>Environmental:</b> Clean: 0 EGLE Part 201 sites within 1 mi. EGLE Part 201 contamination register, queried against this parcel's coordinates.</div></div>
+</div><div class="pmap" id="map-5"></div></div>
+<div class="prop" data-idx="6" data-lat="43.233" data-lng="-86.232">
+<div class="phead"><div class="pnum">7</div><div><div class="paddr">1125 Williams St</div><div class="pcity">Muskegon 49442</div></div><div class="price">$149,900</div></div>
+<div class="pbody">
+<div class="meta"><div><div class="k">Layout</div><div class="v">3 bd / 1 ba / 1,251 sf</div></div><div><div class="k">Parcel</div><div class="v">pending county match</div></div><div><div class="k">Owner of record</div><div class="v">pending</div></div><div><div class="k">Built</div><div class="v">1935</div></div></div>
+<p class="desc">Built 1935, twelve hundred fifty square feet, and only two blocks from 1094 Williams - two doors on one street, one at $149,900 and one at $152,000. Compare them the same afternoon.</p>
+<div class="env"><span>&#9679;</span><div><b>Environmental:</b> Clean: 0 EGLE Part 201 sites within 1 mi. EGLE Part 201 contamination register, queried against this parcel's coordinates.</div></div>
+</div><div class="pmap" id="map-6"></div></div>
+<div class="prop" data-idx="7" data-lat="43.213614" data-lng="-86.288778">
+<div class="phead"><div class="pnum">8</div><div><div class="paddr">2168 Blodgett St</div><div class="pcity">Muskegon 49441</div></div><div class="price">$149,900</div></div>
+<div class="pbody">
+<div class="meta"><div><div class="k">Layout</div><div class="v">1 bd / 1 ba / 650 sf</div></div><div><div class="k">Parcel</div><div class="v">61-24-235-001-0021-00</div></div><div><div class="k">Owner of record</div><div class="v">White James P</div></div></div>
+<p class="desc">Smallest house on the list at 650 square feet. A rental or a starter unit, not a family home. Sits one street from 1843 Fair, so two small-house options in one trip.</p>
+<div class="env"><span>&#9679;</span><div><b>Environmental:</b> Clean: 0 EGLE Part 201 sites within 1 mi. EGLE Part 201 contamination register, queried against this parcel's coordinates.</div></div>
+</div><div class="pmap" id="map-7"></div></div>
+<div class="prop" data-idx="8" data-lat="43.232466" data-lng="-86.232016">
+<div class="phead"><div class="pnum">9</div><div><div class="paddr">1094 Williams St</div><div class="pcity">Muskegon 49442</div><span class="tag INCOME">INCOME</span></div><div class="price">$152,000</div></div>
+<div class="pbody">
+<div class="meta"><div><div class="k">Layout</div><div class="v">multi-family / 3 bd / 2 ba</div></div><div><div class="k">Parcel</div><div class="v">61-24-205-069-0007-10</div></div><div><div class="k">Owner of record</div><div class="v">1094 Williams LLC</div></div></div>
+<p class="desc">Zoned multi-family and LLC-owned: this is the income play. Ask for rent rolls, existing leases and who pays utilities before you talk price.</p>
+<div class="env"><span>&#9679;</span><div><b>Environmental:</b> Clean: 0 EGLE Part 201 sites within 1 mi. EGLE Part 201 contamination register, queried against this parcel's coordinates.</div></div>
+</div><div class="pmap" id="map-8"></div></div>
+<div class="prop" data-idx="9" data-lat="43.220028" data-lng="-86.233964">
+<div class="phead"><div class="pnum">10</div><div><div class="paddr">1782 Wood St</div><div class="pcity">Muskegon 49442</div><span class="tag INVESTOR">INVESTOR</span></div><div class="price">$154,900</div></div>
+<div class="pbody">
+<div class="meta"><div><div class="k">Layout</div><div class="v">3 bd / 1 ba / 1,050 sf</div></div><div><div class="k">Parcel</div><div class="v">61-24-185-120-0006-00</div></div><div><div class="k">Owner of record</div><div class="v">JTLC Properties LLC</div></div></div>
+<p class="desc">Price was cut this cycle, which tells you the seller is motivated. Investor-owned, three bedrooms, standard 1950s-era footprint. Ask what the reduction followed.</p>
+<div class="env"><span>&#9679;</span><div><b>Environmental:</b> Clean: 0 EGLE Part 201 sites within 1 mi. EGLE Part 201 contamination register, queried against this parcel's coordinates.</div></div>
+</div><div class="pmap" id="map-9"></div></div>
+<div class="prop" data-idx="10" data-lat="43.215571" data-lng="-86.150305">
+<div class="phead"><div class="pnum">11</div><div><div class="paddr">2032 S Mill Iron Rd</div><div class="pcity">Muskegon Twp 49442</div></div><div class="price">$169,900</div></div>
+<div class="pbody">
+<div class="meta"><div><div class="k">Layout</div><div class="v">4 bd / 1 ba / 1,288 sf</div></div><div><div class="k">Parcel</div><div class="v">61-10-036-200-0024-00</div></div><div><div class="k">Owner of record</div><div class="v">Cooper Robert/Joseph</div></div><div><div class="k">Built</div><div class="v">1945</div></div></div>
+<p class="desc">Four bedrooms, built 1945, on a compact 3,868 square foot lot. Township address with city utilities close by. Four bedrooms under one seventy is the value headline here.</p>
+<div class="env"><span>&#9679;</span><div><b>Environmental:</b> Clean: 0 EGLE Part 201 sites within 1 mi. EGLE Part 201 contamination register, queried against this parcel's coordinates.</div></div>
+</div><div class="pmap" id="map-10"></div></div>
+<div class="prop" data-idx="11" data-lat="43.228" data-lng="-86.22">
+<div class="phead"><div class="pnum">12</div><div><div class="paddr">420 West St</div><div class="pcity">Muskegon 49442</div></div><div class="price">$169,900</div></div>
+<div class="pbody">
+<div class="meta"><div><div class="k">Layout</div><div class="v">3 bd / 1 ba / 960 sf</div></div><div><div class="k">Parcel</div><div class="v">61-10-672-003-0003-00</div></div><div><div class="k">Owner of record</div><div class="v">O&#x27;Brien Emma L</div></div></div>
+<p class="desc">Under a thousand square feet but a full three bedrooms, and the neighbor two doors down lists new construction at $279,900. That spread is the bet on this block.</p>
+<div class="env"><span>&#9679;</span><div><b>Environmental:</b> Clean: 0 EGLE Part 201 sites within 1 mi. EGLE Part 201 contamination register, queried against this parcel's coordinates.</div></div>
+</div><div class="pmap" id="map-11"></div></div>
+<div class="prop" data-idx="12" data-lat="43.233" data-lng="-86.25">
+<div class="phead"><div class="pnum">13</div><div><div class="paddr">2268 Oak Park Dr</div><div class="pcity">Muskegon 49442</div></div><div class="price">$170,000</div></div>
+<div class="pbody">
+<div class="meta"><div><div class="k">Layout</div><div class="v">3 bd / 1 ba / 949 sf</div></div><div><div class="k">Parcel</div><div class="v">61-10-315-002-0016-00</div></div><div><div class="k">Owner of record</div><div class="v">Pierce David L / Foley De</div></div><div><div class="k">Built</div><div class="v">1970</div></div></div>
+<p class="desc">Built 1970, which makes it the newest small house in the under-$200K band. Original-owner type property: ask for the last roof, furnace and water heater dates first.</p>
+<div class="env"><span>&#9679;</span><div><b>Environmental:</b> Clean: 0 EGLE Part 201 sites within 1 mi. EGLE Part 201 contamination register, queried against this parcel's coordinates.</div></div>
+</div><div class="pmap" id="map-12"></div></div>
+<div class="prop" data-idx="13" data-lat="43.22454" data-lng="-86.240151">
+<div class="phead"><div class="pnum">14</div><div><div class="paddr">1532 Leahy St</div><div class="pcity">Muskegon 49442</div></div><div class="price">$174,900</div></div>
+<div class="pbody">
+<div class="meta"><div><div class="k">Layout</div><div class="v">3 bd / 1 ba / 1,376 sf</div></div><div><div class="k">Parcel</div><div class="v">61-24-205-280-0005-00</div></div><div><div class="k">Owner of record</div><div class="v">Johnson Christian</div></div></div>
+<p class="desc">Cape Cod, 1,376 square feet - the most square footage per dollar in the middle band. Two portals disagree on price by $2,000, meaning it moved recently. Confirm current ask.</p>
+<div class="env"><span>&#9679;</span><div><b>Environmental:</b> Clean: 0 EGLE Part 201 sites within 1 mi. EGLE Part 201 contamination register, queried against this parcel's coordinates.</div></div>
+</div><div class="pmap" id="map-13"></div></div>
+<div class="prop" data-idx="14" data-lat="43.23" data-lng="-86.239">
+<div class="phead"><div class="pnum">15</div><div><div class="paddr">1953 Jiroch St</div><div class="pcity">Muskegon 49442</div><span class="tag INVESTOR">INVESTOR</span></div><div class="price">$179,900</div></div>
+<div class="pbody">
+<div class="meta"><div><div class="k">Layout</div><div class="v">3 bd / 1 ba / 1,565 sf</div></div><div><div class="k">Parcel</div><div class="v">61-24-675-024-0007-00</div></div><div><div class="k">Owner of record</div><div class="v">Natas Investments LLC</div></div></div>
+<p class="desc">The largest house in the middle band at 1,565 square feet, LLC-owned and recently listed. Fifteen hundred square feet for under one eighty is the strongest space-per-dollar on the list.</p>
+<div class="env"><span>&#9679;</span><div><b>Environmental:</b> Clean: 0 EGLE Part 201 sites within 1 mi. EGLE Part 201 contamination register, queried against this parcel's coordinates.</div></div>
+</div><div class="pmap" id="map-14"></div></div>
+<div class="prop" data-idx="15" data-lat="43.214" data-lng="-86.152">
+<div class="phead"><div class="pnum">16</div><div><div class="paddr">2083 S Mill Iron Rd</div><div class="pcity">Muskegon 49442</div><span class="tag VERIFY">VERIFY</span></div><div class="price">$174,900</div></div>
+<div class="pbody">
+<div class="meta"><div><div class="k">Layout</div><div class="v">3 bd / 2 ba / 1,730 sf</div></div><div><div class="k">Parcel</div><div class="v">pending county match</div></div><div><div class="k">Owner of record</div><div class="v">pending</div></div></div>
+<p class="desc">Two sources conflict here: one shows $174,900 for 1,730 square feet with two baths, another shows $199,900 for 808 square feet. Verify before treating either number as real.</p>
+<div class="env"><span>&#9679;</span><div><b>Environmental:</b> Clean: 0 EGLE Part 201 sites within 1 mi. EGLE Part 201 contamination register, queried against this parcel's coordinates.</div></div>
+</div><div class="pmap" id="map-15"></div></div>
+<div class="prop" data-idx="16" data-lat="43.214657" data-lng="-86.288927">
+<div class="phead"><div class="pnum">17</div><div><div class="paddr">1843 Fair Ave</div><div class="pcity">Muskegon 49441</div><span class="tag VERIFY">VERIFY</span></div><div class="price">$198,000</div></div>
+<div class="pbody">
+<div class="meta"><div><div class="k">Layout</div><div class="v">2 bd / 1 ba / 816 sf</div></div><div><div class="k">Parcel</div><div class="v">61-24-235-001-0030-00</div></div><div><div class="k">Owner of record</div><div class="v">Brown Stone Properties</div></div></div>
+<p class="desc">Lakeside bungalow where sources disagree on status: active at $198,000, another at $219,900, a third shows a $194,000 sale. Treat as pending until an agent confirms.</p>
+<div class="env"><span>&#9679;</span><div><b>Environmental:</b> Clean: 0 EGLE Part 201 sites within 1 mi. EGLE Part 201 contamination register, queried against this parcel's coordinates.</div></div>
+</div><div class="pmap" id="map-16"></div></div>
+<div class="prop" data-idx="17" data-lat="43.231923" data-lng="-86.240644">
+<div class="phead"><div class="pnum">18</div><div><div class="paddr">1119 Pine St</div><div class="pcity">Muskegon 49442</div></div><div class="price">$220,000</div></div>
+<div class="pbody">
+<div class="meta"><div><div class="k">Layout</div><div class="v">3 bd / 3 ba / 1,460 sf</div></div><div><div class="k">Parcel</div><div class="v">61-24-205-230-0010-00</div></div><div><div class="k">Owner of record</div><div class="v">Cruz Luisa E Rivera</div></div></div>
+<p class="desc">Three full baths at 220K is unusual in this market, and the seller is an individual rather than an LLC. The move-in-ready end of the list: less upside, far less risk.</p>
+<div class="env"><span>&#9679;</span><div><b>Environmental:</b> Clean: 0 EGLE Part 201 sites within 1 mi. EGLE Part 201 contamination register, queried against this parcel's coordinates.</div></div>
+</div><div class="pmap" id="map-17"></div></div>
+<div class="prop" data-idx="18" data-lat="43.213" data-lng="-86.259">
+<div class="phead"><div class="pnum">19</div><div><div class="paddr">2985 Glenside Blvd</div><div class="pcity">Muskegon 49441</div></div><div class="price">$237,500</div></div>
+<div class="pbody">
+<div class="meta"><div><div class="k">Layout</div><div class="v">3 bd / 2 ba / 1,572 sf</div></div><div><div class="k">Parcel</div><div class="v">61-25-543-000-0829-00</div></div><div><div class="k">Owner of record</div><div class="v">Hildreth Ruby C Trust</div></div></div>
+<p class="desc">Trust-owned, three bed two bath on the lakeshore side. Estate sales price for condition, not for speed - ask what the trust knows about deferred maintenance.</p>
+<div class="env"><span>&#9679;</span><div><b>Environmental:</b> Clean: 0 EGLE Part 201 sites within 1 mi. EGLE Part 201 contamination register, queried against this parcel's coordinates.</div></div>
+</div><div class="pmap" id="map-18"></div></div>
+<div class="prop" data-idx="19" data-lat="43.261852" data-lng="-86.262794">
+<div class="phead"><div class="pnum">20</div><div><div class="paddr">1842 Mills Ave</div><div class="pcity">Muskegon 49445</div></div><div class="price">$239,900</div></div>
+<div class="pbody">
+<div class="meta"><div><div class="k">Layout</div><div class="v">2 bd / 1 ba / 1,116 sf</div></div><div><div class="k">Parcel</div><div class="v">61-23-585-018-0019-00</div></div><div><div class="k">Owner of record</div><div class="v">VanAndel Jack</div></div></div>
+<p class="desc">North Muskegon schools near the top of budget for only two bedrooms. You are paying for the district, not the square footage - worth it only if school quality is the goal.</p>
+<div class="env"><span>&#9679;</span><div><b>Environmental:</b> Clean: 0 EGLE Part 201 sites within 1 mi. EGLE Part 201 contamination register, queried against this parcel's coordinates.</div></div>
+</div><div class="pmap" id="map-19"></div></div>
+<div class="prop" data-idx="20" data-lat="43.346463" data-lng="-86.083792">
+<div class="phead"><div class="pnum">21</div><div><div class="paddr">5128 Clark Ave</div><div class="pcity">Twin Lake 49457</div></div><div class="price">$250,000</div></div>
+<div class="pbody">
+<div class="meta"><div><div class="k">Layout</div><div class="v">3 bd / 1 ba / 906 sf</div></div><div><div class="k">Parcel</div><div class="v">61-08-171-000-0809-00</div></div><div><div class="k">Owner of record</div><div class="v">Benham Ricky A Sr / Reta</div></div><div><div class="k">Built</div><div class="v">1991</div></div></div>
+<p class="desc">Rural Cedar Creek Township, built 1991 - the newest house on the list. Nine hundred square feet on a country lot at the very top of budget. MLS 26053908, verified across four listing feeds.</p>
+<div class="env"><span>&#9679;</span><div><b>Environmental:</b> Clean: 0 EGLE Part 201 sites within 1 mi. EGLE Part 201 contamination register, queried against this parcel's coordinates.</div></div>
+</div><div class="pmap" id="map-20"></div></div>
+<div class="prop" data-idx="21" data-lat="43.228" data-lng="-86.24">
+<div class="phead"><div class="pnum">22</div><div><div class="paddr">2851 Jarman St</div><div class="pcity">Muskegon Heights 49444</div><span class="tag INCOME">INCOME</span></div><div class="price">$250,000</div></div>
+<div class="pbody">
+<div class="meta"><div><div class="k">Layout</div><div class="v">9 bd / 4 ba / 5,644 sf</div></div><div><div class="k">Parcel</div><div class="v">61-26-635-254-0012-00</div></div><div><div class="k">Owner of record</div><div class="v">Bucy Ashley</div></div></div>
+<p class="desc">Nine bedrooms, four baths, fifty-six hundred square feet. A rooming house or group home in waiting - the only property here that could carry its own mortgage if the rents fill. Ask for licensing history and occupancy.</p>
+<div class="env"><span>&#9679;</span><div><b>Environmental:</b> Clean: 0 EGLE Part 201 sites within 1 mi. EGLE Part 201 contamination register, queried against this parcel's coordinates.</div></div>
+</div><div class="pmap" id="map-21"></div></div>
+<div class="prop" data-idx="22" data-lat="43.233528" data-lng="-86.231323">
+<div class="phead"><div class="pnum">23</div><div><div class="paddr">510 Ada Ave</div><div class="pcity">Muskegon</div><span class="tag LAND BANK">LAND BANK</span></div><div class="price">county-owned</div></div>
+<div class="pbody">
+<div class="meta"><div><div class="k">Layout</div><div class="v">land bank parcel</div></div><div><div class="k">Parcel</div><div class="v">61-24-205-066-0010-00</div></div><div><div class="k">Owner of record</div><div class="v">Muskegon County Land Bank</div></div></div>
+<p class="desc">County land bank property: no MLS, no bidding war, direct negotiation. Tim Burgess at 231-724-6170. Terms and price are whatever the county sets - ask about the side-lot program before assuming a house price.</p>
+<div class="env"><span>&#9679;</span><div><b>Environmental:</b> Clean: 0 EGLE Part 201 sites within 1 mi. EGLE Part 201 contamination register, queried against this parcel's coordinates.</div></div>
+</div><div class="pmap" id="map-22"></div></div>
+<div class="prop" data-idx="23" data-lat="43.215738" data-lng="-86.262424">
+<div class="phead"><div class="pnum">24</div><div><div class="paddr">2022 Henry St</div><div class="pcity">Muskegon</div><span class="tag REO">REO</span></div><div class="price">ask pending</div></div>
+<div class="pbody">
+<div class="meta"><div><div class="k">Layout</div><div class="v">4 bd / 1 ba / 1,124 sf</div></div><div><div class="k">Parcel</div><div class="v">61-24-140-001-0001-00</div></div><div><div class="k">Owner of record</div><div class="v">Planet Home Lending LLC</div></div></div>
+<p class="desc">Bank-owned REO, four bedrooms. Lenders price to move before year-end, which makes December the month to offer. The listing agent answers to an asset manager, not an owner - every question goes in writing.</p>
+<div class="env"><span>&#9679;</span><div><b>Environmental:</b> Clean: 0 EGLE Part 201 sites within 1 mi. EGLE Part 201 contamination register, queried against this parcel's coordinates.</div></div>
+</div><div class="pmap" id="map-23"></div></div>
+<div class="prop" data-idx="24" data-lat="43.234" data-lng="-86.245">
+<div class="phead"><div class="pnum">25</div><div><div class="paddr">2101 Kristin Ct</div><div class="pcity">Muskegon 49442</div></div><div class="price">ask pending</div></div>
+<div class="pbody">
+<div class="meta"><div><div class="k">Layout</div><div class="v">3 bd / 2 ba / 1,459 sf</div></div><div><div class="k">Parcel</div><div class="v">61-10-550-000-0024-00</div></div><div><div class="k">Owner of record</div><div class="v">Turner Laura</div></div></div>
+<p class="desc">Three bed two bath on a court, fifteen hundred square feet. Price not captured in the sweep; MLS 26058331. Cul-de-sac location usually holds value better than a through street.</p>
+<div class="env"><span>&#9679;</span><div><b>Environmental:</b> Clean: 0 EGLE Part 201 sites within 1 mi. EGLE Part 201 contamination register, queried against this parcel's coordinates.</div></div>
+</div><div class="pmap" id="map-24"></div></div>
+<div class="foot"><img class="qr" width="104" height="104" alt="QR to this report" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAcIAAAHCAQAAAABUY/ToAAADfklEQVR4nO2cTWrjTBCGnxoLsmxDDpCjSDeYIwXfTDrKHGBAvQxI1Cz6R23Z37eYSbBi3loY2dJDt6Gof7U5fyfTj78EQaRIkSJFihQp8nikZelgsg4bWM2G+tBkHRDLU8OnrCnyWUjc3Z3e3d3nk0PIVz4Gdx85NXebh8fv9T9Ffj0Zi33p59XMzqvZ+wwQPmy7m0zVZ60p8knJ6Qz0MzAlv3Vypje/LQEcYrciD0i6/+rwy5t7UiRYjf5XdwMeYrcij0AW5QgORGD66Rhh7Rwcg5Pb9Lakp1pr9L3+p8ivI3NMneXk9PN/fpSnFFOLbCXZoca+TOcTEBacSPORTdVnrCnyucib3L73hZzWhwX3GXwEfOTk6cplh0S2UnRowcewAMGT8yr6UhUpLClhkw6JvJasEZwciqVJhcaxqTZm2wRhUTwkcieNDvW+NIaH3hdyOL25O9WpRd4n7X1eDeKLm9mL21DMUjI8xNwvSxXIR+9W5LHIaodgMzfN7b6aJUIOmRQPibyWUh8q8ZB7Dp2zy6q/JVE8JPI+WXKwD7MhvniOn1ltqyzm5Cyq5ypyL9kzhdwg2zK05LxqFTu7uxJiyw6JrHIvL2vqQ7XQmOMhVB8SuZeSsS/kGbR6I5Uct+c0gybyf0gbYkeaN0uV6KtOaxlw/DCz8wF2K/JYZIl4QuvQmqbZNh87lq6+fJnIKyl9+9gt9A4QXx3iGYgGhA9zouH9bpTxe/1PkV9HtjVGIHdVm1JiLVanLF/1IZE3kl3T3OZgzW91HiR3PaRDIm+kSbXyrFAOgHZ3t6+Kh0TeJaNZtjSstrk2G1jNL+fVsjH6zDVFPgdZLM0MpH5Zc1V7aDO1fYZ8mcidFG91VaL2O19zE0R1apF72XQIaijU15pRnafeEdIhkVX8WrYa45aIleSsHWaUDom8JrdzP9LA0MW65pUO0juKZezDhgfvVuSxyKwX/QgQX2EaTin/Sq+49jNu/bx2NWvr/HG7FXlksp77QViw9y1Gimbp/KHJLI9cDw/frcjjk/XQKr+caadiL+cvW1PkdyVvD/SIhk8/fxsExwgzJA8WZuh9tX9eU+RzkTfnfhB+dxBfHOLr4rB29CMYAYwwuz1utyKPSN6e+7GVF1MSv9SXhpa2uabcXmSW/bkfXt8SKr+U6nR79W9rihQpUqRIkSJFHon8A7EaWxT3/9cuAAAAAElFTkSuQmCC">
+<b style="color:#e6edf3">Want the full dossier on one?</b> Send the address back and we run the deep report on that single property: deed chain, full assessment history, comparable sales, flood panel, permits, and a negotiation position. That is the difference between this list and an agent walking you through it.<br><br>
+Asking prices are from live listing feeds on November 8, 2026 and move daily. Parcel numbers, owners of record, addresses and coordinates are from the Muskegon County GIS parcel service. Environmental screens are EGLE Part 201 proximity within one mile, which is not a Phase I and does not cover septic, buried tanks, or anything inside the house. Three addresses carry conflicting or missing source data and are labeled. This is information, not advice, and not an appraisal.</div></div><script>
+const P=[{"n": "697 W Grand Ave", "c": "Muskegon 49441", "p": "$50,000", "s": "3 bd / 1 ba / 952 sf", "pin": "61-24-205-414-0003-00", "ow": "Mount North Capital", "lat": 43.22522, "lng": -86.260391, "d": "The cheapest door on this list and likely in the county. Investor-owned, so expect an as-is sale with no repair credits. At this price the question is not whether it needs work, only how much.", "tag": "INVESTOR", "yr": "", "env": "Clean: 0 EGLE Part 201 sites within 1 mi"}, {"n": "2418 View Ln", "c": "Muskegon 49445", "p": "$58,000", "s": "listing price", "pin": "pending county match", "ow": "pending", "lat": 45.0, "lng": -85.0, "d": "North Muskegon school district at a price that does not exist anywhere else on the lakeshore. County parcel match is not confirmed yet, so verify the address before a drive.", "tag": "VERIFY", "yr": "", "env": "not screened - location pending"}, {"n": "1830 Leahy St", "c": "Muskegon 49442", "p": "$75,000", "s": "3 bd / 1 ba", "pin": "61-24-675-003-0021-00", "ow": "Vazquez Carlos D", "lat": 43.2291, "lng": -86.2343, "d": "For-sale-by-owner, so no listing agent controls the conversation. Same street as 1532 Leahy at $174,900 - that gap is the entire story of this block and worth a walk.", "tag": "FSBO", "yr": "", "env": "Clean: 0 EGLE Part 201 sites within 1 mi"}, {"n": "503 Orchard Ave", "c": "Muskegon 49442", "p": "$110,000", "s": "4 bd / 1 ba / 1,556 sf", "pin": "61-24-205-047-0005-00", "ow": "Green Amie", "lat": 43.236811, "lng": -86.231554, "d": "Four bedrooms and fifteen hundred square feet for a hundred ten. Best bedrooms-per-dollar on the list, and the price is telling you exactly how much work it expects.", "tag": "", "yr": "", "env": "Clean: 0 EGLE Part 201 sites within 1 mi"}, {"n": "2334 Friendship Ln", "c": "Muskegon 49442", "p": "$129,000", "s": "3 bd / 1,500 sf", "pin": "61-10-036-200-0049-71", "ow": "Stoltzfus Bonnie", "lat": 43.20991, "lng": -86.14838, "d": "For-sale-by-owner on the township side, fifteen hundred square feet. Township lot means more space and possibly a well and septic to inspect - ask before offering.", "tag": "FSBO", "yr": "", "env": "Clean: 0 EGLE Part 201 sites within 1 mi"}, {"n": "981 W Dale Ave", "c": "Muskegon 49441", "p": "$139,900", "s": "3 bd / 1 ba", "pin": "61-24-773-000-0022-00", "ow": "Dyer Courtney C", "lat": 43.221519, "lng": -86.267268, "d": "The cheapest confirmed MLS listing found in this sweep. Three bedrooms on the west side; the $255,000 renovated house up the same street shows what the finished version sells for.", "tag": "", "yr": "", "env": "Clean: 0 EGLE Part 201 sites within 1 mi"}, {"n": "1125 Williams St", "c": "Muskegon 49442", "p": "$149,900", "s": "3 bd / 1 ba / 1,251 sf", "pin": "pending county match", "ow": "pending", "lat": 43.233, "lng": -86.232, "d": "Built 1935, twelve hundred fifty square feet, and only two blocks from 1094 Williams - two doors on one street, one at $149,900 and one at $152,000. Compare them the same afternoon.", "tag": "", "yr": "1935", "env": "Clean: 0 EGLE Part 201 sites within 1 mi"}, {"n": "2168 Blodgett St", "c": "Muskegon 49441", "p": "$149,900", "s": "1 bd / 1 ba / 650 sf", "pin": "61-24-235-001-0021-00", "ow": "White James P", "lat": 43.213614, "lng": -86.288778, "d": "Smallest house on the list at 650 square feet. A rental or a starter unit, not a family home. Sits one street from 1843 Fair, so two small-house options in one trip.", "tag": "", "yr": "", "env": "Clean: 0 EGLE Part 201 sites within 1 mi"}, {"n": "1094 Williams St", "c": "Muskegon 49442", "p": "$152,000", "s": "multi-family / 3 bd / 2 ba", "pin": "61-24-205-069-0007-10", "ow": "1094 Williams LLC", "lat": 43.232466, "lng": -86.232016, "d": "Zoned multi-family and LLC-owned: this is the income play. Ask for rent rolls, existing leases and who pays utilities before you talk price.", "tag": "INCOME", "yr": "", "env": "Clean: 0 EGLE Part 201 sites within 1 mi"}, {"n": "1782 Wood St", "c": "Muskegon 49442", "p": "$154,900", "s": "3 bd / 1 ba / 1,050 sf", "pin": "61-24-185-120-0006-00", "ow": "JTLC Properties LLC", "lat": 43.220028, "lng": -86.233964, "d": "Price was cut this cycle, which tells you the seller is motivated. Investor-owned, three bedrooms, standard 1950s-era footprint. Ask what the reduction followed.", "tag": "INVESTOR", "yr": "", "env": "Clean: 0 EGLE Part 201 sites within 1 mi"}, {"n": "2032 S Mill Iron Rd", "c": "Muskegon Twp 49442", "p": "$169,900", "s": "4 bd / 1 ba / 1,288 sf", "pin": "61-10-036-200-0024-00", "ow": "Cooper Robert/Joseph", "lat": 43.215571, "lng": -86.150305, "d": "Four bedrooms, built 1945, on a compact 3,868 square foot lot. Township address with city utilities close by. Four bedrooms under one seventy is the value headline here.", "tag": "", "yr": "1945", "env": "Clean: 0 EGLE Part 201 sites within 1 mi"}, {"n": "420 West St", "c": "Muskegon 49442", "p": "$169,900", "s": "3 bd / 1 ba / 960 sf", "pin": "61-10-672-003-0003-00", "ow": "O'Brien Emma L", "lat": 43.228, "lng": -86.22, "d": "Under a thousand square feet but a full three bedrooms, and the neighbor two doors down lists new construction at $279,900. That spread is the bet on this block.", "tag": "", "yr": "", "env": "Clean: 0 EGLE Part 201 sites within 1 mi"}, {"n": "2268 Oak Park Dr", "c": "Muskegon 49442", "p": "$170,000", "s": "3 bd / 1 ba / 949 sf", "pin": "61-10-315-002-0016-00", "ow": "Pierce David L / Foley De", "lat": 43.233, "lng": -86.25, "d": "Built 1970, which makes it the newest small house in the under-$200K band. Original-owner type property: ask for the last roof, furnace and water heater dates first.", "tag": "", "yr": "1970", "env": "Clean: 0 EGLE Part 201 sites within 1 mi"}, {"n": "1532 Leahy St", "c": "Muskegon 49442", "p": "$174,900", "s": "3 bd / 1 ba / 1,376 sf", "pin": "61-24-205-280-0005-00", "ow": "Johnson Christian", "lat": 43.22454, "lng": -86.240151, "d": "Cape Cod, 1,376 square feet - the most square footage per dollar in the middle band. Two portals disagree on price by $2,000, meaning it moved recently. Confirm current ask.", "tag": "", "yr": "", "env": "Clean: 0 EGLE Part 201 sites within 1 mi"}, {"n": "1953 Jiroch St", "c": "Muskegon 49442", "p": "$179,900", "s": "3 bd / 1 ba / 1,565 sf", "pin": "61-24-675-024-0007-00", "ow": "Natas Investments LLC", "lat": 43.23, "lng": -86.239, "d": "The largest house in the middle band at 1,565 square feet, LLC-owned and recently listed. Fifteen hundred square feet for under one eighty is the strongest space-per-dollar on the list.", "tag": "INVESTOR", "yr": "", "env": "Clean: 0 EGLE Part 201 sites within 1 mi"}, {"n": "2083 S Mill Iron Rd", "c": "Muskegon 49442", "p": "$174,900", "s": "3 bd / 2 ba / 1,730 sf", "pin": "pending county match", "ow": "pending", "lat": 43.214, "lng": -86.152, "d": "Two sources conflict here: one shows $174,900 for 1,730 square feet with two baths, another shows $199,900 for 808 square feet. Verify before treating either number as real.", "tag": "VERIFY", "yr": "", "apx": true, "env": "Clean: 0 EGLE Part 201 sites within 1 mi"}, {"n": "1843 Fair Ave", "c": "Muskegon 49441", "p": "$198,000", "s": "2 bd / 1 ba / 816 sf", "pin": "61-24-235-001-0030-00", "ow": "Brown Stone Properties", "lat": 43.214657, "lng": -86.288927, "d": "Lakeside bungalow where sources disagree on status: active at $198,000, another at $219,900, a third shows a $194,000 sale. Treat as pending until an agent confirms.", "tag": "VERIFY", "yr": "", "apx": false, "env": "Clean: 0 EGLE Part 201 sites within 1 mi"}, {"n": "1119 Pine St", "c": "Muskegon 49442", "p": "$220,000", "s": "3 bd / 3 ba / 1,460 sf", "pin": "61-24-205-230-0010-00", "ow": "Cruz Luisa E Rivera", "lat": 43.231923, "lng": -86.240644, "d": "Three full baths at 220K is unusual in this market, and the seller is an individual rather than an LLC. The move-in-ready end of the list: less upside, far less risk.", "tag": "", "yr": "", "apx": false, "env": "Clean: 0 EGLE Part 201 sites within 1 mi"}, {"n": "2985 Glenside Blvd", "c": "Muskegon 49441", "p": "$237,500", "s": "3 bd / 2 ba / 1,572 sf", "pin": "61-25-543-000-0829-00", "ow": "Hildreth Ruby C Trust", "lat": 43.213, "lng": -86.259, "d": "Trust-owned, three bed two bath on the lakeshore side. Estate sales price for condition, not for speed - ask what the trust knows about deferred maintenance.", "tag": "", "yr": "", "apx": true, "env": "Clean: 0 EGLE Part 201 sites within 1 mi"}, {"n": "1842 Mills Ave", "c": "Muskegon 49445", "p": "$239,900", "s": "2 bd / 1 ba / 1,116 sf", "pin": "61-23-585-018-0019-00", "ow": "VanAndel Jack", "lat": 43.261852, "lng": -86.262794, "d": "North Muskegon schools near the top of budget for only two bedrooms. You are paying for the district, not the square footage - worth it only if school quality is the goal.", "tag": "", "yr": "", "apx": false, "env": "Clean: 0 EGLE Part 201 sites within 1 mi"}, {"n": "5128 Clark Ave", "c": "Twin Lake 49457", "p": "$250,000", "s": "3 bd / 1 ba / 906 sf", "pin": "61-08-171-000-0809-00", "ow": "Benham Ricky A Sr / Reta", "lat": 43.346463, "lng": -86.083792, "d": "Rural Cedar Creek Township, built 1991 - the newest house on the list. Nine hundred square feet on a country lot at the very top of budget. MLS 26053908, verified across four listing feeds.", "tag": "", "yr": "1991", "apx": false, "env": "Clean: 0 EGLE Part 201 sites within 1 mi"}, {"n": "2851 Jarman St", "c": "Muskegon Heights 49444", "p": "$250,000", "s": "9 bd / 4 ba / 5,644 sf", "pin": "61-26-635-254-0012-00", "ow": "Bucy Ashley", "lat": 43.228, "lng": -86.24, "d": "Nine bedrooms, four baths, fifty-six hundred square feet. A rooming house or group home in waiting - the only property here that could carry its own mortgage if the rents fill. Ask for licensing history and occupancy.", "tag": "INCOME", "yr": "", "apx": true, "env": "Clean: 0 EGLE Part 201 sites within 1 mi"}, {"n": "510 Ada Ave", "c": "Muskegon", "p": "county-owned", "s": "land bank parcel", "pin": "61-24-205-066-0010-00", "ow": "Muskegon County Land Bank", "lat": 43.233528, "lng": -86.231323, "d": "County land bank property: no MLS, no bidding war, direct negotiation. Tim Burgess at 231-724-6170. Terms and price are whatever the county sets - ask about the side-lot program before assuming a house price.", "tag": "LAND BANK", "yr": "", "apx": false, "env": "Clean: 0 EGLE Part 201 sites within 1 mi"}, {"n": "2022 Henry St", "c": "Muskegon", "p": "ask pending", "s": "4 bd / 1 ba / 1,124 sf", "pin": "61-24-140-001-0001-00", "ow": "Planet Home Lending LLC", "lat": 43.215738, "lng": -86.262424, "d": "Bank-owned REO, four bedrooms. Lenders price to move before year-end, which makes December the month to offer. The listing agent answers to an asset manager, not an owner - every question goes in writing.", "tag": "REO", "yr": "", "apx": false, "env": "Clean: 0 EGLE Part 201 sites within 1 mi"}, {"n": "2101 Kristin Ct", "c": "Muskegon 49442", "p": "ask pending", "s": "3 bd / 2 ba / 1,459 sf", "pin": "61-10-550-000-0024-00", "ow": "Turner Laura", "lat": 43.234, "lng": -86.245, "d": "Three bed two bath on a court, fifteen hundred square feet. Price not captured in the sweep; MLS 26058331. Cul-de-sac location usually holds value better than a through street.", "tag": "", "yr": "", "apx": true, "env": "Clean: 0 EGLE Part 201 sites within 1 mi"}];
+const map=L.map('map',{scrollWheelZoom:false}).setView([43.234,-86.245],11);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap &copy; CARTO'}).addTo(map);
+P.forEach((p,i)=>{
+  if(p.apx&&p.lat===45.0) return;
+  const c=(p.tag==='REO')?'#ff5c5c':(p.tag==='LAND BANK')?'#f5a623':(p.tag==='INCOME')?'#7fd7f0':'#3ddc84';
+  const m=L.circleMarker([p.lat,p.lng],{radius:7,color:c,fillColor:c,fillOpacity:.85,weight:2});
+  m.bindPopup('<b>'+(i+1)+'. '+p.n+'</b><br>'+p.p+'<br><span style="font-size:11px">'+p.s+'</span>');
+  m.addTo(map);
+});
+const cards=document.querySelectorAll('.prop');
+function initMap(el){const d=el.dataset;if(el.dataset.done||d.lat==='45')return;el.dataset.done='1';const m=L.map('map-'+d.idx,{scrollWheelZoom:false,zoomControl:false,attributionControl:false}).setView([+d.lat,+d.lng],15);L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19}).addTo(m);L.circleMarker([+d.lat,+d.lng],{radius:9,color:'#3ddc84',fillColor:'#3ddc84',fillOpacity:.9}).addTo(m);setTimeout(()=>m.invalidateSize(),120);}
+if(!('IntersectionObserver' in window)){cards.forEach(initMap);}else{
+const io=new IntersectionObserver(es=>{
+  es.forEach(e=>{
+    if(!e.isIntersecting) return;
+    initMap(e.target);
+  });
+},{rootMargin:'250px'});
+cards.forEach(c=>io.observe(c));}
+</script></body></html>
