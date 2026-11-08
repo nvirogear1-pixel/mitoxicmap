@@ -80,7 +80,7 @@ const P=DATA.props, MED=DATA.median_ppsf;
 const ROUNDS=5, START_TOKENS=10, BUDGET=250000;
 let S={round:0,tokens:START_TOKENS,budget:BUDGET,equity:0,hand:[],phase:'idle',log:[],revealed:{},last:null};
 const $=id=>document.getElementById(id);
-const money=n=>'$'+Math.round(n).toLocaleString();
+const money=n=>{const v=Math.round(n);return (v<0?'-$':'$')+Math.abs(v).toLocaleString();};
 const el=(t,c,h)=>{const d=document.createElement(t);if(c)d.className=c;if(h!==undefined)d.innerHTML=h;return d;};
 function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
 function deal(){
@@ -133,11 +133,11 @@ function offer(i,kind){
   S.phase='resolved';
   if(won&&price<=S.budget){
     const repairs=repairAllowance(p);
-    const equity=Math.max(-40000,(p.val||p.price*1.1)-price-repairs);
+    const sizeAdj=(p.sf>3000?0.72:(p.sf>2000?0.88:1));const implied=(p.val?p.val*sizeAdj:p.price*1.05);const equity=implied-price-repairs;
     S.equity+=equity; S.budget-=price;
     S.last={won:true,p,price,repairs,equity,st,kind};
   } else {
-    S.last={won:false,p,price,st,kind,reason:price>S.budget?'over budget':'offer declined'};
+    S.last={won:false,p,price,st,kind,reason:price>S.budget?("over your remaining budget of "+money(S.budget)):"offer declined by the seller"};
   }
   S.phase='resolved'; render();
 }
