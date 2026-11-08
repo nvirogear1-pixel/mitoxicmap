@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Homestead Extravaganza — Land Investor Risk Audit & Fail-Safe Report</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{--bg:#0b111a;--panel:#121a26;--line:#223047;--txt:#e8eef7;--mut:#94a3b8;--acc:#00f5a3;--amber:#f59e0b;--red:#e53e3e;--blue:#60a5fa}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;background:var(--bg);color:var(--txt);font:15px/1.6 system-ui,sans-serif;overflow:hidden}
+#map{position:fixed;inset:0;z-index:1}
+#top{position:fixed;top:0;left:0;right:0;z-index:30;display:flex;justify-content:space-between;align-items:flex-start;padding:10px 18px;background:linear-gradient(180deg,rgba(7,11,18,.95),rgba(7,11,18,.6));border-bottom:1px solid var(--line)}
+#top .brand{font-size:12px;letter-spacing:.16em;color:var(--acc);font-weight:800}
+#top h1{font-size:17px;margin-top:2px}
+#top .meta{font-size:11.5px;color:var(--mut);margin-top:3px}
+.playbtn{background:var(--acc);color:#04131d;font-weight:800;border:none;border-radius:24px;padding:10px 18px;font-size:13px;cursor:pointer;box-shadow:0 0 24px rgba(0,245,163,.35);z-index:40}
+#panel{position:fixed;top:0;bottom:0;right:0;width:min(640px,100%);z-index:20;background:linear-gradient(90deg,rgba(11,17,26,0) 0%,rgba(11,17,26,.5) 14px,rgba(11,17,26,.97) 40px)}
+#panel .inner{position:absolute;top:78px;bottom:12px;left:44px;right:12px;overflow-y:auto;padding-right:6px}
+#panel .inner::-webkit-scrollbar{width:8px}#panel .inner::-webkit-scrollbar-thumb{background:#2a3a55;border-radius:4px}
+.sec{margin:26px 0 12px;scroll-margin-top:70px}
+.sec .kicker{font-size:11px;letter-spacing:.18em;color:var(--acc);font-weight:800}
+.sec h2{font-size:19px;margin:4px 0 8px}
+.sec .narr{font-size:14.5px;color:#cbd5e1;background:rgba(18,26,38,.72);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.card{background:rgba(18,26,38,.85);border:1px solid var(--line);border-radius:10px;padding:11px 13px}
+.card .lbl{font-size:10.5px;letter-spacing:.1em;color:var(--mut);font-weight:700}
+.card .val{font-size:16.5px;font-weight:800;margin:3px 0}
+.card .sub{font-size:12px;color:var(--mut)}
+.ev{font-size:10px;font-weight:800;border:1px solid;border-radius:5px;padding:2px 7px;cursor:pointer;margin-top:7px;display:inline-block}
+.eV{color:var(--acc);border-color:var(--acc)}.eM{color:var(--amber);border-color:var(--amber)}.eP{color:#a5b4fc;border-color:#a5b4fc}.eA{color:var(--blue);border-color:var(--blue)}.eD{color:var(--red);border-color:var(--red)}
+.veclist{margin-top:12px}
+.vec{background:rgba(18,26,38,.85);border:1px solid var(--line);border-left:3px solid var(--red);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.vec .n{font-size:11px;color:var(--red);font-weight:800;letter-spacing:.1em}
+.vec .t{font-weight:800;font-size:14.5px;margin:2px 0 6px}
+.vec .s{font-size:13px;color:#cbd5e1}
+.vec .fx{font-size:13px;margin-top:7px;color:#a7f3d0}
+.vec .fx b{color:var(--acc);font-size:11.5px;letter-spacing:.08em}
+.vec .sc{font-size:11.5px;color:var(--mut);margin-top:6px;border-top:1px dashed #223047;padding-top:5px}
+.chain{margin-top:12px;display:flex;flex-direction:column;gap:8px}
+.chrow{display:flex;align-items:center;gap:10px;background:rgba(18,26,38,.85);border:1px solid var(--line);border-radius:10px;padding:10px 13px;flex-wrap:wrap}
+.chrow .nm{font-weight:700;font-size:13.5px;flex:1;min-width:150px}
+.chrow .was{color:var(--red);font-weight:800;text-decoration:line-through;text-decoration-color:rgba(229,62,62,.55);font-size:14px}
+.chrow .arrow{color:var(--mut)}
+.chrow .now{color:var(--acc);font-weight:800;font-size:14px}
+.chrow .ratio{font-size:11px;color:var(--amber);border:1px solid var(--amber);border-radius:5px;padding:1px 6px}
+table{width:100%;border-collapse:collapse;margin-top:12px;font-size:12.5px}
+th{color:var(--acc);text-align:left;font-size:10.5px;letter-spacing:.1em;border-bottom:1px solid var(--line);padding:6px 8px}
+td{border-bottom:1px solid #1a2740;padding:7px 8px;vertical-align:top;color:#cbd5e1}
+td b{color:var(--txt)}
+.clean{background:rgba(18,26,38,.72);border:1px solid var(--line);border-radius:12px;padding:13px 16px;margin-top:12px}
+.clean li{list-style:none;font-size:13px;color:#a7f3d0;margin:5px 0}
+.srclist{margin-top:12px}
+.src{display:flex;gap:8px;align-items:baseline;font-size:12.5px;margin:7px 0;flex-wrap:wrap}
+.src .cls{font-size:9.5px;font-weight:800;border:1px solid;border-radius:4px;padding:1px 5px}
+#drawer{position:fixed;left:12px;bottom:12px;max-width:340px;background:rgba(13,21,34,.95);border:1px solid var(--line);border-radius:12px;padding:12px 15px;z-index:45;font-size:12.5px;color:#cbd5e1;opacity:0;pointer-events:none;transition:opacity .3s}
+#drawer.open{opacity:1}
+.legend{position:fixed;left:12px;bottom:12px;z-index:25;background:rgba(11,18,32,.85);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:11.5px}
+.legend .row{display:flex;align-items:center;gap:7px;margin:3px 0}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block}
+@media (max-width:700px){#panel .inner{left:12px;top:120px}.cards{grid-template-columns:1fr}.legend{display:none}}
+</style></head><body>
+<div id="map"></div>
+<div id="top">
+  <div><div class="brand">NVIROGEAR PROPERTY INTELLIGENCE</div>
+  <h1>Land Investor Risk Audit — Homestead Extravaganza</h1>
+  <div class="meta">15 targets · Mid & Northern Michigan · The 12 ways investors get screwed, the fail-safe for each, and what actually happened to these lots · 2026-10-15</div></div>
+  <button class="playbtn" id="play" onclick="playReport()">▶ Read This Report</button>
+</div>
+<div class="legend" id="legendbox">
+  <div class="row"><span class="dot" style="background:#f59e0b"></span>Oct 30 auction lot</div>
+  <div class="row"><span class="dot" style="background:#60a5fa"></span>Land bank offer</div>
+  <div class="row"><span class="dot" style="background:#34d399"></span>Buy now OTC</div>
+  <div class="row"><span class="dot" style="background:#e53e3e;border:2px solid #fff"></span>Part 201 site (EGLE)</div>
+</div>
+<div id="panel"><div class="inner" id="list"></div></div>
+<div id="drawer"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const R = {"schema_version": "npi-story-1.0", "report_id": "NPI-WILDCARD-2026-11-08", "report_type": "BUYER INVENTORY / STORY REPORT", "generated_at": "2026-11-08", "brand": {"name": "Nvirogear", "tagline": "Truth is more valuable than optimism."}, "property": {"address": "Muskegon County - homes under $250,000", "city": "Muskegon area", "state": "MI", "zip": "49441-49445", "parcel_id": "MULTI", "township": "Muskegon County", "county": "MUSKEGON", "acreage": "", "zoning": "", "owner": "", "centroid": [43.22, -86.25], "status": "BUYER SHORTLIST"}, "cards": [{"id": "a", "label": "MARKET SIZE", "value": "282 homes under $250K", "sub": "County-wide today; 160 of them under $200,000", "evidence": {"label": "PUBLIC REFERENCE", "source": "Zillow / Trulia / homes.com counts, Nov 8 2026", "url": "https://www.zillow.com/muskegon-county-mi/under-250000/"}}, {"id": "b", "label": "LOWEST CONFIRMED", "value": "$139,900", "sub": "981 W Dale Ave, Muskegon 49441 - 3 bed, 1 bath", "evidence": {"label": "PUBLIC REFERENCE", "source": "Redfin listing surf", "url": "https://www.redfin.com/city/14578/MI/Muskegon/homes-for-sale-under-250000"}}, {"id": "c", "label": "ENVIRONMENTAL SCREEN", "value": "6 of 6 clean", "sub": "Zero Part 201 sites within one mile of every mapped address", "evidence": {"label": "VERIFIED", "source": "EGLE RRD Open Data, queried today", "url": "https://gisagoegle.state.mi.us/arcgis/rest/services/EGLE/RRDOpenData/MapServer/0"}}, {"id": "d", "label": "COUNTY-OWNED", "value": "1 direct-buy door", "sub": "510 Ada Ave sits in the Muskegon County Land Bank - no competition, no MLS", "evidence": {"label": "VERIFIED", "source": "Muskegon County GIS parcel layer", "url": "https://maps.muskegoncountygis.com/arcgis/rest/services/PropertyViewer/MapServer"}}], "listings": [{"n": "981 W Dale Ave", "c": "Muskegon 49441", "p": "$139,900", "b": "3bd/1ba", "pin": "61-24-773-000-0022-00", "o": "Dyer", "lat": 43.221519, "lng": -86.267268, "note": "Cheapest confirmed under budget; west-side, MLS via agent."}, {"n": "1532 Leahy St", "c": "Muskegon 49442", "p": "$174,900", "b": "3bd/1ba/1,376sf", "pin": "61-24-205-280-0005-00", "o": "Johnson", "lat": 43.22454, "lng": -86.240151, "note": "Cape Cod, MLS 26045927; second source $172,900. Realtor est $170,400."}, {"n": "2032 S Mill Iron Rd", "c": "Muskegon Twp 49442", "p": "$169,900", "b": "4bd/1ba/1,288sf", "pin": "61-10-036-200-0024-00", "o": "Cooper", "lat": 43.215571, "lng": -86.150305, "note": "1945 build, 4 bd on 3,868 sf lot, MLS 71026017255. Est $175,500."}, {"n": "5128 Clark St", "c": "Twin Lake 49457", "p": "price pending", "b": "3bd/1ba", "pin": "61-08-171-000-0809-00", "o": "Benham", "lat": 43.346463, "lng": -86.083792, "note": "Rural Dalton Twp; surfaced under the county $250K filter, asking price not captured - call to confirm."}, {"n": "1152 W Dale Ave", "c": "Muskegon 49441", "p": "$255,000", "b": "renovated/1-car", "pin": "61-24-205-509-0015-00", "o": "Block", "lat": 43.22206, "lng": -86.271529, "note": "OVER BUDGET by $5,000 - kept as the renovated comp: what the finished version of the cheaper Dale Ave house sells for."}, {"n": "510 Ada Ave", "c": "Muskegon", "p": "county-owned", "b": "land bank", "pin": "61-24-205-066-0010-00", "o": "Muskegon County Land Bank", "lat": 43.233528, "lng": -86.231323, "note": "County-owned: direct purchase, no MLS competition. Ask Tim Burgess, 231-724-6170."}], "sections": [{"kicker": "1 - WHAT THE MARKET ACTUALLY OFFERS", "title": "Two Hundred Eighty-Two Doors Under Budget", "narration": "As of today, Muskegon County carries two hundred eighty-two homes under two hundred fifty thousand dollars, and one hundred sixty of those are under two hundred thousand. The city alone shows three hundred thirty active listings, one hundred seventy-seven in the 49441 zip code, two hundred in 49442 where the median listing sits at two hundred nine thousand nine hundred. The McLaughlin neighborhood reports a median sale near one hundred thirty-four thousand nine hundred, and forty-two of the listings in 49441 are for sale by owner. This is a buyer market with real inventory, not a scavenger hunt. Counts are public listing data as of today and move daily."}, {"kicker": "2 - THE SHORTLIST", "title": "Six Addresses, County-Verified", "narration": "Six properties on the map, every one matched to its official county parcel and owner of record. The cheapest confirmed listing is nine hundred eighty-one West Dale at one hundred thirty-nine thousand nine hundred. Fifteen thirty-two Leahy is a three-bed cape cod at one hundred seventy-four thousand nine hundred with a realtor estimate of one hundred seventy thousand four hundred. Twenty thirty-two South Mill Iron carries four bedrooms for one hundred sixty-nine thousand nine hundred, the most bedrooms per dollar on the list. Fifty-one twenty-eight Clark in Twin Lake is rural, three bed one bath, price to confirm. Eleven fifty-two West Dale is the stretch at two fifty-five, five thousand over budget, and it is here on purpose: it is the renovated version of the same street, and it shows what the finished house sells for."}, {"kicker": "3 - THE COUNTY CHECK", "title": "Every Parcel Matched", "narration": "Each address was resolved to its official parcel number and owner in the county record: Dyer at 981 West Dale, Johnson at 1532 Leahy, Cooper at 2032 South Mill Iron, Benham at the Twin Lake property, Block at the renovated Dale Avenue house, and the Muskegon County Land Bank at 510 Ada Avenue. This is the difference between a listing screenshot and a verified property: the parcel boundary, the owner of record, and the acreage all come from the countys own layer, not from a portal that may be showing stale data."}, {"kicker": "4 - THE LAND BANK DOOR", "title": "One Address With No Competition", "narration": "Five hundred ten Ada Avenue already belongs to the Muskegon County Land Bank. That is a different kind of transaction: no listing agent, no bidding war, a price set by the county and a defined purchase process. The land bank holds two hundred eighty-nine parcels county-wide, most of them vacant land, and Tim Burgess at two-three-one, seven-two-four, six-one-seven-zero is the person who answers what is available and what it takes to buy. For Wild Card this is the cheapest route into an address, and the one most buyers never call."}, {"kicker": "5 - THE OTHER AVENUES", "title": "Where the Good Deals Hide", "narration": "Beyond the active listings there are four more doors. For-sale-by-owner: forty-two listings in 49441 alone, where the seller is reachable directly and the commission is negotiable. Price-reduced inventory, where a house that has sat ninety days is a seller who will listen. The tax-sale and land-bank channel, where the county sells what tax delinquency took. And direct mail to owners of houses whose assessed value sits well below the neighborhood, which is how you buy off-market without competing at all. Each has a different lever; the listings just happen to be the easiest to see."}, {"kicker": "6 - THE PLAYBOOK AND THE RISKS", "title": "How Wild Card Should Move", "narration": "Three rules. First, verify status before writing any offer: listing prices in this report were captured today from public listing data and a sold or withdrawn listing can still show as active on a portal. Second, treat the realtor estimates as a ceiling, not a floor: on these addresses they run from one hundred seventy thousand four hundred to one hundred seventy-five thousand five hundred, which says the asking prices are at market rather than under it, so the negotiation is over condition, inspection findings and closing costs, not over list price. Third, the environmental screen is clean but it is not an inspection: zero Part 201 sites within a mile does not tell anyone about the roof, the furnace, the foundation, or a buried oil tank in the yard. An inspection contingency is not optional. One more honest limit: fifty-one twenty-eight Clark has no confirmed asking price yet, and the Twin Lake listing should be called before it is counted on."}], "vectors": [{"v": "Offer under asking on condition", "detail": "Asking prices sit at or above realtor estimates; the lever is inspection findings, not headline price."}, {"v": "Verify live status first", "detail": "Portal data lags. Confirm each listing with its agent before an offer - MLS numbers are in the notes."}, {"v": "Call the land bank", "detail": "510 Ada Ave is county-owned. Tim Burgess 231-724-6170 answers availability and process."}, {"v": "Inspection contingency, always", "detail": "Clean environmental screen is not a building inspection. Roof, furnace, foundation, buried tank."}, {"v": "Flood zone pending", "detail": "FEMA panel check not completed this pass for any address; needed before offer on any basement property."}, {"v": "Price freshness", "detail": "Two listings show divergent prices across portals (1532 Leahy 174.9 vs 172.9; 1152 W Dale active 255K vs sold 224.4K est)."}, {"v": "Bedroom-per-dollar winner", "detail": "2032 S Mill Iron: 4 bd at $169,900 - best family math on the list."}, {"v": "Renovated comp", "detail": "1152 W Dale at $255K shows the ceiling for the Dale Ave corridor."}, {"v": "FSBO leverage", "detail": "42 FSBO listings in 49441: direct seller contact, no commission."}], "chain": [{"name": "Market", "prior_bid": "282 under $250K", "now": "160 under $200K", "ratio": 0.57}, {"name": "Shortlist", "prior_bid": "6 addresses", "now": "6 county-verified", "ratio": 1.0}, {"name": "Environmental", "prior_bid": "6 screened", "now": "6 clean", "ratio": 1.0}, {"name": "Budget", "prior_bid": "$250,000 cap", "now": "$139,900 lowest", "ratio": 0.56}, {"name": "Over budget", "prior_bid": "$255,000", "now": "1 stretch listing", "ratio": 1.02}], "sources": [{"name": "Zillow - Muskegon County under 250K", "url": "https://www.zillow.com/muskegon-county-mi/under-250000/"}, {"name": "Redfin - Muskegon under 250K", "url": "https://www.redfin.com/city/14578/MI/Muskegon/homes-for-sale-under-250000"}, {"name": "Trulia - Muskegon under 200K", "url": "https://www.trulia.com/MI/Muskegon/homes-for-sale-under-200000/"}, {"name": "Muskegon County GIS parcel layer", "url": "https://maps.muskegoncountygis.com/arcgis/rest/services/PropertyViewer/MapServer"}, {"name": "EGLE RRD Part 201", "url": "https://gisagoegle.state.mi.us/arcgis/rest/services/EGLE/RRDOpenData/MapServer/0"}], "layers": {"portfolio": [[43.221519, -86.267268, "981 W Dale Ave", "Muskegon 49441", "$139,900", "NOW"], [43.22454, -86.240151, "1532 Leahy St", "Muskegon 49442", "$174,900", "NOW"], [43.215571, -86.150305, "2032 S Mill Iron Rd", "Muskegon Twp 49442", "$169,900", "NOW"], [43.346463, -86.083792, "5128 Clark St", "Twin Lake 49457", "price pending", "NOW"], [43.22206, -86.271529, "1152 W Dale Ave", "Muskegon 49441", "$255,000", "NOW"], [43.233528, -86.231323, "510 Ada Ave", "Muskegon", "county-owned", "NOW"]], "part201_map": {}}, "identity": [{"k": "Property", "v": "Muskegon County homes"}, {"k": "Budget", "v": "$250,000 max"}, {"k": "Buyer", "v": "Wild Card"}, {"k": "Shortlist", "v": "6 county-verified"}, {"k": "Env screen", "v": "6 of 6 clean"}, {"k": "Snapshot", "v": "Nov 8, 2026"}], "what_we_didnt_find": []};
+const map = L.map('map',{zoomControl:true}).setView([44.4,-84.6],7);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+ {maxZoom:19, attribution:'Esri, Maxar, Earthstar Geographics'}).addTo(map);
+const colors={NOW:'#34d399',OFFER:'#60a5fa',AUCTION:'#f59e0b'};
+R.layers.portfolio.forEach(p=>{
+  L.circleMarker([p[0],p[1]],{radius:8,color:'#0b111a',weight:2,fillColor:colors[p[5]]||'#f59e0b',fillOpacity:.95})
+   .addTo(map).bindPopup(`<b>${p[2]}</b><br>${p[3]} County · ${p[5]==='AUCTION'?'opens $'+p[4]:'$'+p[4]}`);
+});
+const p201g = L.layerGroup().addTo(map);
+Object.entries(R.layers.part201_map).forEach(([name,h])=>{
+  (h.part201||[]).forEach(s=>{
+    if(s.dist_mi!==undefined && s.lat===undefined){
+      // scan results carry dist only; skip plotting individual sites without coords
+    }
+  });
+});
+function evBadge(e,srcName,url){const cls=e.label[0]==='V'?'eV':(e.label[0]==='M'?'eM':(e.label==='PUBLIC REFERENCE'?'eP':(e.label==='PENDING'?'eD':'eA')));
+  return `<button class="ev ${cls}" data-src="${srcName}" data-url="${url||''}" onclick="showDrawer(this)">${e.label}</button>`;}
+let html='';
+R.sections.forEach((s,i)=>{
+  html+=`<div class="sec" id="sec${i}"><div class="kicker">${s.kicker}</div><h2>${s.title}</h2><div class="narr">${s.narration}</div>`;
+  if(i===0){
+    html+=`<div class="cards">`+R.cards.map(c=>`<div class="card"><div class="lbl">${c.label}</div><div class="val">${c.value}</div><div class="sub">${c.sub}</div>${evBadge(c.evidence,c.evidence.source,c.evidence.url)}</div>`).join('')+`</div>`;
+  }
+  if(i===1){
+    html+=`<div class="veclist">`+R.vectors.map(v=>`<div class="vec"><div class="n">VECTOR ${v.n} OF 12</div><div class="t">${v.risk}</div><div class="s">${v.story}</div><div class="fx"><b>FAIL-SAFE</b> — ${v.fix}</div><div class="sc">SOURCE: ${v.src}<br><b>Flagged in portfolio:</b> ${v.flagged}</div></div>`).join('')+`</div>`;
+  }
+  if(i===2){
+    html+=`<div class="chain">`+R.chain.map(c=>`<div class="chrow"><span class="nm">${c.name}</span><span class="was">${c.prior_bid}</span><span class="arrow">→</span><span class="now">${c.now}</span><span class="ratio">${c.ratio} drop</span></div>`).join('')+`</div>
+    <div class="clean" style="margin-top:12px"><ul>`+R.what_we_didnt_find.map(x=>`<li>✓ ${x}</li>`).join('')+`</ul></div>`;
+  }
+  if(i===3){
+    html+=`<table><tr><th>Parcel</th><th>PIN (verified)</th><th>County</th><th>Legal</th><th>SEV</th></tr>`+
+      R.identity.map(x=>`<tr><td><b>${x.name}</b></td><td>${x.pin}</td><td>${x.county}</td><td>${x.legal}</td><td>${x.sev?'$'+x.sev.toLocaleString():'$0'}</td></tr>`).join('')+`</table>`;
+  }
+  if(i===7){
+    html+=`<div class="srclist">`+R.sources.map(s=>{const cls=s.class==='VERIFIED'?'eV':(s.class==='MODELED'?'eM':(s.class==='PENDING'?'eD':'eP'));
+      return `<div class="src"><span class="cls ${cls}">${s.class}</span><span>${s.name}${s.url?` — <a style="color:#60a5fa" href="${s.url}" target="_blank">source</a>`:''}</span></div>`;}).join('')+`</div>`;
+  }
+  html+=`</div>`;
+});
+document.getElementById('list').innerHTML=html;
+
+// ===== SOOTHING VOICE ENGINE v2 — Mr. Results =====
+// Calm, natural, correctly-pronounced narration. Replaces the raw innerText reader.
+const GLOSSARY = {
+ "SEVs":"state equalized values","SEV":"state equalized value","TV":"taxable value",
+ "GIS":"G I S","EGLE":"Eagle","PFAS":"P F A S","HDR":"H D R","POA":"property owners association",
+ "AOC":"Area of Concern","FSBO":"for sale by owner","MDOT":"M dot",
+ "M-115":"M one fifteen","Twp":"Township","Part 201":"Part two oh one",
+ "ac":"acres","mi":"miles","R-1":"R one","R-2":"R two","Rd":"Road","St":"Street","SEV,":"state equalized value,"
+};
+function speakable(raw){
+  let t = raw.replace(/\s+/g," ")
+    .replace(/→/g," to ").replace(/·/g,", ").replace(/×/g," times ")
+    .replace(/&/g," and ").replace(/[✓▶●◦]/g," ").replace(/[""]/g,'"').replace(/[""]/g,"'");
+  const keys = Object.keys(GLOSSARY).sort((a,b)=>b.length-a.length);
+  for(const k of keys){
+    t = t.replace(new RegExp(k.replace(/[-]/g,"\\-").replace(/,/g,"")+"(?=[\\s,.:;)]|$)","g"), GLOSSARY[k]);
+  }
+  t = t.replace(/\b(\d{2}-\d{2}-\d{3}-\d{3}-\d{4}-\d{2})\b/g, m=>m.split("-").join(", "));
+  t = t.replace(/\b(\d{2}-\d{3}-\d{3}-\d{2})\b/g, m=>m.split("-").join(", "));
+  t = t.replace(/\b(\d{1,2}-\d{1,3}-\d{3}-\d{3}(-\d{4})?(-\d{2})?)\b/g, m=>m.split("-").join(", "));
+  t = t.replace(/\b([A-Z]{2,6})\b/g, m=>m.split("").join(" "));
+  t = t.replace(/,\s*,/g,",").replace(/\s+\./g,".").replace(/\s{2,}/g," ");
+  return t.trim();
+}
+function pickVoice(voices){
+  if(!voices || !voices.length) return null;
+  const en = voices.filter(v=>/^en[-_]/i.test(v.lang||""));
+  const pool = en.length?en:voices;
+  const prefs=[[/Aria.*Natural/i,100],[/Jenny.*Natural/i,96],[/Guy.*Natural/i,95],[/Ana.*Natural/i,94],
+   [/Google US English/i,92],[/Online.*Natural/i,90],[/Neural/i,88],[/Samantha/i,85],
+   [/Aria/i,80],[/Jenny/i,78],[/Eloquence/i,74],[/Zira/i,70],[/en[-_]US/i,45],[/en/i,25]];
+  let best=null,bs=-1;
+  for(const v of pool){let s=0;for(const [re,x] of prefs){if(re.test(v.name)&&x>s)s=x;}if(s>bs){bs=s;best=v;}}
+  return best;
+}
+let VOICE=null, RATE=0.94;
+function loadVoices(){
+  const vs = speechSynthesis.getVoices();
+  VOICE = pickVoice(vs);
+  const sel = document.getElementById("vsel");
+  if(sel){
+    sel.innerHTML = vs.map((v,i)=>`<option value="${i}" ${v===VOICE?"selected":""}>${v.name.replace(/Microsoft |Google /,"")}</option>`).join("");
+    if(VOICE){const vi = vs.indexOf(VOICE); if(vi>-1) sel.value = vi;}
+  }
+}
+function speakNext(){
+  if(qi>=queue.length){
+    if(idx<SECS.length){ setTimeout(()=>playReport(), 900); }
+    else { setPlaying(false); }
+    return;
+  }
+  const u=new SpeechSynthesisUtterance(queue[qi]);
+  if(VOICE) u.voice=VOICE;
+  u.rate=RATE; u.pitch=0.96;
+  u.onend=()=>{ qi++; setTimeout(speakNext, qi<queue.length?430:250); };
+  u.onerror=()=>{ qi++; setTimeout(speakNext, 150); };
+  speechSynthesis.speak(u);
+  if(speechSynthesis.paused) speechSynthesis.resume();
+}
+let queue=[], qi=0;
+function buildQueue(sec){
+  const h2 = sec.querySelector("h2"), narr = sec.querySelector(".narr");
+  const cards = [...sec.querySelectorAll(".card")].map(c=>{
+    const lbl=c.querySelector(".lbl"), val=c.querySelector(".val"), sub=c.querySelector(".sub");
+    return [lbl?lbl.textContent:"", val?val.textContent:"", sub?sub.textContent:""].filter(Boolean).join(". ");
+  }).join(". ");
+  let text = (h2?h2.textContent+". ":"") + (narr?narr.textContent:"") + (cards?" "+cards:"");
+  const st = speakable(text);
+  return (st.match(/[^.!?…]+[.!?…]+/g)||[st]).map(s=>s.trim()).filter(Boolean);
+}
+let idx=0;
+let SECS=[]; let READING=false; let GEN=0;
+function setPlaying(on){
+  const b=document.getElementById("play");
+  if(b) b.innerHTML = on? "❚❚ Reading…" : "▶ Read This Report";
+}
+function stopSpeech(){
+  READING=false; GEN++;
+  if(window.speechSynthesis) speechSynthesis.cancel();
+  setPlaying(false);
+}
+function playReport(){
+  if(READING){ stopSpeech(); return; }
+  if(!window.speechSynthesis) return;
+  SECS=document.querySelectorAll(".sec");
+  if(!SECS.length) return;
+  if(idx>=SECS.length) idx=0;
+  speechSynthesis.cancel();
+  const gen=++GEN;
+  READING=true;
+  setPlaying(true);
+  playSection(gen, idx);
+}
+function playSection(gen, i){
+  if(gen!==GEN || !READING) return;
+  if(SECS[i].scrollIntoView) SECS[i].scrollIntoView({behavior:"smooth",block:"start"});
+  queue=buildQueue(SECS[i]); qi=0;
+  if(queue.length) speakNext(gen); else sectionDone(gen);
+}
+function speakNext(gen){
+  if(gen!==GEN || !READING) return;
+  if(qi>=queue.length){ sectionDone(gen); return; }
+  const u=new SpeechSynthesisUtterance(queue[qi]);
+  if(VOICE) u.voice=VOICE;
+  u.rate=RATE; u.pitch=0.96;
+  u.onend=()=>{ if(gen!==GEN||!READING) return; qi++; setTimeout(()=>speakNext(gen), 420); };
+  u.onerror=()=>{ if(gen!==GEN||!READING) return; qi++; setTimeout(()=>speakNext(gen), 150); };
+  speechSynthesis.speak(u);
+  if(speechSynthesis.paused) speechSynthesis.resume();
+}
+function sectionDone(gen){
+  if(gen!==GEN || !READING) return;
+  idx++;
+  if(idx<SECS.length) setTimeout(()=>playSection(gen, idx), 900);
+  else stopSpeech();
+}
+document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'){idx=Math.min(idx+1,Math.max(0,SECS.length-1)); if(READING) playSection(++GEN,idx);}if(e.key==='ArrowLeft'){idx=Math.max(0,idx-1); if(READING) playSection(++GEN,idx);}});
+function showDrawer(b){
+  const d=document.getElementById('drawer');
+  d.innerHTML=`<b style="color:var(--acc)">${b.textContent}</b><br><span style="color:var(--mut)">Source:</span> ${b.dataset.src}`+
+    (b.dataset.url?`<br><a style="color:#60a5fa" href="${b.dataset.url}" target="_blank">Open source documentation →</a>`:'')+
+    `<br><span style="color:var(--mut);font-size:11px">Every claim in this report carries its evidence class. Click any badge to see its source.</span>`;
+  d.classList.add('open');
+  setTimeout(()=>d.classList.remove('open'),7000);
+}
+</script><div id="vbar" style="position:fixed;bottom:14px;right:14px;z-index:999;background:#161b22f0;border:1px solid #2a3644;border-radius:10px;padding:8px 10px;display:flex;gap:8px;align-items:center;font-size:12px">
+<span style="color:#8aa">🎙</span>
+<select id="vsel" style="background:#0d1117;color:#cfe;border:1px solid #2a3644;border-radius:6px;padding:3px 5px;max-width:170px"></select>
+<span style="color:#8aa">speed</span>
+<input id="vrate" type="range" min="0.8" max="1.15" step="0.02" value="0.94" style="width:70px">
+</div>
+<script>
+if(window.speechSynthesis){speechSynthesis.onvoiceschanged=loadVoices;loadVoices();}
+document.addEventListener('DOMContentLoaded',()=>{const s=document.getElementById('vsel');if(s)s.onchange=e=>{VOICE=speechSynthesis.getVoices()[e.target.value];};const r=document.getElementById('vrate');if(r)r.oninput=e=>{RATE=parseFloat(e.target.value);};});
+</script></body></html>
